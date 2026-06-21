@@ -1,0 +1,794 @@
+{% load static humanize %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Harvest of Divine Fulfillment 2026 — CYON, Christ the Good Shepherd Catholic Church</title>
+    <meta name="description" content="Join CYON in the Harvest of Divine Fulfillment 2026. Support the youth of Christ the Good Shepherd Catholic Church, Akobo, Ibadan. Target: ₦5,000,000.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;800&family=Great+Vibes&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --harvest-green-900: #14301F;
+            --harvest-green-800: #1B4332;
+            --harvest-green-700: #245C3F;
+            --harvest-gold-500: #C9A227;
+            --harvest-gold-400: #E0C158;
+            --harvest-gold-gradient: linear-gradient(135deg, #E8C547 0%, #B8860B 100%);
+            --harvest-cream: #FAF6EC;
+            --harvest-cream-card: #F4EFE2;
+            --harvest-text-dark: #1B3B2B;
+            --harvest-success: #2E7D4F;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--harvest-cream);
+            color: var(--harvest-text-dark);
+            overflow-x: hidden;
+        }
+
+        /* ══ HERO ═══════════════════════════════════════════════════ */
+        .hero {
+            position: relative;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            background-color: var(--harvest-green-900);
+            color: var(--harvest-cream);
+            padding: 0 1.5rem 4rem;
+            overflow: hidden;
+        }
+
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background:
+                linear-gradient(to bottom, rgba(20,48,31,0.80) 0%, rgba(20,48,31,0.93) 100%),
+                url("{% static 'images/brand/church.jpg' %}") center/cover no-repeat;
+            animation: kenBurns 20s infinite alternate ease-in-out;
+            z-index: 0;
+        }
+
+        .hero-topbar {
+            position: relative;
+            z-index: 10;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1.5rem 0 2rem;
+            max-width: 1200px;
+            margin: 0 auto;
+            width: 100%;
+        }
+        .hero-topbar img.cyon-logo { height: 90px; width: auto; }
+        .hero-topbar .arch-seal { height: 80px; width: 80px; object-fit: contain; border-radius: 50%; background: rgba(255,255,255,0.92); padding: 3px; }
+        .hero-topbar .church-name-bar {
+            font-family: 'Poppins', sans-serif;
+            font-weight: 700;
+            font-size: 0.85rem;
+            color: var(--harvest-gold-400);
+            text-align: center;
+            letter-spacing: 0.5px;
+            line-height: 1.6;
+        }
+
+        .hero-content {
+            position: relative;
+            z-index: 10;
+            max-width: 960px;
+            margin: 0 auto;
+            text-align: center;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            padding-top: 2rem;
+        }
+
+        .hero-script {
+            font-family: 'Great Vibes', cursive;
+            font-size: clamp(2rem, 5vw, 3.5rem);
+            color: var(--harvest-gold-400);
+            margin-bottom: 0.5rem;
+            animation: fadeInDown 0.8s ease both;
+        }
+
+        .hero-headline {
+            font-family: 'Poppins', sans-serif;
+            font-weight: 800;
+            font-size: clamp(3.5rem, 10vw, 8rem);
+            line-height: 0.95;
+            text-transform: uppercase;
+            margin-bottom: 2.5rem;
+            animation: fadeInDown 0.9s ease 0.1s both;
+        }
+        .hero-headline .gold {
+            background: var(--harvest-gold-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            display: block;
+        }
+
+        /* Live target widget */
+        .hero-progress {
+            background: rgba(20,48,31,0.75);
+            backdrop-filter: blur(16px);
+            border: 1px solid rgba(201,162,39,0.35);
+            border-radius: 24px;
+            padding: 2rem 2.5rem;
+            max-width: 680px;
+            width: 100%;
+            margin: 0 auto 2.5rem;
+            animation: fadeInUp 1s ease 0.2s both, float 6s ease-in-out 1.5s infinite;
+            text-align: center;
+        }
+        .hero-amount {
+            font-family: 'Poppins', sans-serif;
+            font-weight: 800;
+            font-size: clamp(2.8rem, 5vw, 4.2rem);
+            background: var(--harvest-gold-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            line-height: 1;
+            margin-bottom: 0.25rem;
+            font-variant-numeric: tabular-nums;
+            white-space: nowrap;
+        }
+        .hero-parish-context {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: rgba(201,162,39,0.12);
+            border: 1px solid rgba(201,162,39,0.3);
+            border-radius: 100px;
+            padding: 0.4rem 1rem;
+            margin-top: 0.75rem;
+            font-size: 0.82rem;
+            color: rgba(250,246,236,0.75);
+            font-weight: 600;
+        }
+        .hero-parish-context .parish-amount {
+            background: var(--harvest-gold-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            font-weight: 800;
+        }
+        .hero-subtext { font-size: 1rem; color: rgba(250,246,236,0.7); font-weight: 600; text-transform: uppercase; letter-spacing: 1.5px; margin-top: 0.4rem; }
+
+        .hero-cta {
+            display: flex;
+            gap: 1.25rem;
+            justify-content: center;
+            flex-wrap: wrap;
+            animation: fadeInUp 1s ease 0.4s both;
+        }
+        .btn-gold {
+            padding: 1.1rem 2.8rem;
+            background: var(--harvest-gold-gradient);
+            color: var(--harvest-green-900);
+            font-family: 'Poppins', sans-serif;
+            font-weight: 800;
+            font-size: 1.15rem;
+            border-radius: 100px;
+            text-decoration: none;
+            border: none;
+            cursor: pointer;
+            transition: opacity 0.2s, transform 0.15s;
+            display: inline-block;
+        }
+        .btn-gold:hover { opacity: 0.9; transform: translateY(-2px); }
+        .btn-outline {
+            padding: 1.1rem 2.8rem;
+            background: transparent;
+            color: var(--harvest-cream);
+            font-family: 'Poppins', sans-serif;
+            font-weight: 700;
+            font-size: 1.15rem;
+            border-radius: 100px;
+            text-decoration: none;
+            border: 2px solid rgba(250,246,236,0.5);
+            cursor: pointer;
+            transition: border-color 0.2s, background 0.2s;
+            display: inline-block;
+        }
+        .btn-outline:hover { border-color: var(--harvest-gold-400); background: rgba(201,162,39,0.1); }
+
+        /* ══ SECTIONS ════════════════════════════════════════════════ */
+        section { padding: 5rem 2.5rem; }
+        .section-inner { max-width: 1200px; margin: 0 auto; }
+
+        .section-label {
+            font-family: 'Great Vibes', cursive;
+            font-size: 1.8rem;
+            color: var(--harvest-gold-500);
+            display: block;
+            margin-bottom: 0.4rem;
+        }
+        .section-title {
+            font-family: 'Poppins', sans-serif;
+            font-weight: 800;
+            font-size: clamp(2rem, 4vw, 3rem);
+            color: var(--harvest-green-900);
+            margin-bottom: 2.5rem;
+            text-transform: uppercase;
+        }
+
+        /* ══ SCROLL REVEAL ═══════════════════════════════════════════ */
+        .reveal {
+            opacity: 0;
+            transform: translateY(40px);
+            transition: opacity 0.75s ease, transform 0.75s ease;
+            will-change: transform, opacity;
+        }
+        .reveal.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        .reveal-delay-1 { transition-delay: 0.1s; }
+        .reveal-delay-2 { transition-delay: 0.2s; }
+        .reveal-delay-3 { transition-delay: 0.3s; }
+        .reveal-delay-4 { transition-delay: 0.4s; }
+
+        /* ══ SCROLL PROGRESS BAR ════════════════════════════════════ */
+        .scroll-progress {
+            position: fixed;
+            top: 0; left: 0;
+            height: 3px;
+            width: 0%;
+            background: var(--harvest-gold-gradient);
+            z-index: 9999;
+            transition: width 0.1s;
+        }
+
+        /* ══ WHY WE NEED YOU ═════════════════════════════════════════ */
+        .why-section { background: var(--harvest-cream-card); }
+
+        .why-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 2rem;
+            margin-bottom: 2.5rem;
+        }
+        .why-card {
+            background: var(--harvest-cream);
+            border: 1.5px solid rgba(201,162,39,0.3);
+            border-radius: 18px;
+            padding: 2rem 1.75rem;
+            text-align: center;
+            transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s;
+            cursor: default;
+        }
+        .why-card:hover {
+            transform: translateY(-6px);
+            box-shadow: 0 16px 40px rgba(20,48,31,0.12);
+            border-color: rgba(201,162,39,0.6);
+        }
+        .why-icon {
+            width: 68px; height: 68px;
+            background: var(--harvest-gold-gradient);
+            border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            margin: 0 auto 1.25rem;
+            font-size: 1.9rem;
+            transition: transform 0.3s ease;
+        }
+        .why-card:hover .why-icon { transform: scale(1.12) rotate(-5deg); }
+        .why-card h4 {
+            font-family: 'Poppins', sans-serif;
+            font-weight: 700;
+            color: var(--harvest-green-900);
+            font-size: 1.05rem;
+            margin-bottom: 0.5rem;
+        }
+        .why-card p { font-size: 0.95rem; color: #4B6B57; line-height: 1.6; }
+        .why-closing {
+            text-align: center;
+            font-style: italic;
+            color: var(--harvest-green-800);
+            font-size: 1.15rem;
+            border-top: 1px solid rgba(201,162,39,0.3);
+            padding-top: 1.75rem;
+            font-weight: 600;
+        }
+
+        /* ══ DONATE SECTION ══════════════════════════════════════════ */
+        .donate-section { background: var(--harvest-green-900); color: var(--harvest-cream); }
+        .donate-section .section-title { color: var(--harvest-cream); }
+
+        .donate-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2.5rem;
+            align-items: start;
+        }
+        @media (max-width: 780px) { .donate-grid { grid-template-columns: 1fr; } }
+
+        .bank-card {
+            background: rgba(36,92,63,0.6);
+            border: 1.5px solid rgba(201,162,39,0.35);
+            border-radius: 20px;
+            padding: 2.25rem;
+        }
+        .bank-card-header {
+            background: var(--harvest-gold-gradient);
+            color: var(--harvest-green-900);
+            font-family: 'Poppins', sans-serif;
+            font-weight: 800;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            padding: 0.6rem 1.2rem;
+            border-radius: 10px;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            margin-bottom: 1.5rem;
+        }
+        .bank-row { margin-bottom: 1.25rem; }
+        .bank-label { font-size: 0.8rem; color: var(--harvest-gold-400); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 0.2rem; }
+        .bank-value { font-weight: 600; font-size: 1rem; }
+        .account-number {
+            font-family: 'Poppins', sans-serif;
+            font-weight: 800;
+            font-size: 2.5rem;
+            letter-spacing: 3px;
+            background: var(--harvest-gold-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            font-variant-numeric: tabular-nums;
+        }
+        .copy-btn {
+            margin-top: 0.5rem;
+            padding: 0.5rem 1.2rem;
+            background: rgba(201,162,39,0.15);
+            border: 1px solid rgba(201,162,39,0.4);
+            color: var(--harvest-gold-400);
+            font-family: 'Inter', sans-serif;
+            font-weight: 600;
+            font-size: 0.85rem;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .copy-btn:hover { background: rgba(201,162,39,0.25); }
+
+        .contribute-card {
+            background: rgba(36,92,63,0.6);
+            border: 1.5px solid rgba(201,162,39,0.35);
+            border-radius: 20px;
+            padding: 2.5rem;
+        }
+        .contribute-card h3 {
+            font-family: 'Poppins', sans-serif;
+            font-weight: 700;
+            color: var(--harvest-gold-400);
+            font-size: 1.3rem;
+            margin-bottom: 1.5rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .contribute-card p { font-size: 1.1rem; line-height: 1.8; }
+        .contribute-card a.btn-gold {
+            display: block;
+            text-align: center;
+            padding: 1.2rem;
+            border-radius: 12px;
+            font-size: 1.15rem;
+        }
+
+        /* ══ SCRIPTURE ══════════════════════════════════════════════ */
+        .scripture-section {
+            background: var(--harvest-green-800);
+            text-align: center;
+            color: var(--harvest-cream);
+        }
+        .scripture-quote {
+            font-family: 'Great Vibes', cursive;
+            font-size: clamp(2.2rem, 5vw, 4rem);
+            color: var(--harvest-gold-400);
+            margin-bottom: 0.5rem;
+            line-height: 1.4;
+            transition: opacity 0.5s, transform 0.5s;
+        }
+        .scripture-ref {
+            font-size: 0.9rem;
+            color: rgba(250,246,236,0.6);
+            font-style: italic;
+            margin-bottom: 2rem;
+        }
+        .scripture-body { max-width: 580px; margin: 0 auto; color: rgba(250,246,236,0.85); line-height: 1.8; }
+
+        /* ══ FOOTER ══════════════════════════════════════════════════ */
+        .site-footer-landing {
+            background: var(--harvest-green-900);
+            border-top: 1px solid rgba(201,162,39,0.2);
+            padding: 2.5rem 1.5rem;
+            text-align: center;
+            color: rgba(250,246,236,0.6);
+            font-size: 0.85rem;
+        }
+        .footer-inner { max-width: 700px; margin: 0 auto; }
+        .footer-inner .title {
+            font-family: 'Poppins', sans-serif;
+            font-weight: 800;
+            font-size: 1rem;
+            color: var(--harvest-gold-400);
+            margin-bottom: 0.25rem;
+        }
+        .footer-inner .script-line {
+            font-family: 'Great Vibes', cursive;
+            font-size: 1.4rem;
+            color: var(--harvest-gold-500);
+            display: block;
+            margin: 0.75rem 0;
+        }
+        .footer-links { margin-top: 1rem; }
+        .footer-links a { color: var(--harvest-gold-400); text-decoration: none; margin: 0 0.75rem; font-weight: 500; }
+        .footer-links a:hover { text-decoration: underline; }
+
+        /* ══ ANIMATIONS ══════════════════════════════════════════════ */
+        @keyframes fadeInDown {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes kenBurns {
+            0% { transform: scale(1) translate(0, 0); }
+            50% { transform: scale(1.08) translate(-1%, 1%); }
+            100% { transform: scale(1.12) translate(1%, -1%); }
+        }
+        @keyframes pulse-gold {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(201,162,39,0.5); }
+            50% { box-shadow: 0 0 0 14px rgba(201,162,39,0); }
+        }
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-8px); }
+        }
+        @keyframes shimmer {
+            0% { background-position: -200% center; }
+            100% { background-position: 200% center; }
+        }
+
+        /* Gold donate button pulse */
+        .btn-gold-pulse {
+            animation: pulse-gold 2.5s ease-in-out infinite;
+        }
+        /* Floating widget */
+        .hero-progress { animation: fadeInUp 1s ease 0.2s both, float 6s ease-in-out 1.5s infinite; }
+
+        /* Bank/contribute card hover */
+        .bank-card, .contribute-card {
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        .bank-card:hover, .contribute-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 20px 50px rgba(0,0,0,0.25);
+        }
+
+        /* Scripture quotes stagger in */
+        .scripture-quote {
+            transition: opacity 0.5s, transform 0.5s;
+        }
+
+        /* Logo links hover scale */
+        .logo-link {
+            display: inline-flex;
+            align-items: center;
+            transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+            text-decoration: none;
+            outline: none;
+            border: none;
+        }
+        .logo-link:hover {
+            transform: scale(1.06);
+        }
+
+        @media (max-width: 768px) {
+            /* R1. Topbar & Logos */
+            /* R1: Topbar and Branding Mobile Layout */
+            .hero-topbar {
+                padding: 1rem 0;
+                gap: 0.5rem;
+            }
+            .hero-topbar img.cyon-logo {
+                height: 50px;
+                width: auto;
+            }
+            .hero-topbar .arch-seal {
+                height: 45px;
+                width: 45px;
+                background: rgba(255,255,255,0.92);
+                padding: 2px;
+            }
+            .hero-topbar .church-name-bar {
+                font-size: clamp(0.58rem, 2.5vw, 0.75rem);
+                line-height: 1.3;
+                letter-spacing: 0.2px;
+                flex: 1;
+            }
+            .hero-topbar .church-name-bar span {
+                font-size: clamp(0.5rem, 2.2vw, 0.68rem) !important;
+            }
+
+            /* R2: Hero Headline & Target Widget Layout */
+            .hero-content {
+                padding-top: 1rem;
+            }
+            .hero-headline {
+                font-size: clamp(2rem, 8vw, 4.5rem);
+                margin-bottom: 1.5rem;
+            }
+            .hero-progress {
+                padding: 1.5rem;
+                margin: 0 auto 2rem;
+                animation: fadeInUp 1s ease 0.2s both;
+            }
+            .hero-amount {
+                font-size: clamp(2rem, 7vw, 4.2rem);
+            }
+            .hero-parish-context {
+                display: inline-flex;
+                flex-wrap: wrap;
+                justify-content: center;
+                border-radius: 12px;
+                padding: 0.5rem 1rem;
+                line-height: 1.4;
+            }
+
+            /* R3: Hero CTA Buttons Mobile Stack */
+            .hero-cta {
+                flex-direction: column;
+                align-items: stretch;
+                gap: 0.8rem;
+                max-width: 290px;
+                margin: 0 auto;
+                width: 100%;
+            }
+            .hero-cta .btn-gold,
+            .hero-cta .btn-outline {
+                display: block;
+                width: 100%;
+                text-align: center;
+                padding: 1rem 1.5rem;
+                box-sizing: border-box;
+            }
+
+            /* R4: Grid Layout and Card Adjustments */
+            section {
+                padding: 3rem 1.25rem;
+            }
+            .section-title {
+                font-size: 1.7rem;
+            }
+            .why-card {
+                padding: 1.5rem;
+            }
+            .donate-grid {
+                grid-template-columns: 1fr;
+                gap: 1.5rem;
+                max-width: 480px;
+                margin: 0 auto;
+            }
+            .bank-card,
+            .contribute-card {
+                padding: 1.5rem;
+            }
+
+            /* R5: Bank Account Number Responsive Font Size */
+            .account-number {
+                font-size: clamp(1.6rem, 6vw, 2.5rem);
+                letter-spacing: 1.5px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<!-- Scroll progress indicator -->
+<div class="scroll-progress" id="scroll-progress"></div>
+
+<!-- ═══════════════════════════════ HERO ════════════════════════════ -->
+<section class="hero">
+    <div class="hero-topbar">
+        <a href="{% url 'contributions:landing' %}" class="logo-link">
+            <img class="arch-seal" src="{% static 'images/brand/church-seal.png' %}" alt="Catholic Archdiocese of Ibadan">
+        </a>
+        <div class="church-name-bar">
+            CATHOLIC ARCHDIOCESE OF IBADAN<br>
+            <strong>CHRIST THE GOOD SHEPHERD CATHOLIC CHURCH, FELELE</strong><br>
+            <span style="color:rgba(250,246,236,0.6); font-size:0.78rem; font-weight:600;">CATHOLIC YOUTH ORGANIZATION OF NIGERIA (CYON)</span>
+        </div>
+        <a href="{% url 'contributions:landing' %}" class="logo-link">
+            <img class="cyon-logo" src="{% static 'images/brand/cyon-logo.png' %}" alt="CYON Logo">
+        </a>
+    </div>
+
+    <div class="hero-content">
+        <div class="hero-script">Join us to</div>
+        <div class="hero-headline">
+            REACH OUR<br>
+            <span class="gold">HARVEST</span>
+            TARGET
+        </div>
+
+        <!-- Target widget -->
+        <div class="hero-progress">
+            <div style="font-size:0.72rem; color:rgba(250,246,236,0.5); text-transform:uppercase; letter-spacing:2px; margin-bottom:0.6rem;">CYON Harvest Contribution Target</div>
+            <div class="hero-amount">₦5,000,000</div>
+            <div class="hero-subtext">Help us reach the CYON goal!</div>
+            <div class="hero-parish-context">
+                <span>Part of the parish-wide target of</span>
+                <span class="parish-amount">₦30,000,000</span>
+            </div>
+        </div>
+
+        <div class="hero-cta">
+            <a href="{% url 'contributions:generic_donation' %}" class="btn-gold btn-gold-pulse" style="animation-delay:0.4s;">🙏 Donate / Pledge Now</a>
+            <a href="{% url 'live:board' %}" class="btn-outline">📺 View Live Board</a>
+        </div>
+    </div>
+</section>
+
+<!-- ══ YOUR SUPPORT HELPS US ════════════════════════════════════════ -->
+<section class="why-section">
+    <div class="section-inner">
+        <span class="section-label reveal">Why it matters</span>
+        <h2 class="section-title reveal">YOUR SUPPORT HELPS US</h2>
+        <div class="why-grid">
+            <div class="why-card reveal reveal-delay-1">
+                <div class="why-icon">🎉</div>
+                <h4>Organize a Harvest Celebration</h4>
+                <p>Fund a successful and memorable Harvest event for the whole parish community.</p>
+            </div>
+            <div class="why-card reveal reveal-delay-2">
+                <div class="why-icon">✝️</div>
+                <h4>Support Youth Evangelization</h4>
+                <p>Enable CYON members to carry out meaningful faith-based outreach activities.</p>
+            </div>
+            <div class="why-card reveal reveal-delay-3">
+                <div class="why-icon">🏫</div>
+                <h4>Fund Parish Youth Projects</h4>
+                <p>Invest in programmes and initiatives that build up the next generation of the Church.</p>
+            </div>
+            <div class="why-card reveal reveal-delay-4">
+                <div class="why-icon">🤝</div>
+                <h4>Strengthen Community Outreach</h4>
+                <p>Reach those in need within and around Felele with love and service.</p>
+            </div>
+        </div>
+        <p class="why-closing reveal">Together, we build a vibrant faith community.</p>
+    </div>
+</section>
+
+<!-- ══ DONATE ════════════════════════════════════════════════════════ -->
+<section class="donate-section" id="donate">
+    <div class="section-inner">
+        <span class="section-label reveal" style="color: var(--harvest-gold-400);">Every contribution counts</span>
+        <h2 class="section-title reveal">DONATE TOWARDS OUR TARGET</h2>
+        <p class="reveal" style="color:rgba(250,246,236,0.65); margin-top:-1.5rem; margin-bottom:2rem; font-size:0.95rem;">
+            <strong style="color:var(--harvest-gold-400);">CYON Target: ₦5,000,000</strong> &nbsp;·&nbsp; Part of the overall Parish Harvest Target of <strong style="color:var(--harvest-gold-400);">₦30,000,000</strong>
+        </p>
+        <div class="donate-grid">
+            <!-- Bank Details Card -->
+            <div class="bank-card">
+                <div class="bank-card-header">🏦 Bank Transfer Details</div>
+                <div class="bank-row">
+                    <div class="bank-label">Bank</div>
+                    <div class="bank-value">Union Bank</div>
+                </div>
+                <div class="bank-row">
+                    <div class="bank-label">Account Name</div>
+                    <div class="bank-value">Christ the Good Shepherd Catholic Church</div>
+                </div>
+                <div class="bank-row">
+                    <div class="bank-label">Account Number</div>
+                    <div class="account-number" id="acct-num">0000313701</div>
+                    <button class="copy-btn" onclick="copyAcct(event)">📋 Copy Number</button>
+                </div>
+                <p style="margin-top:1.25rem; font-size:0.8rem; color:rgba(250,246,236,0.55); font-style:italic;">After transferring, click "Log Your Contribution" to record it and get your receipt.</p>
+            </div>
+
+            <!-- Log Contribution Card -->
+            <div class="contribute-card">
+                <h3>📝 Log Your Contribution</h3>
+                <p style="color:rgba(250,246,236,0.7); font-size:0.9rem; margin-bottom:1.25rem; line-height:1.6;">
+                    Whether you've paid cash, made a transfer, or want to pledge — log it here to appear on the Live Board and get your receipt.
+                </p>
+                <a href="{% url 'contributions:generic_donation' %}" class="btn-gold">Record My Contribution →</a>
+                <div style="margin-top:1.5rem; padding-top:1.25rem; border-top:1px solid rgba(201,162,39,0.2);">
+                    <p style="color:rgba(250,246,236,0.55); font-size:0.82rem; margin-bottom:0.75rem;">Are you a CYON youth member? Get your personal fundraising link!</p>
+                    <a href="{% url 'accounts:signup' %}" class="btn-outline" style="border-radius:10px; padding:0.7rem 1rem; font-size:0.9rem; display:block; text-align:center;">Join & Get My Link →</a>
+                </div>
+            </div>
+        </div>
+        <p style="text-align:center; margin-top:2rem; font-style:italic; color:var(--harvest-gold-400); font-size:0.95rem;">Every donation counts!</p>
+    </div>
+</section>
+
+<!-- ══ SCRIPTURE ═════════════════════════════════════════════════════ -->
+<section class="scripture-section">
+    <div class="section-inner">
+        <div class="scripture-quote reveal">"Those who sow in tears</div>
+        <div class="scripture-quote reveal reveal-delay-1">will reap with songs of joy."</div>
+        <div class="scripture-ref reveal reveal-delay-2">— Psalm 126:5</div>
+        <div class="scripture-body reveal reveal-delay-3">
+            <p>No contribution is too small. Every donation brings us closer to our goal.</p>
+            <p style="margin-top:0.75rem;">Thank you for supporting the growth of our youth and parish community.</p>
+        </div>
+    </div>
+</section>
+
+<!-- ══ FOOTER ════════════════════════════════════════════════════════ -->
+<footer class="site-footer-landing">
+    <div class="footer-inner">
+        <div class="title">HARVEST OF DIVINE FULFILLMENT 2026</div>
+        <p>Christ the Good Shepherd Catholic Church, Felele, Ibadan</p>
+        <span class="script-line">Let your light shine!</span>
+        <div class="footer-links">
+            <a href="{% url 'live:board' %}">Live Board</a>
+            <a href="{% url 'dashboard:leaderboard' %}">Leaderboard</a>
+            <a href="{% url 'accounts:login' %}">Member Login</a>
+            <a href="{% url 'accounts:signup' %}">Join CYON</a>
+        </div>
+    </div>
+</footer>
+
+<script>
+    // ── Scroll progress bar ──────────────────────────────────────
+    const progressBar = document.getElementById('scroll-progress');
+    window.addEventListener('scroll', () => {
+        const scrolled = (window.scrollY / (document.body.scrollHeight - window.innerHeight)) * 100;
+        progressBar.style.width = scrolled + '%';
+    }, { passive: true });
+
+    // ── Scroll-reveal (IntersectionObserver) ─────────────────────
+    const revealEls = document.querySelectorAll('.reveal');
+    const revealObserver = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.classList.add('visible');
+                revealObserver.unobserve(entry.target);
+            }
+        });
+    }, { threshold: 0.15 });
+    revealEls.forEach(el => revealObserver.observe(el));
+
+    // ── Copy account number ───────────────────────────────────────
+    function copyAcct(event) {
+        navigator.clipboard.writeText('0000313701').then(() => {
+            const btn = event.target;
+            btn.textContent = '✓ Copied!';
+            btn.style.background = 'rgba(46,125,79,0.3)';
+            btn.style.color = '#A5FFCC';
+            setTimeout(() => {
+                btn.textContent = '📋 Copy Number';
+                btn.style.background = '';
+                btn.style.color = '';
+            }, 2500);
+        });
+    }
+
+    // ── Smooth scroll for anchor links ───────────────────────────
+    document.querySelectorAll('a[href^="#"]').forEach(a => {
+        a.addEventListener('click', e => {
+            const target = document.querySelector(a.getAttribute('href'));
+            if (target) { e.preventDefault(); target.scrollIntoView({ behavior: 'smooth' }); }
+        });
+    });
+</script>
+</body>
+</html>

@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Download Flyer</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <style>
+        body {
+            background: #f4f4f4;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            font-family: 'Poppins', sans-serif;
+            flex-direction: column;
+        }
+
+        .flyer-container {
+            width: 1080px;
+            height: 1080px;
+            background: linear-gradient(135deg, #1B3B2B 0%, #0F2017 100%);
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+            color: #fff;
+        }
+
+        /* Decorative Elements */
+        .deco-circle-1 {
+            position: absolute;
+            width: 800px;
+            height: 800px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(201,162,39,0.15) 0%, rgba(201,162,39,0) 70%);
+            top: -200px;
+            left: -200px;
+        }
+        .deco-circle-2 {
+            position: absolute;
+            width: 600px;
+            height: 600px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(201,162,39,0.1) 0%, rgba(201,162,39,0) 70%);
+            bottom: -100px;
+            right: -100px;
+        }
+
+        .header {
+            position: absolute;
+            top: 60px;
+            text-align: center;
+            width: 100%;
+        }
+        .header-title {
+            color: #C9A227;
+            font-size: 2.5rem;
+            font-weight: 800;
+            letter-spacing: 4px;
+            text-transform: uppercase;
+        }
+        
+        .profile-pic-container {
+            width: 450px;
+            height: 450px;
+            border-radius: 50%;
+            border: 8px solid #C9A227;
+            overflow: hidden;
+            margin-top: -50px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            background: #E8C547;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 10rem;
+            color: #1B3B2B;
+            font-weight: 800;
+        }
+        .profile-pic-container img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .name-tag {
+            margin-top: 40px;
+            font-size: 4rem;
+            font-weight: 800;
+            text-align: center;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+        }
+
+        .title-tag {
+            margin-top: 15px;
+            font-size: 2rem;
+            font-weight: 600;
+            background: linear-gradient(135deg, #E8C547 0%, #B8860B 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .footer-banner {
+            position: absolute;
+            bottom: 0;
+            width: 100%;
+            background: rgba(201,162,39,0.15);
+            backdrop-filter: blur(10px);
+            border-top: 2px solid rgba(201,162,39,0.3);
+            padding: 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-sizing: border-box;
+        }
+
+        .qr-section {
+            display: flex;
+            align-items: center;
+            gap: 30px;
+        }
+
+        .qr-code {
+            width: 160px;
+            height: 160px;
+            background: #fff;
+            padding: 10px;
+            border-radius: 12px;
+        }
+
+        .cta-text {
+            font-size: 2.2rem;
+            font-weight: 700;
+            line-height: 1.2;
+        }
+        .cta-subtext {
+            font-size: 1.4rem;
+            color: #E8C547;
+            margin-top: 8px;
+        }
+
+        /* Control Panel */
+        .controls {
+            margin-top: 30px;
+            padding: 20px;
+            background: #fff;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            display: flex;
+            gap: 20px;
+            align-items: center;
+        }
+        .btn-download {
+            padding: 15px 30px;
+            background: #1B3B2B;
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            font-size: 1.2rem;
+            font-family: 'Poppins', sans-serif;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        .btn-download:hover { background: #245C3F; }
+        .btn-back {
+            color: #6B7280;
+            text-decoration: none;
+            font-size: 1.1rem;
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="flyer-container" id="flyer">
+        <div class="deco-circle-1"></div>
+        <div class="deco-circle-2"></div>
+        
+        <div class="header">
+            <div class="header-title">CYON Harvest 2026</div>
+        </div>
+
+        <div class="profile-pic-container">
+            {% if member.profile_picture %}
+                <!-- Use a trick to render absolute URL or base64 if needed, for html2canvas we must ensure no CORS issue. Usually relative path on same domain works perfectly -->
+                <img src="{{ member.profile_picture.url }}" crossorigin="anonymous">
+            {% else %}
+                {{ member.name|make_list|first|upper }}
+            {% endif %}
+        </div>
+
+        <div class="name-tag">{{ member.name }}</div>
+        
+        {% if member.contestant_title and member.contestant_title != 'None' %}
+            <div class="title-tag">Vying for {{ member.contestant_title }}</div>
+        {% else %}
+            <div class="title-tag">CYON Champion</div>
+        {% endif %}
+
+        <div class="footer-banner">
+            <div class="qr-section">
+                <img src="{{ qr_url }}" class="qr-code" crossorigin="anonymous">
+                <div>
+                    <div class="cta-text">Scan to Vote &<br>Support My Campaign</div>
+                    <div class="cta-subtext">Every contribution counts!</div>
+                </div>
+            </div>
+            <div style="text-align: right;">
+                <div style="font-size: 1.5rem; font-weight: 700; color: #C9A227;">Catholic Youth Organization</div>
+                <div style="font-size: 1.2rem; opacity: 0.8; margin-top: 5px;">St. Gabriel, Felele</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="controls">
+        <a href="{% url 'dashboard:member_hub' %}" class="btn-back">← Back to Hub</a>
+        <button class="btn-download" onclick="downloadFlyer()">↓ Download as Image</button>
+    </div>
+
+    <script>
+        function downloadFlyer() {
+            const flyer = document.getElementById('flyer');
+            const btn = document.querySelector('.btn-download');
+            btn.textContent = "Generating...";
+            
+            html2canvas(flyer, {
+                scale: 2, // High resolution
+                useCORS: true,
+                allowTaint: true,
+                backgroundColor: '#1B3B2B'
+            }).then(canvas => {
+                const link = document.createElement('a');
+                link.download = `CYON_Flyer_{{ member.name|slugify }}.png`;
+                link.href = canvas.toDataURL('image/png');
+                link.click();
+                btn.textContent = "↓ Download as Image";
+            }).catch(err => {
+                console.error(err);
+                btn.textContent = "Error generating image";
+            });
+        }
+    </script>
+</body>
+</html>

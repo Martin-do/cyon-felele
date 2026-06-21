@@ -1,0 +1,288 @@
+{% extends "base.html" %}
+{% load static humanize %}
+
+{% block title %}Contribution Receipt | CYON Harvest 2026{% endblock %}
+
+{% block head %}
+<style>
+    body {
+        background: #F4EFE2 !important;
+        background-image: none !important;
+        color: #1B3B2B !important;
+    }
+
+    /* ── CERTIFICATE CARD ───────────────────────────────────────── */
+    #receipt-card {
+        background: #FFFFFF !important;
+        border: none !important;
+        box-shadow: none !important;
+        padding: 0 !important;
+        border-radius: 0 !important;
+        max-width: 480px;
+        margin: 0 auto;
+    }
+
+    .certificate {
+        background: #FFFFFF;
+        border: 3px solid #C9A227;
+        border-radius: 20px;
+        padding: 2.5rem 2rem;
+        box-shadow: 0 0 0 6px rgba(201,162,39,0.12), 0 20px 50px rgba(20,48,31,0.1);
+        position: relative;
+        overflow: hidden;
+    }
+
+    /* Gold corner accents */
+    .certificate::before, .certificate::after {
+        content: '';
+        position: absolute;
+        width: 60px; height: 60px;
+        border: 3px solid rgba(201,162,39,0.3);
+        border-radius: 4px;
+    }
+    .certificate::before { top: 10px; left: 10px; border-right: none; border-bottom: none; }
+    .certificate::after  { bottom: 10px; right: 10px; border-left: none; border-top: none; }
+
+    .cert-header {
+        text-align: center;
+        border-bottom: 1.5px solid rgba(201,162,39,0.25);
+        padding-bottom: 1.25rem;
+        margin-bottom: 1.5rem;
+    }
+    .cert-header img { height: 52px; margin-bottom: 0.5rem; }
+    .cert-header .campaign {
+        font-family: 'Poppins', sans-serif;
+        font-weight: 800;
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        letter-spacing: 2px;
+        color: #245C3F;
+        margin-bottom: 0.2rem;
+    }
+
+    .cert-badge {
+        width: 60px; height: 60px;
+        background: linear-gradient(135deg, #2E7D4F, #1B4332);
+        border-radius: 50%;
+        display: flex; align-items: center; justify-content: center;
+        margin: 0 auto 1.25rem;
+    }
+    .cert-badge svg { width: 30px; height: 30px; }
+
+    .cert-thankyou {
+        font-family: 'Great Vibes', cursive;
+        font-size: 2.4rem;
+        color: #C9A227;
+        text-align: center;
+        margin-bottom: 0.25rem;
+    }
+    .cert-name {
+        font-family: 'Poppins', sans-serif;
+        font-weight: 800;
+        font-size: 1.4rem;
+        text-align: center;
+        color: #1B3B2B;
+        margin-bottom: 1.5rem;
+    }
+
+    .cert-details {
+        background: #FAF6EC;
+        border: 1px solid rgba(201,162,39,0.2);
+        border-radius: 12px;
+        padding: 1.25rem;
+        margin-bottom: 1.5rem;
+    }
+    .cert-detail-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        padding: 0.6rem 0;
+        border-bottom: 1px solid rgba(201,162,39,0.1);
+    }
+    .cert-detail-row:last-child { border-bottom: none; padding-bottom: 0; }
+    .cert-detail-label { font-size: 0.78rem; color: #4B6B57; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600; }
+    .cert-detail-value { font-weight: 700; color: #1B3B2B; font-size: 0.95rem; text-align: right; max-width: 60%; }
+    .cert-amount-value {
+        font-family: 'Poppins', sans-serif;
+        font-weight: 800;
+        font-size: 1.8rem;
+        background: linear-gradient(135deg, #E8C547 0%, #B8860B 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+    .cert-ref {
+        font-family: monospace;
+        font-size: 0.85rem;
+        background: rgba(201,162,39,0.1);
+        padding: 3px 8px;
+        border-radius: 5px;
+        color: #245C3F;
+        font-weight: 700;
+    }
+
+    .cert-scripture {
+        text-align: center;
+        font-style: italic;
+        color: #4B6B57;
+        font-size: 0.85rem;
+        border-top: 1px solid rgba(201,162,39,0.2);
+        padding-top: 1.25rem;
+        line-height: 1.6;
+    }
+    .cert-scripture strong { color: #C9A227; }
+
+    /* ── ACTION BUTTONS (hidden in print/download) ──────────────── */
+    .action-btns {
+        max-width: 480px;
+        margin: 1.5rem auto 0;
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
+    }
+    .btn-download {
+        width: 100%;
+        padding: 1rem;
+        border: none;
+        border-radius: 10px;
+        background: linear-gradient(135deg, #E8C547 0%, #B8860B 100%);
+        color: #14301F;
+        font-family: 'Poppins', sans-serif;
+        font-weight: 800;
+        font-size: 1rem;
+        cursor: pointer;
+        transition: opacity 0.2s;
+    }
+    .btn-download:hover { opacity: 0.9; }
+    .btn-download:disabled { opacity: 0.6; cursor: not-allowed; }
+
+    .btn-secondary {
+        width: 100%;
+        padding: 0.85rem;
+        border: 2px solid rgba(36,92,63,0.4);
+        border-radius: 10px;
+        background: transparent;
+        color: #245C3F;
+        font-family: 'Poppins', sans-serif;
+        font-weight: 700;
+        font-size: 0.95rem;
+        cursor: pointer;
+        text-align: center;
+        text-decoration: none;
+        display: block;
+        transition: all 0.2s;
+    }
+    .btn-secondary:hover { background: rgba(36,92,63,0.06); border-color: #245C3F; }
+
+    /* Light footer */
+    .site-footer { background: #F4EFE2 !important; border-color: rgba(201,162,39,0.2) !important; }
+    .site-footer p { color: #4B6B57 !important; }
+    .site-footer a { color: #245C3F !important; }
+
+    @media print {
+        body { background: white; }
+        .action-btns, .site-header, .site-footer { display: none !important; }
+        #receipt-card { margin: 0; }
+        .certificate { box-shadow: none; border: 3px solid #C9A227; }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div id="receipt-card">
+    <div class="certificate">
+        <!-- Header -->
+        <div class="cert-header">
+            <a href="{% url 'contributions:landing' %}" class="logo-link" style="display:inline-flex; align-items:center; transition:transform 0.25s; text-decoration:none; outline:none; border:none;">
+                <img src="{% static 'images/brand/cyon-logo.png' %}" alt="CYON Logo">
+            </a>
+            <div class="campaign">HARVEST OF DIVINE FULFILLMENT 2026</div>
+            <div style="font-size:0.72rem; color:#4B6B57;">Christ the Good Shepherd Catholic Church, Felele, Ibadan</div>
+        </div>
+
+        <!-- Success badge -->
+        <div class="cert-badge">
+            <svg fill="none" stroke="#FFFFFF" stroke-width="2.5" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
+            </svg>
+        </div>
+
+        <div class="cert-thankyou">Thank you,</div>
+        <div class="cert-name">{{ contribution.name }}!</div>
+
+        <!-- Contribution details -->
+        <div class="cert-details">
+            <div class="cert-detail-row">
+                <span class="cert-detail-label">Amount</span>
+                <span class="cert-amount-value" id="receipt-amount">₦{{ contribution.amount }}</span>
+            </div>
+            <div class="cert-detail-row">
+                <span class="cert-detail-label">Method</span>
+                <span class="cert-detail-value">{{ contribution.method|default:"Not specified"|capfirst }}</span>
+            </div>
+            <div class="cert-detail-row">
+                <span class="cert-detail-label">Reference</span>
+                <span class="cert-detail-value">
+                    <span class="cert-ref">CHV-{{ contribution.id|stringformat:"s"|slice:":8"|upper }}</span>
+                </span>
+            </div>
+            <div class="cert-detail-row">
+                <span class="cert-detail-label">Date</span>
+                <span class="cert-detail-value">{{ contribution.timestamp|date:"F j, Y · g:i a" }}</span>
+            </div>
+        </div>
+
+        <!-- Scripture -->
+        <div class="cert-scripture">
+            <strong>"Those who sow in tears will reap with songs of joy."</strong><br>
+            — Psalm 126:5<br>
+            <span style="margin-top:0.5rem; display:block;">Your generosity makes our community stronger. God bless you!</span>
+        </div>
+    </div>
+</div>
+
+<div class="action-btns no-print">
+    <button class="btn-download" id="download-btn" onclick="downloadReceipt()">
+        ⬇️ Download Receipt
+    </button>
+    <a href="{% url 'contributions:generic_donation' %}" class="btn-secondary">
+        🙏 Make Another Contribution
+    </a>
+    <a href="{% url 'live:board' %}" class="btn-secondary" style="border-color:rgba(201,162,39,0.4); color:#C9A227;">
+        📺 Watch the Live Board
+    </a>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script>
+    // Format amount with commas
+    const amountEl = document.getElementById('receipt-amount');
+    const rawAmt = parseFloat("{{ contribution.amount }}");
+    amountEl.innerText = '₦' + rawAmt.toLocaleString('en-NG');
+
+    function downloadReceipt() {
+        const btn = document.getElementById('download-btn');
+        btn.textContent = '⏳ Generating…';
+        btn.disabled = true;
+
+        html2canvas(document.getElementById('receipt-card'), {
+            backgroundColor: '#FFFFFF',
+            scale: 2,
+            useCORS: true
+        }).then(canvas => {
+            const link = document.createElement('a');
+            link.download = 'CYON_Receipt_{{ contribution.id|stringformat:"s"|slice:":8"|upper }}.png';
+            link.href = canvas.toDataURL('image/png');
+            link.click();
+            btn.textContent = '⬇️ Download Receipt';
+            btn.disabled = false;
+        }).catch(() => {
+            alert('Could not generate image. Try using your browser\'s print function instead.');
+            btn.textContent = '⬇️ Download Receipt';
+            btn.disabled = false;
+        });
+    }
+</script>
+{% endblock %}

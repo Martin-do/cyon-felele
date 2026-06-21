@@ -1,0 +1,82 @@
+{% extends "base.html" %}
+{% load humanize %}
+
+{% block title %}Approval Center | CYON Harvest{% endblock %}
+
+{% block content %}
+<div class="glass-card" style="width: 100%; margin: 0 auto;">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; flex-wrap: wrap; gap: 1rem;">
+        <h1 style="margin-bottom: 0;">Approval Center</h1>
+        <a href="{% url 'dashboard:master_dashboard' %}" class="submit-btn" style="width: auto; margin-top: 0; padding: 0.5rem 1.5rem; background: rgba(255,255,255,0.1); color: white; text-decoration: none;">Back to Master Dashboard</a>
+    </div>
+
+    {% if messages %}
+    <div style="margin-bottom: 2rem;">
+        {% for message in messages %}
+        <div style="padding: 1rem; border-radius: 8px; margin-bottom: 0.5rem; 
+            {% if message.tags == 'success' %}background: rgba(16, 185, 129, 0.2); border: 1px solid var(--success); color: #fff;
+            {% else %}background: rgba(59, 130, 246, 0.2); border: 1px solid var(--accent); color: #fff;{% endif %}">
+            {{ message }}
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <h3 style="margin-bottom: 1rem; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 0.5rem;">Pending Contributions</h3>
+    
+    <div style="overflow-x: auto; background: rgba(15, 23, 42, 0.4); border-radius: 8px;">
+        <table style="width: 100%; text-align: left; border-collapse: collapse; min-width: 800px;">
+            <thead>
+                <tr style="border-bottom: 1px solid rgba(255,255,255,0.1); background: rgba(255,255,255,0.02);">
+                    <th style="padding: 1rem; color: var(--text-muted); font-weight: 600;">Time</th>
+                    <th style="padding: 1rem; color: var(--text-muted); font-weight: 600;">Name</th>
+                    <th style="padding: 1rem; color: var(--text-muted); font-weight: 600;">Amount</th>
+                    <th style="padding: 1rem; color: var(--text-muted); font-weight: 600;">Method</th>
+                    <th style="padding: 1rem; color: var(--text-muted); font-weight: 600;">Proof</th>
+                    <th style="padding: 1rem; color: var(--text-muted); font-weight: 600;">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for c in contributions %}
+                <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+                    <td style="padding: 1rem; font-size: 0.9rem; color: var(--text-muted);">{{ c.timestamp|date:"M d, H:i" }}</td>
+                    <td style="padding: 1rem; font-weight: 500;">
+                        {{ c.name }}
+                        {% if c.is_anonymous %}
+                        <span style="font-size: 0.7rem; background: rgba(255,255,255,0.1); padding: 2px 6px; border-radius: 4px; margin-left: 5px;">Anon</span>
+                        {% endif %}
+                    </td>
+                    <td style="padding: 1rem; font-weight: 700; color: var(--success);">₦{{ c.amount|intcomma }}</td>
+                    <td style="padding: 1rem; text-transform: capitalize;">{{ c.method }}</td>
+                    <td style="padding: 1rem;">
+                        {% if c.receipt_image %}
+                        <a href="{{ c.receipt_image.url }}" target="_blank" style="color: var(--accent); text-decoration: none; font-size: 0.9rem;">View Receipt</a>
+                        {% elif c.proof_url %}
+                        <a href="{{ c.proof_url }}" target="_blank" style="color: var(--accent); text-decoration: none; font-size: 0.9rem;">View Proof</a>
+                        {% else %}
+                        <span style="color: var(--text-muted); font-size: 0.9rem;">None</span>
+                        {% endif %}
+                    </td>
+                    <td style="padding: 1rem;">
+                        <div style="display: flex; gap: 0.5rem;">
+                            <form method="POST" action="{% url 'dashboard:approve_contribution' pk=c.id %}" style="margin: 0;">
+                                {% csrf_token %}
+                                <button type="submit" class="submit-btn" style="padding: 0.3rem 1rem; margin: 0; background: var(--success); width: auto; font-size: 0.9rem;">Approve</button>
+                            </form>
+                            <form method="POST" action="{% url 'dashboard:reject_contribution' pk=c.id %}" style="margin: 0;">
+                                {% csrf_token %}
+                                <button type="submit" class="submit-btn" style="padding: 0.3rem 1rem; margin: 0; background: #ef4444; width: auto; font-size: 0.9rem;">Reject</button>
+                            </form>
+                        </div>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="6" style="padding: 2rem; text-align: center; color: var(--text-muted);">No pending contributions to approve!</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

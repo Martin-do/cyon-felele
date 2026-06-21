@@ -1,0 +1,371 @@
+{% load static humanize %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CYON Harvest Live Board 2026</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;800&family=Great+Vibes&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --harvest-green-900: #14301F;
+            --harvest-green-800: #1B4332;
+            --harvest-gold-gradient: linear-gradient(135deg, #E8C547 0%, #B8860B 100%);
+            --harvest-gold-400: #E0C158;
+            --harvest-cream: #FAF6EC;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: var(--harvest-green-900);
+            background-image:
+                radial-gradient(ellipse at top left, rgba(36,92,63,0.6) 0%, transparent 55%),
+                radial-gradient(ellipse at bottom right, rgba(201,162,39,0.07) 0%, transparent 60%);
+            color: var(--harvest-cream);
+            min-height: 100vh;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 1.5rem;
+        }
+
+        /* ── TOP BAR ─────────────────────────────────────────────── */
+        .board-topbar {
+            position: fixed;
+            top: 0; left: 0; right: 0;
+            height: 64px;
+            background: rgba(20,48,31,0.95);
+            border-bottom: 1px solid rgba(201,162,39,0.2);
+            backdrop-filter: blur(12px);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 2rem;
+            z-index: 50;
+        }
+        .board-topbar img { height: 38px; width: auto; }
+        .board-campaign-name {
+            font-family: 'Poppins', sans-serif;
+            font-weight: 800;
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            background: var(--harvest-gold-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-align: center;
+        }
+
+        /* ── STATUS DOT ──────────────────────────────────────────── */
+        #connection-status {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.78rem;
+            font-weight: 600;
+            font-family: 'Inter', sans-serif;
+            background: rgba(20,48,31,0.8);
+            border: 1px solid rgba(255,255,255,0.08);
+            padding: 6px 14px;
+            border-radius: 100px;
+        }
+        .status-dot {
+            width: 10px; height: 10px;
+            border-radius: 50%;
+            flex-shrink: 0;
+        }
+        .status-connected .status-dot { background: #4ade80; box-shadow: 0 0 12px #4ade80; }
+        .status-disconnected .status-dot { background: #f87171; box-shadow: 0 0 12px #f87171; }
+
+        /* ── MAIN BOARD ──────────────────────────────────────────── */
+        .board-main {
+            margin-top: 64px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: calc(100vh - 64px);
+            width: 100%;
+            max-width: 1200px;
+            text-align: center;
+            padding: 2rem 1rem;
+        }
+
+        .board-label {
+            font-size: clamp(0.9rem, 2vw, 1.2rem);
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 8px;
+            color: var(--harvest-gold-400);
+            margin-bottom: 0.5rem;
+            opacity: 0.8;
+        }
+
+        .board-total {
+            font-family: 'Poppins', sans-serif;
+            font-weight: 800;
+            font-size: clamp(5rem, 16vw, 13rem);
+            line-height: 1;
+            background: var(--harvest-gold-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            font-variant-numeric: tabular-nums;
+            margin-bottom: 1.5rem;
+            transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        .board-total.bounce {
+            transform: scale(1.06);
+        }
+
+        /* Progress bar */
+        .board-progress-wrap {
+            width: min(700px, 90vw);
+            margin: 0 auto 0.75rem;
+        }
+        .board-progress-track {
+            background: rgba(201,162,39,0.15);
+            border-radius: 100px;
+            height: 14px;
+            overflow: hidden;
+            border: 1px solid rgba(201,162,39,0.2);
+        }
+        .board-progress-fill {
+            height: 100%;
+            background: var(--harvest-gold-gradient);
+            border-radius: 100px;
+            transition: width 1s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .board-progress-labels {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 0.5rem;
+            font-size: 0.85rem;
+            color: rgba(250,246,236,0.5);
+            font-family: 'Inter', sans-serif;
+        }
+
+        /* ── FEED ────────────────────────────────────────────────── */
+        .feed-wrap {
+            margin-top: 2.5rem;
+            width: min(700px, 90vw);
+        }
+        .feed-title {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            color: rgba(250,246,236,0.35);
+            margin-bottom: 0.75rem;
+            font-family: 'Inter', sans-serif;
+        }
+        #feed {
+            display: flex;
+            flex-direction: column;
+            gap: 0.6rem;
+            max-height: 230px;
+            overflow: hidden;
+        }
+        .feed-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(36,92,63,0.45);
+            border: 1px solid rgba(201,162,39,0.2);
+            border-radius: 12px;
+            padding: 0.75rem 1.25rem;
+            font-size: clamp(0.9rem, 2.5vw, 1.1rem);
+            animation: slideIn 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
+        }
+        .feed-item .feed-name { font-weight: 600; }
+        .feed-item .feed-amount {
+            font-family: 'Poppins', sans-serif;
+            font-weight: 800;
+            background: var(--harvest-gold-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .feed-item .method-tag {
+            font-size: 0.7rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            padding: 3px 10px;
+            border-radius: 100px;
+            margin-left: 0.5rem;
+        }
+        .tag-cash { background: rgba(201,162,39,0.2); color: var(--harvest-gold-400); border: 1px solid rgba(201,162,39,0.3); }
+        .tag-transfer { background: rgba(46,125,79,0.25); color: #4ade80; border: 1px solid rgba(46,125,79,0.4); }
+        .tag-pos { background: rgba(250,246,236,0.08); color: rgba(250,246,236,0.7); border: 1px solid rgba(250,246,236,0.15); }
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(30px) scale(0.97); }
+            to   { opacity: 1; transform: translateY(0) scale(1); }
+        }
+
+        /* Wheat decoration */
+        .wheat-deco {
+            position: fixed;
+            bottom: 20px;
+            right: 24px;
+            font-size: 4rem;
+            opacity: 0.08;
+            pointer-events: none;
+            user-select: none;
+        }
+    </style>
+</head>
+<body>
+
+<!-- Top bar -->
+<div class="board-topbar">
+    <div style="font-size:1.5rem;">✝️</div>
+    <div class="board-campaign-name">HARVEST OF DIVINE FULFILLMENT 2026</div>
+    <a href="{% url 'contributions:landing' %}" class="logo-link" style="display:inline-flex; align-items:center; transition:transform 0.25s; text-decoration:none; outline:none; border:none;">
+        <img src="{% static 'images/brand/cyon-logo.png' %}" alt="CYON">
+    </a>
+</div>
+
+<!-- Status indicator -->
+<div id="connection-status" class="status-disconnected" style="position:fixed; top:76px; right:1.5rem; z-index:40;">
+    <div class="status-dot"></div>
+    <span id="status-text">Connecting…</span>
+</div>
+
+<!-- Main board -->
+<div class="board-main">
+    <div class="board-label">Total Harvest Collection</div>
+    <div class="board-total" id="total-display">
+        ₦<span id="total-number">0</span>
+    </div>
+
+    <div class="board-progress-wrap">
+        <div class="board-progress-track">
+            <div class="board-progress-fill" id="progress-fill" style="width:0%;"></div>
+        </div>
+        <div class="board-progress-labels">
+            <span id="pct-label">0% of target</span>
+            <span>Target: ₦5,000,000</span>
+        </div>
+    </div>
+
+    <!-- Live feed -->
+    <div class="feed-wrap">
+        <div class="feed-title">Recent Contributions</div>
+        <div id="feed">
+            {% for item in recent_contributions|slice:":4" %}
+            <div class="feed-item">
+                <span class="feed-name">
+                    {% if item.is_anonymous %}Anonymous{% else %}{{ item.name }}{% endif %}
+                    <span class="method-tag tag-{{ item.method|lower }}">{{ item.method }}</span>
+                </span>
+                <span class="feed-amount">₦{{ item.amount|intcomma }}</span>
+            </div>
+            {% empty %}
+            <div class="feed-item" style="justify-content:center; color:rgba(250,246,236,0.35); border-style:dashed;">
+                Waiting for the first contribution…
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+<div class="wheat-deco">🌾</div>
+
+<script>
+    const TARGET = 5000000;
+    const initialRaw = parseFloat("{{ total_harvest|default:0 }}") || 0;
+    let currentTotal = initialRaw;
+
+    const totalEl = document.getElementById('total-number');
+    const fillEl  = document.getElementById('progress-fill');
+    const pctEl   = document.getElementById('pct-label');
+    const boardEl = document.getElementById('total-display');
+
+    function updateProgress(val) {
+        const pct = Math.min((val / TARGET) * 100, 100);
+        fillEl.style.width = pct.toFixed(1) + '%';
+        pctEl.textContent = pct.toFixed(1) + '% of target';
+    }
+
+    function animateValue(start, end, duration) {
+        const startTime = performance.now();
+        function step(now) {
+            const p = Math.min((now - startTime) / duration, 1);
+            const ease = 1 - Math.pow(1 - p, 4);
+            const val = Math.floor(ease * (end - start) + start);
+            totalEl.textContent = val.toLocaleString('en-NG');
+            if (p < 1) requestAnimationFrame(step);
+            else { totalEl.textContent = end.toLocaleString('en-NG'); updateProgress(end); }
+        }
+        requestAnimationFrame(step);
+    }
+
+    // Animate on load
+    setTimeout(() => {
+        animateValue(0, currentTotal, 1800);
+        updateProgress(currentTotal);
+    }, 400);
+
+    // WebSocket
+    const wsUrl = (location.protocol === 'https:' ? 'wss:' : 'ws:') + '//' + location.host + '/ws/board/';
+    let socket;
+
+    function connect() {
+        socket = new WebSocket(wsUrl);
+
+        socket.onopen = () => {
+            const st = document.getElementById('connection-status');
+            st.className = 'status-connected';
+            document.getElementById('status-text').textContent = 'Live';
+        };
+
+        socket.onmessage = (e) => {
+            const data = JSON.parse(e.data);
+            if (data.type !== 'new_contribution') return;
+
+            const c = data.data;
+            const newTotal = parseFloat(c.total_harvest);
+            animateValue(currentTotal, newTotal, 800);
+            currentTotal = newTotal;
+
+            // Bounce
+            boardEl.classList.add('bounce');
+            setTimeout(() => boardEl.classList.remove('bounce'), 350);
+
+            // Add to feed
+            const feed = document.getElementById('feed');
+            const emptyMsg = feed.querySelector('[style*="dashed"]');
+            if (emptyMsg) feed.innerHTML = '';
+
+            const item = document.createElement('div');
+            item.className = 'feed-item';
+            const methodClass = 'tag-' + (c.method || 'cash').toLowerCase();
+            const formattedAmt = parseFloat(c.amount).toLocaleString('en-NG');
+            item.innerHTML = `
+                <span class="feed-name">${c.name} <span class="method-tag ${methodClass}">${c.method || 'Cash'}</span></span>
+                <span class="feed-amount">₦${formattedAmt}</span>
+            `;
+            feed.prepend(item);
+            if (feed.children.length > 4) feed.removeChild(feed.lastChild);
+        };
+
+        socket.onclose = () => {
+            const st = document.getElementById('connection-status');
+            st.className = 'status-disconnected';
+            document.getElementById('status-text').textContent = 'Reconnecting…';
+            setTimeout(connect, 3000);
+        };
+
+        socket.onerror = () => socket.close();
+    }
+
+    connect();
+</script>
+</body>
+</html>

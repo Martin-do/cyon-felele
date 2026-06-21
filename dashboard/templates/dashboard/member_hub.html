@@ -1,0 +1,276 @@
+{% extends "base.html" %}
+{% load static humanize %}
+
+{% block title %}My Fundraising Hub | CYON Harvest 2026{% endblock %}
+
+{% block head %}
+<style>
+    body {
+        background: #F4EFE2 !important;
+        background-image: none !important;
+        color: #1B3B2B !important;
+    }
+    .glass-card {
+        background: #FFFFFF !important;
+        border: 1.5px solid rgba(201,162,39,0.3) !important;
+        box-shadow: 0 8px 40px rgba(20,48,31,0.1) !important;
+        max-width: 600px;
+        margin: 0 auto;
+    }
+    h1, h2, h3 { color: #1B3B2B !important; background: none !important; -webkit-text-fill-color: initial !important; }
+    .site-footer { background: #F4EFE2 !important; border-color: rgba(201,162,39,0.2) !important; }
+    .site-footer p, .site-footer a { color: #4B6B57 !important; }
+
+    /* ── Stats ───────────────────────────────────────────────────── */
+    .stats-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1rem;
+        margin-bottom: 1.75rem;
+    }
+    .stat-card {
+        border-radius: 12px;
+        padding: 1.25rem;
+        text-align: center;
+    }
+    .stat-card.blue {
+        background: rgba(201,162,39,0.08);
+        border: 1px solid rgba(201,162,39,0.25);
+    }
+    .stat-card.green {
+        background: rgba(36,92,63,0.07);
+        border: 1px solid rgba(36,92,63,0.2);
+    }
+    .stat-label { font-size: 0.78rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 0.4rem; }
+    .stat-card.blue .stat-label { color: #C9A227; }
+    .stat-card.green .stat-label { color: #245C3F; }
+    .stat-value {
+        font-family: 'Poppins', sans-serif;
+        font-weight: 800;
+        font-size: 1.8rem;
+        color: #1B3B2B;
+    }
+
+    /* ── Referral link block ─────────────────────────────────────── */
+    .link-block {
+        background: #FAF6EC;
+        border: 1.5px solid rgba(201,162,39,0.3);
+        border-radius: 14px;
+        padding: 1.5rem;
+        margin-bottom: 1.75rem;
+    }
+    .link-block-title {
+        font-size: 0.78rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        color: #C9A227;
+        margin-bottom: 0.75rem;
+    }
+    .link-row {
+        display: flex;
+        gap: 0.5rem;
+        margin-bottom: 0.75rem;
+    }
+    .link-row input {
+        flex: 1;
+        background: #FFFFFF !important;
+        border: 1.5px solid rgba(201,162,39,0.3) !important;
+        color: #1B3B2B !important;
+        font-size: 0.85rem !important;
+        padding: 0.7rem 0.9rem !important;
+        margin: 0 !important;
+    }
+    .btn-copy {
+        padding: 0.7rem 1.1rem;
+        background: linear-gradient(135deg, #E8C547 0%, #B8860B 100%);
+        color: #14301F;
+        font-family: 'Poppins', sans-serif;
+        font-weight: 800;
+        font-size: 0.85rem;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        white-space: nowrap;
+        transition: opacity 0.2s;
+    }
+    .btn-copy:hover { opacity: 0.9; }
+    .share-row { display: flex; gap: 0.75rem; flex-wrap: wrap; }
+    .btn-whatsapp {
+        flex: 1;
+        padding: 0.65rem 1rem;
+        background: rgba(37,211,102,0.1);
+        border: 1.5px solid rgba(37,211,102,0.35);
+        color: #1A7A3C;
+        font-family: 'Poppins', sans-serif;
+        font-weight: 700;
+        font-size: 0.9rem;
+        border-radius: 8px;
+        cursor: pointer;
+        text-align: center;
+        transition: background 0.2s;
+        text-decoration: none;
+        display: block;
+    }
+    .btn-whatsapp:hover { background: rgba(37,211,102,0.18); }
+    .btn-leaderboard {
+        flex: 1;
+        padding: 0.65rem 1rem;
+        background: rgba(201,162,39,0.08);
+        border: 1.5px solid rgba(201,162,39,0.3);
+        color: #9A7B1A;
+        font-family: 'Poppins', sans-serif;
+        font-weight: 700;
+        font-size: 0.9rem;
+        border-radius: 8px;
+        text-align: center;
+        text-decoration: none;
+        display: block;
+        transition: background 0.2s;
+    }
+    .btn-leaderboard:hover { background: rgba(201,162,39,0.15); }
+    .link-hint { font-size: 0.78rem; color: #6B7280; margin-top: 0.6rem; }
+
+    /* ── Recent referrals ────────────────────────────────────────── */
+    .referral-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 0.85rem 0;
+        border-bottom: 1px solid rgba(201,162,39,0.1);
+    }
+    .referral-row:last-child { border-bottom: none; }
+    .referral-name { font-weight: 600; color: #1B3B2B; font-size: 0.95rem; }
+    .referral-meta { font-size: 0.78rem; color: #6B7280; margin-top: 0.1rem; }
+    .referral-amount {
+        font-family: 'Poppins', sans-serif;
+        font-weight: 800;
+        font-size: 1rem;
+        background: linear-gradient(135deg, #E8C547 0%, #B8860B 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+
+    .empty-referrals {
+        text-align: center;
+        padding: 2.5rem 1rem;
+        background: #FAF6EC;
+        border-radius: 12px;
+        border: 1px dashed rgba(201,162,39,0.3);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="glass-card">
+    <!-- Header -->
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1.75rem; flex-wrap:wrap; gap:0.75rem;">
+        <div>
+            <p style="font-size:0.75rem; font-weight:700; text-transform:uppercase; letter-spacing:1px; color:#C9A227; margin-bottom:0.2rem;">CYON Harvest 2026</p>
+            <h1 style="font-size:1.6rem; text-align:left; margin:0;">👋 Hello, {{ user.name }}</h1>
+        </div>
+        <a href="{% url 'accounts:logout' %}" style="font-size:0.85rem; color:#6B7280; text-decoration:none; padding:0.4rem 1rem; border:1px solid rgba(201,162,39,0.25); border-radius:8px;">Logout</a>
+    </div>
+
+    <!-- Stats -->
+    <div class="stats-grid">
+        <div class="stat-card blue">
+            <div class="stat-label">You've Raised</div>
+            <div class="stat-value">₦{{ total_referred|floatformat:0|intcomma }}</div>
+        </div>
+        <div class="stat-card green">
+            <div class="stat-label">Referral Count</div>
+            <div class="stat-value">{{ recent_referrals|length }}</div>
+        </div>
+    </div>
+
+    <!-- Profile Update Form -->
+    <div class="link-block" style="margin-bottom: 1.75rem;">
+        <div class="link-block-title">👤 Your Contestant Profile</div>
+        <form method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+            <div style="display: flex; gap: 1rem; flex-wrap: wrap; align-items: center; margin-bottom: 1rem;">
+                {% if member.profile_picture %}
+                <img src="{{ member.profile_picture.url }}" style="width: 80px; height: 80px; border-radius: 50%; object-fit: cover; border: 2px solid #C9A227;">
+                {% else %}
+                <div style="width: 80px; height: 80px; border-radius: 50%; background: #E8C547; display: flex; align-items: center; justify-content: center; font-size: 2rem; color: #fff;">
+                    {{ member.name|make_list|first|upper }}
+                </div>
+                {% endif %}
+                <div style="flex: 1;">
+                    <label style="font-size: 0.85rem; font-weight: 600; color: #1B3B2B; display: block; margin-bottom: 0.25rem;">Profile Picture</label>
+                    <input type="file" name="profile_picture" accept="image/*" style="font-size: 0.85rem;">
+                </div>
+            </div>
+            
+            <div style="margin-bottom: 1rem;">
+                <label style="font-size: 0.85rem; font-weight: 600; color: #1B3B2B; display: block; margin-bottom: 0.25rem;">Contestant Title</label>
+                <select name="contestant_title" style="width: 100%; padding: 0.7rem; border-radius: 8px; border: 1.5px solid rgba(201,162,39,0.3); background: #fff; font-size: 0.9rem;">
+                    <option value="None" {% if member.contestant_title == 'None' %}selected{% endif %}>Not Contesting</option>
+                    <option value="Mr CYON Felele" {% if member.contestant_title == 'Mr CYON Felele' %}selected{% endif %}>Mr CYON Felele</option>
+                    <option value="Miss CYON Felele" {% if member.contestant_title == 'Miss CYON Felele' %}selected{% endif %}>Miss CYON Felele</option>
+                </select>
+            </div>
+            
+            <button type="submit" name="update_profile" class="btn-copy" style="width: 100%;">Update Profile</button>
+        </form>
+    </div>
+
+    <!-- Referral link -->
+    <div class="link-block">
+        <div class="link-block-title">🔗 Your Unique Support Link</div>
+        <div class="link-row">
+            <input type="text" id="ref-link" value="{{ referral_link }}" readonly>
+            <button class="btn-copy" id="copy-btn" onclick="copyLink()">Copy</button>
+        </div>
+        <div class="share-row">
+            <a class="btn-whatsapp" onclick="shareWhatsApp()">📱 Share via WhatsApp</a>
+            <a href="{% url 'dashboard:flyer' %}" class="btn-leaderboard">🎨 Download Flyer</a>
+            <a href="{% url 'dashboard:leaderboard' %}" class="btn-leaderboard">🏆 Leaderboard</a>
+        </div>
+        <p class="link-hint">Share this link! Every donation made through it appears on your leaderboard score.</p>
+    </div>
+
+    <!-- Recent referrals -->
+    <h3 style="margin-bottom:1rem; font-size:0.85rem; text-transform:uppercase; letter-spacing:1px; color:#6B7280; font-weight:700;">Recent Referrals</h3>
+
+    {% if recent_referrals %}
+    <div>
+        {% for c in recent_referrals %}
+        <div class="referral-row">
+            <div>
+                <div class="referral-name">{% if c.is_anonymous %}Anonymous{% else %}{{ c.name }}{% endif %}</div>
+                <div class="referral-meta">{{ c.timestamp|date:"M d, Y · H:i" }} &bull; {{ c.method }}</div>
+            </div>
+            <div class="referral-amount">₦{{ c.amount|intcomma }}</div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="empty-referrals">
+        <div style="font-size:2.5rem; margin-bottom:0.5rem;">🚀</div>
+        <p style="font-weight:700; color:#1B3B2B; margin-bottom:0.25rem;">No referrals yet!</p>
+        <p style="color:#6B7280; font-size:0.88rem;">Share your link above and watch this fill up!</p>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function copyLink() {
+    const val = document.getElementById('ref-link').value;
+    navigator.clipboard.writeText(val).then(() => {
+        const btn = document.getElementById('copy-btn');
+        btn.textContent = '✓ Copied!';
+        setTimeout(() => btn.textContent = 'Copy', 2500);
+    });
+}
+function shareWhatsApp() {
+    const link = document.getElementById('ref-link').value;
+    const text = `Support CYON Harvest 2026 through my link! Help us reach ₦5,000,000 🙏\n\n${link}`;
+    window.open('https://wa.me/?text=' + encodeURIComponent(text), '_blank');
+}
+</script>
+{% endblock %}

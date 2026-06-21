@@ -1,0 +1,74 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Member Login | CYON Harvest 2026{% endblock %}
+
+{% block head %}
+<style>
+    body {
+        background: #F4EFE2 !important;
+        background-image: none !important;
+        color: #1B3B2B !important;
+    }
+    .glass-card {
+        background: #FFFFFF !important;
+        border: 1.5px solid rgba(201,162,39,0.3) !important;
+        box-shadow: 0 8px 40px rgba(20,48,31,0.1) !important;
+        max-width: 440px;
+        margin: 0 auto;
+    }
+    label { color: #245C3F !important; }
+    h1 { color: #1B3B2B !important; background: none !important; -webkit-text-fill-color: initial !important; }
+    p.subtitle { color: #4B6B57 !important; }
+    input[type="text"], input[type="password"] {
+        background: #FAF6EC !important;
+        border-color: rgba(201,162,39,0.3) !important;
+        color: #1B3B2B !important;
+    }
+    input:focus {
+        border-color: #C9A227 !important;
+        box-shadow: 0 0 0 3px rgba(201,162,39,0.15) !important;
+    }
+    .site-footer { background: #F4EFE2 !important; border-color: rgba(201,162,39,0.2) !important; }
+    .site-footer p, .site-footer a { color: #4B6B57 !important; }
+    .alert.error { background: rgba(179,38,30,0.08) !important; color: #8B1A1A !important; border-color: rgba(179,38,30,0.2) !important; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="glass-card">
+    <div style="text-align: center; margin-bottom: 1.75rem;">
+        <img src="{% static 'images/brand/cyon-logo.png' %}" alt="CYON Logo" style="height: 60px; margin-bottom: 0.75rem;">
+        <h1>Member Hub</h1>
+        <p class="subtitle">Login to access your referral link and track your fundraising</p>
+    </div>
+
+    {% if messages %}
+    <div class="alert error" style="display: block; margin-bottom: 1.5rem;">
+        {% for message in messages %}{{ message }}{% endfor %}
+    </div>
+    {% endif %}
+
+    <form method="POST" action="{% url 'accounts:login' %}">
+        {% csrf_token %}
+        <div class="form-group">
+            <label for="identifier">Phone Number or Email</label>
+            <input type="text" id="identifier" name="identifier" required placeholder="e.g. 08012345678" autocomplete="username">
+        </div>
+        <div class="form-group">
+            <label for="pin">4-Digit PIN</label>
+            <input type="password" id="pin" name="pin" required maxlength="4" pattern="[0-9]{4}" inputmode="numeric" placeholder="••••" autocomplete="current-password">
+        </div>
+        <button type="submit" class="submit-btn">Login to My Hub</button>
+    </form>
+
+    <div style="text-align: center; margin-top: 1.75rem; display: flex; flex-direction: column; gap: 0.75rem; border-top: 1px solid rgba(201,162,39,0.15); padding-top: 1.5rem;">
+        <p style="color:#4B6B57; font-size:0.9rem;">
+            New youth member?
+            <a href="{% url 'accounts:signup' %}" style="color:#C9A227; font-weight:700; text-decoration:none;">Create your account & get your link →</a>
+        </p>
+        <a href="{% url 'dashboard:leaderboard' %}" style="color:#4B6B57; font-size:0.85rem; text-decoration:none;">🏆 View the Public Leaderboard</a>
+        <a href="/" style="color:#4B6B57; font-size:0.85rem; text-decoration:none;">← Back to Harvest Home</a>
+    </div>
+</div>
+{% endblock %}

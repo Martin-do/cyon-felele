@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}CYON Harvest 2026 — Harvest of Divine Fulfillment{% endblock %}</title>
+    <meta name="description" content="Support the CYON Harvest 2026 campaign for Christ the Good Shepherd Catholic Church, Akobo/Felele, Ibadan. Help us reach our ₦5,000,000 target.">
+    <!-- Google Fonts: Poppins (display), Great Vibes (script), Inter (body) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;800&family=Great+Vibes&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    {% load static %}
+    <style>
+        /* ── CYON HARVEST 2026 DESIGN TOKENS ─────────────────────── */
+        :root {
+            /* Greens */
+            --harvest-green-900: #14301F;
+            --harvest-green-800: #1B4332;
+            --harvest-green-700: #245C3F;
+            /* Golds */
+            --harvest-gold-500: #C9A227;
+            --harvest-gold-400: #E0C158;
+            --harvest-gold-gradient: linear-gradient(135deg, #E8C547 0%, #B8860B 100%);
+            /* Creams */
+            --harvest-cream: #FAF6EC;
+            --harvest-cream-card: #F4EFE2;
+            /* Supporting */
+            --harvest-brown: #8B5A2B;
+            --harvest-white: #FFFFFF;
+            --harvest-text-dark: #1B3B2B;
+            /* Status */
+            --harvest-success: #2E7D4F;
+            --harvest-pending: #C9A227;
+            --harvest-danger: #B3261E;
+
+            /* Legacy aliases kept for backward compat with existing templates */
+            --bg-dark: #14301F;
+            --card-bg: rgba(27, 67, 50, 0.75);
+            --text-main: #FAF6EC;
+            --text-muted: #A8C5B5;
+            --accent: #C9A227;
+            --accent-hover: #B8860B;
+            --success: #2E7D4F;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--harvest-green-900);
+            background-image:
+                radial-gradient(ellipse at top left, rgba(36, 92, 63, 0.5) 0%, transparent 60%),
+                radial-gradient(ellipse at bottom right, rgba(201, 162, 39, 0.08) 0%, transparent 60%);
+            color: var(--harvest-cream);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 2rem 1rem;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 540px;
+        }
+
+        /* ── GLASS CARD ─────────────────────────────────────────── */
+        .glass-card {
+            background: rgba(27, 67, 50, 0.55);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(201, 162, 39, 0.25);
+            border-radius: 20px;
+            padding: 2.5rem;
+            box-shadow: 0 25px 60px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.06);
+        }
+
+        /* ── TYPOGRAPHY ──────────────────────────────────────────── */
+        h1, h2, h3 {
+            font-family: 'Poppins', sans-serif;
+            font-weight: 800;
+            color: var(--harvest-cream);
+            line-height: 1.2;
+        }
+        h1 { font-size: 1.9rem; margin-bottom: 0.5rem; text-align: center; }
+        h2 { font-size: 1.5rem; margin-bottom: 0.5rem; }
+        h3 { font-size: 1.15rem; font-weight: 600; }
+
+        .script-line {
+            font-family: 'Great Vibes', cursive;
+            color: var(--harvest-gold-400);
+            font-size: 1.4rem;
+        }
+
+        p.subtitle {
+            text-align: center;
+            color: var(--text-muted);
+            margin-bottom: 1.5rem;
+            font-weight: 400;
+            font-size: 0.95rem;
+        }
+
+        /* ── FORMS ────────────────────────────────────────────────── */
+        .form-group { margin-bottom: 1.4rem; }
+
+        label {
+            display: block;
+            margin-bottom: 0.4rem;
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--harvest-gold-400);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        input[type="text"],
+        input[type="number"],
+        input[type="tel"],
+        input[type="date"],
+        input[type="email"],
+        input[type="password"],
+        textarea,
+        select {
+            width: 100%;
+            padding: 0.85rem 1rem;
+            background: rgba(20, 48, 31, 0.7);
+            border: 1.5px solid rgba(201, 162, 39, 0.25);
+            border-radius: 10px;
+            color: var(--harvest-cream);
+            font-family: 'Inter', sans-serif;
+            font-size: 1rem;
+            transition: border-color 0.25s, box-shadow 0.25s;
+        }
+
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: var(--harvest-gold-500);
+            box-shadow: 0 0 0 3px rgba(201, 162, 39, 0.2);
+        }
+
+        input::placeholder { color: rgba(168, 197, 181, 0.5); }
+
+        select option { background: #1B4332; color: var(--harvest-cream); }
+
+        /* ── BUTTONS ──────────────────────────────────────────────── */
+        button.submit-btn, a.submit-btn {
+            display: block;
+            width: 100%;
+            padding: 1rem;
+            border: none;
+            border-radius: 10px;
+            background: var(--harvest-gold-gradient);
+            color: var(--harvest-green-900);
+            font-family: 'Poppins', sans-serif;
+            font-weight: 800;
+            font-size: 1.05rem;
+            cursor: pointer;
+            transition: opacity 0.2s, transform 0.1s;
+            margin-top: 0.5rem;
+            text-align: center;
+            text-decoration: none;
+            letter-spacing: 0.3px;
+        }
+        button.submit-btn:hover, a.submit-btn:hover { opacity: 0.9; }
+        button.submit-btn:active, a.submit-btn:active { transform: scale(0.98); }
+        button.submit-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+
+        /* ── ALERTS ───────────────────────────────────────────────── */
+        .alert {
+            padding: 1rem;
+            border-radius: 10px;
+            margin-bottom: 1.25rem;
+            display: none;
+            font-size: 0.9rem;
+        }
+        .alert.error {
+            background: rgba(179, 38, 30, 0.15);
+            border: 1px solid rgba(179, 38, 30, 0.4);
+            color: #FFBBB8;
+        }
+        .alert.success {
+            background: rgba(46, 125, 79, 0.2);
+            border: 1px solid rgba(46, 125, 79, 0.5);
+            color: #A5FFCC;
+        }
+
+        /* ── SITE HEADER (for pages that want it) ─────────────────── */
+        .site-header {
+            width: 100%;
+            max-width: 540px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            padding: 0 0.25rem;
+        }
+        .site-header img { height: 44px; width: auto; }
+        .site-header .church-name {
+            font-family: 'Poppins', sans-serif;
+            font-weight: 700;
+            font-size: 0.75rem;
+            color: var(--harvest-gold-400);
+            text-align: center;
+            line-height: 1.3;
+            letter-spacing: 0.3px;
+        }
+
+        /* ── PROGRESS BAR ─────────────────────────────────────────── */
+        .progress-track {
+            width: 100%;
+            background: rgba(201,162,39,0.15);
+            border-radius: 100px;
+            height: 10px;
+            overflow: hidden;
+        }
+        .progress-fill {
+            height: 100%;
+            background: var(--harvest-gold-gradient);
+            border-radius: 100px;
+            transition: width 1.2s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        /* ── FOOTER ───────────────────────────────────────────────── */
+        .site-footer {
+            width: 100%;
+            max-width: 540px;
+            margin-top: 3rem;
+            padding: 1.5rem;
+            background: rgba(20,48,31,0.6);
+            border: 1px solid rgba(201,162,39,0.15);
+            border-radius: 14px;
+            text-align: center;
+        }
+        .site-footer p { color: var(--text-muted); font-size: 0.8rem; line-height: 1.6; }
+        .site-footer .script-line { font-size: 1.2rem; display: block; margin-top: 0.5rem; }
+        .site-footer a { color: var(--harvest-gold-400); text-decoration: none; }
+        .site-footer a:hover { text-decoration: underline; }
+
+        /* Logo links hover scale */
+        .logo-link {
+            display: inline-flex;
+            align-items: center;
+            transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+            text-decoration: none;
+            outline: none;
+            border: none;
+        }
+        .logo-link:hover {
+            transform: scale(1.06);
+        }
+
+        /* ── RESPONSIVE ───────────────────────────────────────────── */
+
+        @media (max-width: 600px) {
+            body { padding: 1rem 0.75rem; }
+            .glass-card { padding: 1.75rem 1.25rem; border-radius: 16px; }
+            h1 { font-size: 1.5rem; }
+        }
+    </style>
+    {% block head %}{% endblock %}
+</head>
+<body>
+
+    <!-- Site Header -->
+    <div class="site-header">
+        <a href="{% url 'contributions:landing' %}" class="logo-link">
+            <img src="{% static 'images/brand/church-seal.png' %}" alt="Catholic Archdiocese of Ibadan Seal" style="height:48px;width:48px;object-fit:contain;border-radius:50%;">
+        </a>
+        <div class="church-name">
+            Christ the Good Shepherd<br>Catholic Church · Felele, Ibadan
+        </div>
+        <a href="{% url 'contributions:landing' %}" class="logo-link">
+            <img src="{% static 'images/brand/cyon-logo.png' %}" alt="CYON Logo">
+        </a>
+    </div>
+
+
+    <div class="container">
+        {% if messages %}
+        <div class="alert {% if messages|length > 0 %}{% for m in messages %}{{ m.tags }}{% endfor %}{% endif %}" style="display:block;">
+            {% for message in messages %}{{ message }}{% endfor %}
+        </div>
+        {% endif %}
+
+        {% block content %}{% endblock %}
+    </div>
+
+    <!-- Site Footer -->
+    <footer class="site-footer">
+        <p style="font-family:'Poppins',sans-serif; font-weight:800; font-size:0.9rem; color:var(--harvest-gold-400); margin-bottom:0.3rem;">
+            HARVEST OF DIVINE FULFILLMENT 2026
+        </p>
+        <p>"Those who sow in tears will reap with songs of joy." — Psalm 126:5</p>
+        <p style="margin-top:0.75rem;">
+            <a href="{% url 'live:board' %}">Live Board</a> &nbsp;·&nbsp;
+            <a href="{% url 'accounts:login' %}">Member Login</a> &nbsp;·&nbsp;
+            <a href="{% url 'accounts:signup' %}">Join CYON</a>
+        </p>
+        <span class="script-line">Let your light shine!</span>
+    </footer>
+
+    {% block scripts %}{% endblock %}
+</body>
+</html>

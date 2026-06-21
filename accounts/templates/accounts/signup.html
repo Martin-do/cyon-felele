@@ -1,0 +1,121 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Create Account | CYON Harvest 2026{% endblock %}
+
+{% block head %}
+<style>
+    body {
+        background: #F4EFE2 !important;
+        background-image: none !important;
+        color: #1B3B2B !important;
+    }
+    .glass-card {
+        background: #FFFFFF !important;
+        border: 1.5px solid rgba(201,162,39,0.3) !important;
+        box-shadow: 0 8px 40px rgba(20,48,31,0.1) !important;
+        max-width: 480px;
+        margin: 0 auto;
+    }
+    label { color: #245C3F !important; }
+    h1 { color: #1B3B2B !important; background: none !important; -webkit-text-fill-color: initial !important; }
+    p.subtitle { color: #4B6B57 !important; }
+    input {
+        background: #FAF6EC !important;
+        border-color: rgba(201,162,39,0.3) !important;
+        color: #1B3B2B !important;
+    }
+    input::placeholder { color: rgba(27,59,43,0.35) !important; }
+    input:focus {
+        border-color: #C9A227 !important;
+        box-shadow: 0 0 0 3px rgba(201,162,39,0.15) !important;
+    }
+    .site-footer { background: #F4EFE2 !important; border-color: rgba(201,162,39,0.2) !important; }
+    .site-footer p, .site-footer a { color: #4B6B57 !important; }
+    .alert.error { background: rgba(179,38,30,0.08) !important; color: #8B1A1A !important; border-color: rgba(179,38,30,0.2) !important; }
+
+    .benefit-chips {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+        margin-bottom: 1.5rem;
+    }
+    .benefit-chip {
+        background: rgba(36,92,63,0.08);
+        border: 1px solid rgba(36,92,63,0.2);
+        color: #245C3F;
+        padding: 0.3rem 0.75rem;
+        border-radius: 100px;
+        font-size: 0.8rem;
+        font-weight: 600;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="glass-card">
+    <div style="text-align: center; margin-bottom: 1.5rem;">
+        <img src="{% static 'images/brand/cyon-logo.png' %}" alt="CYON Logo" style="height: 60px; margin-bottom: 0.75rem;">
+        <h1>Join the Drive</h1>
+        <p class="subtitle">Create your CYON account and start rallying support for the Harvest!</p>
+    </div>
+
+    <div class="benefit-chips">
+        <div class="benefit-chip">🔗 Your unique referral link</div>
+        <div class="benefit-chip">🏆 Leaderboard position</div>
+        <div class="benefit-chip">📊 Track your fundraising</div>
+        <div class="benefit-chip">📱 Share via WhatsApp</div>
+    </div>
+
+    {% if messages %}
+    <div class="alert error" style="display: block; margin-bottom: 1.5rem;">
+        {% for message in messages %}{{ message }}{% endfor %}
+    </div>
+    {% endif %}
+
+    <form method="POST" action="{% url 'accounts:signup' %}">
+        {% csrf_token %}
+        <div class="form-group">
+            <label for="name">Full Name</label>
+            <input type="text" id="name" name="name" required placeholder="e.g. Adaeze Okonkwo" autocomplete="name">
+        </div>
+        <div class="form-group">
+            <label for="identifier">Phone Number or Email</label>
+            <input type="text" id="identifier" name="identifier" required placeholder="e.g. 08012345678 or you@email.com" autocomplete="username">
+            <p style="font-size:0.78rem; color:#6B7280; margin-top:0.35rem;">This becomes your login ID. Must be unique.</p>
+        </div>
+        <div class="form-group">
+            <label for="pin">Choose a 4-Digit PIN</label>
+            <input type="password" id="pin" name="pin" required maxlength="4" pattern="[0-9]{4}" inputmode="numeric" placeholder="••••" autocomplete="new-password">
+        </div>
+        <div class="form-group">
+            <label for="pin_confirm">Confirm PIN</label>
+            <input type="password" id="pin_confirm" name="pin_confirm" required maxlength="4" pattern="[0-9]{4}" inputmode="numeric" placeholder="••••" autocomplete="new-password">
+        </div>
+
+        <button type="submit" class="submit-btn" id="signup-btn">Create My Account & Get My Link 🚀</button>
+    </form>
+
+    <p style="text-align:center; margin-top:1.5rem; font-size:0.9rem; color:#6B7280; border-top:1px solid rgba(201,162,39,0.15); padding-top:1.25rem;">
+        Already have an account?
+        <a href="{% url 'accounts:login' %}" style="color:#C9A227; font-weight:700; text-decoration:none;">Log in here</a>
+    </p>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.querySelector('form').addEventListener('submit', function(e) {
+    const pin = document.getElementById('pin').value;
+    const confirm = document.getElementById('pin_confirm').value;
+    if (pin !== confirm) {
+        e.preventDefault();
+        alert('Your PINs do not match. Please try again.');
+        return;
+    }
+    const btn = document.getElementById('signup-btn');
+    btn.disabled = true;
+    btn.textContent = 'Creating your account…';
+});
+</script>
+{% endblock %}

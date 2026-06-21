@@ -1,0 +1,117 @@
+{% extends "base.html" %}
+{% load humanize %}
+
+{% block title %}Master Dashboard | CYON Harvest{% endblock %}
+
+{% block content %}
+<div class="glass-card" style="width: 100%; margin: 0 auto;">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; flex-wrap: wrap; gap: 1rem;">
+        <h1 style="margin-bottom: 0;">Master Dashboard</h1>
+        <div style="display: flex; gap: 1rem;">
+            <a href="{% url 'dashboard:live_entry' %}" class="submit-btn" style="width: auto; margin-top: 0; padding: 0.5rem 1.5rem; background: var(--accent); color: white; text-decoration: none;">Live Entry Form</a>
+            <a href="{% url 'dashboard:approval_center' %}" class="submit-btn" style="width: auto; margin-top: 0; padding: 0.5rem 1.5rem; background: #fbbf24; color: black; text-decoration: none;">Approval Center</a>
+            <a href="{% url 'dashboard:export_csv' %}?{{ query_string }}" class="submit-btn" style="width: auto; margin-top: 0; padding: 0.5rem 1.5rem; background: var(--success); color: white; text-decoration: none;">Export CSV</a>
+        </div>
+    </div>
+
+    <!-- Filter Form -->
+    <form method="GET" style="display: flex; gap: 1rem; margin-bottom: 2rem; background: rgba(15, 23, 42, 0.4); padding: 1rem; border-radius: 8px; flex-wrap: wrap; align-items: flex-end;">
+        <div style="flex: 1; min-width: 150px;">
+            <label style="font-size: 0.85rem; color: var(--text-muted); display: block; margin-bottom: 0.3rem;">Method</label>
+            <select name="method" style="margin-bottom: 0; padding: 0.5rem; width: 100%; border-radius: 6px; background: rgba(255,255,255,0.05); color: var(--text-main); border: 1px solid rgba(255,255,255,0.1);">
+                <option value="All" {% if method == 'All' or not method %}selected{% endif %} style="color: black;">All</option>
+                <option value="Cash" {% if method == 'Cash' %}selected{% endif %} style="color: black;">Cash</option>
+                <option value="POS" {% if method == 'POS' %}selected{% endif %} style="color: black;">POS</option>
+                <option value="Transfer" {% if method == 'Transfer' %}selected{% endif %} style="color: black;">Transfer</option>
+                <option value="Pledge" {% if method == 'Pledge' %}selected{% endif %} style="color: black;">Pledge</option>
+            </select>
+        </div>
+        <div style="flex: 1; min-width: 150px;">
+            <label style="font-size: 0.85rem; color: var(--text-muted); display: block; margin-bottom: 0.3rem;">From Date</label>
+            <input type="date" name="date_from" value="{{ date_from }}" style="margin-bottom: 0; padding: 0.5rem; width: 100%; border-radius: 6px; background: rgba(255,255,255,0.05); color: var(--text-main); border: 1px solid rgba(255,255,255,0.1);">
+        </div>
+        <div style="flex: 1; min-width: 150px;">
+            <label style="font-size: 0.85rem; color: var(--text-muted); display: block; margin-bottom: 0.3rem;">To Date</label>
+            <input type="date" name="date_to" value="{{ date_to }}" style="margin-bottom: 0; padding: 0.5rem; width: 100%; border-radius: 6px; background: rgba(255,255,255,0.05); color: var(--text-main); border: 1px solid rgba(255,255,255,0.1);">
+        </div>
+        <div style="display: flex; gap: 0.5rem;">
+            <button type="submit" class="submit-btn" style="width: auto; margin-top: 0; padding: 0.5rem 1.5rem;">Filter</button>
+            <a href="?" class="submit-btn" style="width: auto; margin-top: 0; padding: 0.5rem 1.5rem; background: rgba(255,255,255,0.1); color: var(--text-main); text-decoration: none; text-align: center;">Clear</a>
+        </div>
+    </form>
+
+    <!-- 6 Stat Cards -->
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 1rem; margin-bottom: 2rem;">
+        <div style="background: rgba(59, 130, 246, 0.1); border: 1px solid rgba(59, 130, 246, 0.3); border-radius: 10px; padding: 1.5rem; text-align: center;">
+            <p style="color: var(--accent); font-size: 0.9rem; margin-bottom: 0.5rem; text-transform: uppercase; letter-spacing: 1px;">Total Raised</p>
+            <p style="font-size: 1.8rem; font-weight: 700;">₦{{ total_amount|intcomma }}</p>
+        </div>
+        <div style="background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 10px; padding: 1.5rem; text-align: center;">
+            <p style="color: var(--success); font-size: 0.9rem; margin-bottom: 0.5rem; text-transform: uppercase; letter-spacing: 1px;">Progress (₦5M)</p>
+            <p style="font-size: 1.8rem; font-weight: 700;">{{ progress_percentage }}%</p>
+            <div style="width: 100%; background: rgba(255,255,255,0.1); border-radius: 4px; height: 6px; margin-top: 8px; overflow: hidden;">
+                <div style="width: {{ progress_percentage }}%; background: var(--success); height: 100%;"></div>
+            </div>
+        </div>
+        <div style="background: rgba(139, 92, 246, 0.1); border: 1px solid rgba(139, 92, 246, 0.3); border-radius: 10px; padding: 1.5rem; text-align: center;">
+            <p style="color: #a78bfa; font-size: 0.9rem; margin-bottom: 0.5rem; text-transform: uppercase; letter-spacing: 1px;">Cash</p>
+            <p style="font-size: 1.8rem; font-weight: 700;">₦{{ cash_total|intcomma }}</p>
+        </div>
+        <div style="background: rgba(245, 158, 11, 0.1); border: 1px solid rgba(245, 158, 11, 0.3); border-radius: 10px; padding: 1.5rem; text-align: center;">
+            <p style="color: #fbbf24; font-size: 0.9rem; margin-bottom: 0.5rem; text-transform: uppercase; letter-spacing: 1px;">POS</p>
+            <p style="font-size: 1.8rem; font-weight: 700;">₦{{ pos_total|intcomma }}</p>
+        </div>
+        <div style="background: rgba(236, 72, 153, 0.1); border: 1px solid rgba(236, 72, 153, 0.3); border-radius: 10px; padding: 1.5rem; text-align: center;">
+            <p style="color: #f472b6; font-size: 0.9rem; margin-bottom: 0.5rem; text-transform: uppercase; letter-spacing: 1px;">Transfer</p>
+            <p style="font-size: 1.8rem; font-weight: 700;">₦{{ transfer_total|intcomma }}</p>
+        </div>
+        <div style="background: rgba(107, 114, 128, 0.1); border: 1px solid rgba(107, 114, 128, 0.3); border-radius: 10px; padding: 1.5rem; text-align: center;">
+            <p style="color: #9ca3af; font-size: 0.9rem; margin-bottom: 0.5rem; text-transform: uppercase; letter-spacing: 1px;">Pledges</p>
+            <p style="font-size: 1.8rem; font-weight: 700;">₦{{ pledge_total|intcomma }}</p>
+        </div>
+    </div>
+
+    <h3 style="margin-bottom: 1rem; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 0.5rem;">Recent Contributions</h3>
+    
+    <div style="overflow-x: auto; background: rgba(15, 23, 42, 0.4); border-radius: 8px;">
+        <table style="width: 100%; text-align: left; border-collapse: collapse; min-width: 800px;">
+            <thead>
+                <tr style="border-bottom: 1px solid rgba(255,255,255,0.1); background: rgba(255,255,255,0.02);">
+                    <th style="padding: 1rem; color: var(--text-muted); font-weight: 600;">Time</th>
+                    <th style="padding: 1rem; color: var(--text-muted); font-weight: 600;">Name</th>
+                    <th style="padding: 1rem; color: var(--text-muted); font-weight: 600;">Amount</th>
+                    <th style="padding: 1rem; color: var(--text-muted); font-weight: 600;">Method</th>
+                    <th style="padding: 1rem; color: var(--text-muted); font-weight: 600;">Source</th>
+                    <th style="padding: 1rem; color: var(--text-muted); font-weight: 600;">Referred By</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for c in contributions %}
+                <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+                    <td style="padding: 1rem; font-size: 0.9rem; color: var(--text-muted);">{{ c.timestamp|date:"M d, H:i" }}</td>
+                    <td style="padding: 1rem; font-weight: 500;">
+                        {{ c.name }}
+                        {% if c.is_anonymous %}
+                        <span style="font-size: 0.7rem; background: rgba(255,255,255,0.1); padding: 2px 6px; border-radius: 4px; margin-left: 5px;">Anon</span>
+                        {% endif %}
+                    </td>
+                    <td style="padding: 1rem; font-weight: 700; color: var(--success);">₦{{ c.amount|intcomma }}</td>
+                    <td style="padding: 1rem; text-transform: capitalize;">{{ c.method }}</td>
+                    <td style="padding: 1rem; font-size: 0.9rem;">
+                        {% if c.source == 'guest_form' %}Guest Form
+                        {% elif c.source == 'member_hub' %}Member Hub
+                        {% elif c.source == 'live_log' %}Usher Log
+                        {% else %}{{ c.source }}{% endif %}
+                    </td>
+                    <td style="padding: 1rem; font-size: 0.9rem;">{{ c.referred_by.name|default:"-" }}</td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="6" style="padding: 2rem; text-align: center; color: var(--text-muted);">No contributions recorded yet.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
