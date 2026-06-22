@@ -14,4 +14,7 @@ urlpatterns = [
     path('approvals/<uuid:pk>/approve/', views.approve_contribution_view, name='approve_contribution'),
     path('approvals/<uuid:pk>/reject/', views.reject_contribution_view, name='reject_contribution'),
     path('live-entry/', views.live_entry_view, name='live_entry'),
+    path('api/transactions/', views.AdminTransactionListAPIView.as_view(), name='admin_transaction_list'),
+    path('api/transactions/<uuid:pk>/action/', views.ContributionActionAPIView.as_view(), name='contribution_action'),
+    path('api/transactions/<uuid:pk>/requery/', views.RequeryPaystackTransactionView.as_view(), name='requery_paystack'),
 ]

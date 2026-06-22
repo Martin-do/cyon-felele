@@ -3,11 +3,23 @@ from io import BytesIO
 from django.core.files.base import ContentFile
 from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
-from django.db.models import Sum
+from django.db.models import Sum, Q
 from accounts.models import Member
 from contributions.models import Contribution
 from django.contrib import messages
 from django.http import HttpResponse
+
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework.permissions import IsAuthenticated, IsAdminUser
+from rest_framework.pagination import PageNumberPagination
+from rest_framework import status
+from asgiref.sync import async_to_sync
+from channels.layers import get_channel_layer
+import requests
+from django.conf import settings
+from collections import OrderedDict
+from contributions.serializers import ContributionSerializer
 
 @login_required(login_url='/accounts/login/')
 def member_hub_view(request):
@@ -258,4 +270,202 @@ def live_entry_view(request):
         'members': members,
     }
     return render(request, 'dashboard/live_entry.html', context)
+
+
+class AdminTransactionPagination(PageNumberPagination):
+    page_size = 50
+
+    def get_paginated_response(self, data):
+        response_data = OrderedDict([
+            ('count', self.page.paginator.count),
+            ('next', self.get_next_link()),
+            ('previous', self.get_previous_link()),
+            ('results', data)
+        ])
+        stats = getattr(self, 'statistics', {})
+        for key, val in stats.items():
+            response_data[key] = val
+        return Response(response_data)
+
+
+class AdminTransactionListAPIView(APIView):
+    permission_classes = [IsAuthenticated, IsAdminUser]
+
+    def get(self, request, *args, **kwargs):
+        queryset = Contribution.objects.filter(is_voided=False)
+
+        method = request.query_params.get('method')
+        status_val = request.query_params.get('status')
+        date_from = request.query_params.get('date_from')
+        date_to = request.query_params.get('date_to')
+
+        if method:
+            queryset = queryset.filter(method__icontains=method)
+        if status_val:
+            queryset = queryset.filter(status=status_val)
+        if date_from:
+            queryset = queryset.filter(timestamp__date__gte=date_from)
+        if date_to:
+            queryset = queryset.filter(timestamp__date__lte=date_to)
+
+        # Single database aggregation pass using Sum with filter=Q(...) conditional aggregations
+        stats = queryset.aggregate(
+            total_raised=Sum('amount'),
+            cash=Sum('amount', filter=Q(method__icontains='Cash')),
+            pos=Sum('amount', filter=Q(method__icontains='POS')),
+            transfer=Sum('amount', filter=Q(method__icontains='Transfer')),
+            pledges=Sum('amount', filter=Q(method__icontains='Pledge')),
+            paystack=Sum('amount', filter=Q(method__icontains='Paystack')),
+        )
+
+        total_raised = float(stats['total_raised'] or 0.0)
+        cash = float(stats['cash'] or 0.0)
+        pos = float(stats['pos'] or 0.0)
+        transfer = float(stats['transfer'] or 0.0)
+        pledges = float(stats['pledges'] or 0.0)
+        paystack = float(stats['paystack'] or 0.0)
+
+        target = 5000000
+        progress_percentage = min(int((total_raised / target) * 100), 100) if total_raised > 0 else 0
+
+        statistics = {
+            'total_raised': total_raised,
+            'cash': cash,
+            'pos': pos,
+            'transfer': transfer,
+            'pledges': pledges,
+            'paystack': paystack,
+            'progress_percentage': progress_percentage
+        }
+
+        queryset = queryset.order_by('-timestamp')
+
+        paginator = AdminTransactionPagination()
+        paginator.statistics = statistics
+        page = paginator.paginate_queryset(queryset, request)
+        if page is not None:
+            serializer = ContributionSerializer(page, many=True, context={'request': request})
+            return paginator.get_paginated_response(serializer.data)
+
+        serializer = ContributionSerializer(queryset, many=True, context={'request': request})
+        return Response(serializer.data)
+
+
+class ContributionActionAPIView(APIView):
+    permission_classes = [IsAuthenticated, IsAdminUser]
+
+    def post(self, request, pk, *args, **kwargs):
+        contribution = get_object_or_404(Contribution, pk=pk)
+        
+        action = request.data.get('action')
+        reason = request.data.get('reason', '')
+
+        if action not in ['approve', 'verify', 'reject']:
+            return Response({'error': 'Invalid action'}, status=status.HTTP_400_BAD_REQUEST)
+
+        if action in ['approve', 'verify']:
+            contribution.status = 'approved'
+            contribution.save()
+
+            print(f"NOTIFICATION: Sending approval notice to {contribution.name} at {contribution.phone}.")
+
+            # Trigger WebSocket push for Live Board
+            channel_layer = get_channel_layer()
+            total = Contribution.objects.filter(is_voided=False).aggregate(Sum('amount'))['amount__sum'] or 0.00
+            display_name = 'Anonymous' if contribution.is_anonymous else contribution.name
+            
+            ws_data = {
+                'id': str(contribution.id),
+                'name': display_name,
+                'amount': str(contribution.amount),
+                'method': contribution.method,
+                'source': contribution.source,
+                'timestamp': contribution.timestamp.isoformat(),
+                'total_harvest': str(total)
+            }
+            
+            async_to_sync(channel_layer.group_send)(
+                'live_board',
+                {
+                    'type': 'new_contribution',
+                    'data': ws_data
+                }
+            )
+
+        elif action == 'reject':
+            contribution.status = 'rejected'
+            contribution.save()
+
+            print(f"NOTIFICATION: Contribution from {contribution.name} ({contribution.phone}) was rejected. Reason: {reason}.")
+
+        return Response({'status': 'success', 'contribution_status': contribution.status})
+
+
+class RequeryPaystackTransactionView(APIView):
+    permission_classes = [IsAuthenticated, IsAdminUser]
+
+    def post(self, request, pk, *args, **kwargs):
+        contribution = get_object_or_404(Contribution, pk=pk)
+
+        if not contribution.method or contribution.method.lower() != 'paystack':
+            return Response({'error': "Transaction method is not 'Paystack'"}, status=status.HTTP_400_BAD_REQUEST)
+
+        if not contribution.idempotency_key:
+            return Response({'error': "Transaction does not have an idempotency key"}, status=status.HTTP_400_BAD_REQUEST)
+
+        url = f"https://api.paystack.co/transaction/verify/{contribution.idempotency_key}"
+        headers = {
+            "Authorization": f"Bearer {settings.PAYSTACK_SECRET_KEY}",
+        }
+
+        try:
+            response = requests.get(url, headers=headers, timeout=10)
+            res_data = response.json()
+        except requests.RequestException as e:
+            return Response({'error': f"Connection to Paystack failed: {str(e)}"}, status=status.HTTP_502_BAD_GATEWAY)
+        except ValueError:
+            return Response({'error': "Invalid JSON response from Paystack API"}, status=status.HTTP_502_BAD_GATEWAY)
+
+        paystack_status = res_data.get('status')
+        data = res_data.get('data', {})
+        data_status = data.get('status') if data else None
+
+        if paystack_status is True and data_status == 'success':
+            contribution.status = 'approved'
+            contribution.save()
+
+            # Fire Django Channels push
+            channel_layer = get_channel_layer()
+            total = Contribution.objects.filter(is_voided=False).aggregate(Sum('amount'))['amount__sum'] or 0.00
+            display_name = 'Anonymous' if contribution.is_anonymous else contribution.name
+            
+            ws_data = {
+                'id': str(contribution.id),
+                'name': display_name,
+                'amount': str(contribution.amount),
+                'method': contribution.method,
+                'source': contribution.source,
+                'timestamp': contribution.timestamp.isoformat(),
+                'total_harvest': str(total)
+            }
+            
+            async_to_sync(channel_layer.group_send)(
+                'live_board',
+                {
+                    'type': 'new_contribution',
+                    'data': ws_data
+                }
+            )
+
+            return Response({'status': 'success', 'contribution_status': contribution.status})
+        elif data_status == 'failed':
+            contribution.status = 'rejected'
+            contribution.save()
+            return Response({'status': 'failed', 'contribution_status': contribution.status, 'error': 'Payment failed on Paystack'}, status=status.HTTP_400_BAD_REQUEST)
+        else:
+            return Response({
+                'status': 'pending_or_other',
+                'paystack_status': data_status or 'unknown',
+                'message': 'Payment is not successful or failed yet'
+            })
 

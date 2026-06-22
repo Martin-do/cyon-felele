@@ -9,7 +9,7 @@ class ContributionSerializer(serializers.ModelSerializer):
         fields = [
             'id', 'name', 'phone', 'amount', 'method', 
             'source', 'referred_by', 'recorder_id', 
-            'proof_url', 'receipt_image', 'idempotency_key', 'is_anonymous', 'timestamp'
+            'proof_url', 'receipt_image', 'idempotency_key', 'is_anonymous', 'timestamp', 'status'
         ]
         read_only_fields = ['id', 'timestamp']
 
