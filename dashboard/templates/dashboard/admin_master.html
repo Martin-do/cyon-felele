@@ -3,115 +3,722 @@
 
 {% block title %}Master Dashboard | CYON Harvest{% endblock %}
 
+{% block head %}
+<!-- Tailwind CSS CDN -->
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+    /* Override base container constraints */
+    .container {
+        max-width: 100% !important;
+        width: 100% !important;
+    }
+    
+    /* Ensure background is consistent */
+    body {
+        background-color: #14301F;
+    }
+    
+    /* Custom select styling for filters */
+    .filter-select option {
+        background: #1B4332;
+        color: #FAF6EC;
+    }
+</style>
+{% endblock %}
+
 {% block content %}
-<div class="glass-card" style="width: 100%; margin: 0 auto;">
-    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; flex-wrap: wrap; gap: 1rem;">
-        <h1 style="margin-bottom: 0;">Master Dashboard</h1>
-        <div style="display: flex; gap: 1rem;">
-            <a href="{% url 'dashboard:live_entry' %}" class="submit-btn" style="width: auto; margin-top: 0; padding: 0.5rem 1.5rem; background: var(--accent); color: white; text-decoration: none;">Live Entry Form</a>
-            <a href="{% url 'dashboard:approval_center' %}" class="submit-btn" style="width: auto; margin-top: 0; padding: 0.5rem 1.5rem; background: #fbbf24; color: black; text-decoration: none;">Approval Center</a>
-            <a href="{% url 'dashboard:export_csv' %}?{{ query_string }}" class="submit-btn" style="width: auto; margin-top: 0; padding: 0.5rem 1.5rem; background: var(--success); color: white; text-decoration: none;">Export CSV</a>
+<!-- CSRF Token container for JS requests -->
+<span id="csrf-token-container" data-csrf="{{ csrf_token }}" class="hidden"></span>
+
+<!-- Floating Toast Container -->
+<div id="toast-container" class="fixed top-5 right-5 z-50 flex flex-col gap-2"></div>
+
+<div class="w-full flex flex-col gap-6">
+    
+    <!-- Header Area -->
+    <div class="flex flex-col md:flex-row md:justify-between md:items-center gap-4 bg-emerald-950/30 border border-amber-500/15 p-6 rounded-2xl backdrop-blur-md">
+        <div class="text-left">
+            <h1 class="text-2xl md:text-3xl font-extrabold text-amber-100 tracking-tight mb-1 text-left">Master Dashboard</h1>
+            <p class="text-sm text-amber-200/70 font-medium">Harvest of Divine Fulfillment 2026 Admin Panel</p>
+        </div>
+        <div class="flex flex-wrap gap-2.5">
+            <a href="{% url 'dashboard:live_entry' %}" class="inline-flex items-center gap-1.5 px-4 py-2 bg-emerald-800/80 hover:bg-emerald-700 text-amber-100 font-semibold rounded-lg border border-amber-500/20 transition shadow-sm text-sm">
+                <svg class="w-4 h-4 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v3m0 0v3m0-3h3m-3 0H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                Live Entry
+            </a>
+            <a href="{% url 'dashboard:approval_center' %}" class="inline-flex items-center gap-1.5 px-4 py-2 bg-amber-500 hover:bg-amber-400 text-emerald-950 font-bold rounded-lg transition shadow-sm text-sm">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                Approval Center
+            </a>
+            <a id="export-csv-btn" href="{% url 'dashboard:export_csv' %}" class="inline-flex items-center gap-1.5 px-4 py-2 bg-emerald-700 hover:bg-emerald-600 text-white font-semibold rounded-lg border border-emerald-500/30 transition shadow-sm text-sm">
+                <svg class="w-4 h-4 text-amber-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+                Export CSV
+            </a>
         </div>
     </div>
 
-    <!-- Filter Form -->
-    <form method="GET" style="display: flex; gap: 1rem; margin-bottom: 2rem; background: rgba(15, 23, 42, 0.4); padding: 1rem; border-radius: 8px; flex-wrap: wrap; align-items: flex-end;">
-        <div style="flex: 1; min-width: 150px;">
-            <label style="font-size: 0.85rem; color: var(--text-muted); display: block; margin-bottom: 0.3rem;">Method</label>
-            <select name="method" style="margin-bottom: 0; padding: 0.5rem; width: 100%; border-radius: 6px; background: rgba(255,255,255,0.05); color: var(--text-main); border: 1px solid rgba(255,255,255,0.1);">
-                <option value="All" {% if method == 'All' or not method %}selected{% endif %} style="color: black;">All</option>
-                <option value="Cash" {% if method == 'Cash' %}selected{% endif %} style="color: black;">Cash</option>
-                <option value="POS" {% if method == 'POS' %}selected{% endif %} style="color: black;">POS</option>
-                <option value="Transfer" {% if method == 'Transfer' %}selected{% endif %} style="color: black;">Transfer</option>
-                <option value="Pledge" {% if method == 'Pledge' %}selected{% endif %} style="color: black;">Pledge</option>
-            </select>
+    <!-- Stats Cards Panel (7 cards) -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-7 gap-4">
+        <!-- Total Raised -->
+        <div class="bg-emerald-950/40 backdrop-blur-md border border-amber-500/15 rounded-xl p-4 flex flex-col justify-between hover:border-amber-500/30 transition-all duration-300 shadow-lg">
+            <span class="text-[10px] font-bold tracking-wider text-amber-400/90 uppercase">Total Raised</span>
+            <span id="stat-total-raised" class="text-xl md:text-2xl font-bold text-amber-50 font-mono mt-1">₦0.00</span>
         </div>
-        <div style="flex: 1; min-width: 150px;">
-            <label style="font-size: 0.85rem; color: var(--text-muted); display: block; margin-bottom: 0.3rem;">From Date</label>
-            <input type="date" name="date_from" value="{{ date_from }}" style="margin-bottom: 0; padding: 0.5rem; width: 100%; border-radius: 6px; background: rgba(255,255,255,0.05); color: var(--text-main); border: 1px solid rgba(255,255,255,0.1);">
-        </div>
-        <div style="flex: 1; min-width: 150px;">
-            <label style="font-size: 0.85rem; color: var(--text-muted); display: block; margin-bottom: 0.3rem;">To Date</label>
-            <input type="date" name="date_to" value="{{ date_to }}" style="margin-bottom: 0; padding: 0.5rem; width: 100%; border-radius: 6px; background: rgba(255,255,255,0.05); color: var(--text-main); border: 1px solid rgba(255,255,255,0.1);">
-        </div>
-        <div style="display: flex; gap: 0.5rem;">
-            <button type="submit" class="submit-btn" style="width: auto; margin-top: 0; padding: 0.5rem 1.5rem;">Filter</button>
-            <a href="?" class="submit-btn" style="width: auto; margin-top: 0; padding: 0.5rem 1.5rem; background: rgba(255,255,255,0.1); color: var(--text-main); text-decoration: none; text-align: center;">Clear</a>
-        </div>
-    </form>
-
-    <!-- 6 Stat Cards -->
-    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 1rem; margin-bottom: 2rem;">
-        <div style="background: rgba(59, 130, 246, 0.1); border: 1px solid rgba(59, 130, 246, 0.3); border-radius: 10px; padding: 1.5rem; text-align: center;">
-            <p style="color: var(--accent); font-size: 0.9rem; margin-bottom: 0.5rem; text-transform: uppercase; letter-spacing: 1px;">Total Raised</p>
-            <p style="font-size: 1.8rem; font-weight: 700;">₦{{ total_amount|intcomma }}</p>
-        </div>
-        <div style="background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 10px; padding: 1.5rem; text-align: center;">
-            <p style="color: var(--success); font-size: 0.9rem; margin-bottom: 0.5rem; text-transform: uppercase; letter-spacing: 1px;">Progress (₦5M)</p>
-            <p style="font-size: 1.8rem; font-weight: 700;">{{ progress_percentage }}%</p>
-            <div style="width: 100%; background: rgba(255,255,255,0.1); border-radius: 4px; height: 6px; margin-top: 8px; overflow: hidden;">
-                <div style="width: {{ progress_percentage }}%; background: var(--success); height: 100%;"></div>
+        <!-- Progress -->
+        <div class="bg-emerald-950/40 backdrop-blur-md border border-amber-500/15 rounded-xl p-4 flex flex-col justify-between hover:border-amber-500/30 transition-all duration-300 shadow-lg">
+            <span class="text-[10px] font-bold tracking-wider text-amber-400/90 uppercase">Progress (₦5M)</span>
+            <div class="flex items-center justify-between mt-1">
+                <span id="stat-progress-percent" class="text-xl md:text-2xl font-bold text-amber-50 font-mono">0%</span>
+            </div>
+            <div class="w-full bg-emerald-950/60 rounded-full h-2 mt-2 border border-amber-500/10">
+                <div id="stat-progress-bar-fill" class="bg-gradient-to-r from-amber-400 to-amber-600 h-2 rounded-full transition-all duration-1000" style="width: 0%"></div>
             </div>
         </div>
-        <div style="background: rgba(139, 92, 246, 0.1); border: 1px solid rgba(139, 92, 246, 0.3); border-radius: 10px; padding: 1.5rem; text-align: center;">
-            <p style="color: #a78bfa; font-size: 0.9rem; margin-bottom: 0.5rem; text-transform: uppercase; letter-spacing: 1px;">Cash</p>
-            <p style="font-size: 1.8rem; font-weight: 700;">₦{{ cash_total|intcomma }}</p>
+        <!-- Cash -->
+        <div class="bg-emerald-950/40 backdrop-blur-md border border-amber-500/15 rounded-xl p-4 flex flex-col justify-between hover:border-amber-500/30 transition-all duration-300 shadow-lg">
+            <span class="text-[10px] font-bold tracking-wider text-amber-400/90 uppercase">Cash</span>
+            <span id="stat-cash" class="text-xl md:text-2xl font-bold text-amber-50 font-mono mt-1">₦0.00</span>
         </div>
-        <div style="background: rgba(245, 158, 11, 0.1); border: 1px solid rgba(245, 158, 11, 0.3); border-radius: 10px; padding: 1.5rem; text-align: center;">
-            <p style="color: #fbbf24; font-size: 0.9rem; margin-bottom: 0.5rem; text-transform: uppercase; letter-spacing: 1px;">POS</p>
-            <p style="font-size: 1.8rem; font-weight: 700;">₦{{ pos_total|intcomma }}</p>
+        <!-- POS -->
+        <div class="bg-emerald-950/40 backdrop-blur-md border border-amber-500/15 rounded-xl p-4 flex flex-col justify-between hover:border-amber-500/30 transition-all duration-300 shadow-lg">
+            <span class="text-[10px] font-bold tracking-wider text-amber-400/90 uppercase">POS</span>
+            <span id="stat-pos" class="text-xl md:text-2xl font-bold text-amber-50 font-mono mt-1">₦0.00</span>
         </div>
-        <div style="background: rgba(236, 72, 153, 0.1); border: 1px solid rgba(236, 72, 153, 0.3); border-radius: 10px; padding: 1.5rem; text-align: center;">
-            <p style="color: #f472b6; font-size: 0.9rem; margin-bottom: 0.5rem; text-transform: uppercase; letter-spacing: 1px;">Transfer</p>
-            <p style="font-size: 1.8rem; font-weight: 700;">₦{{ transfer_total|intcomma }}</p>
+        <!-- Transfer -->
+        <div class="bg-emerald-950/40 backdrop-blur-md border border-amber-500/15 rounded-xl p-4 flex flex-col justify-between hover:border-amber-500/30 transition-all duration-300 shadow-lg">
+            <span class="text-[10px] font-bold tracking-wider text-amber-400/90 uppercase">Transfer</span>
+            <span id="stat-transfer" class="text-xl md:text-2xl font-bold text-amber-50 font-mono mt-1">₦0.00</span>
         </div>
-        <div style="background: rgba(107, 114, 128, 0.1); border: 1px solid rgba(107, 114, 128, 0.3); border-radius: 10px; padding: 1.5rem; text-align: center;">
-            <p style="color: #9ca3af; font-size: 0.9rem; margin-bottom: 0.5rem; text-transform: uppercase; letter-spacing: 1px;">Pledges</p>
-            <p style="font-size: 1.8rem; font-weight: 700;">₦{{ pledge_total|intcomma }}</p>
+        <!-- Pledges -->
+        <div class="bg-emerald-950/40 backdrop-blur-md border border-amber-500/15 rounded-xl p-4 flex flex-col justify-between hover:border-amber-500/30 transition-all duration-300 shadow-lg">
+            <span class="text-[10px] font-bold tracking-wider text-amber-400/90 uppercase">Pledges</span>
+            <span id="stat-pledges" class="text-xl md:text-2xl font-bold text-amber-50 font-mono mt-1">₦0.00</span>
+        </div>
+        <!-- Paystack -->
+        <div class="bg-emerald-950/40 backdrop-blur-md border border-amber-500/15 rounded-xl p-4 flex flex-col justify-between hover:border-amber-500/30 transition-all duration-300 shadow-lg">
+            <span class="text-[10px] font-bold tracking-wider text-amber-400/90 uppercase">Paystack</span>
+            <span id="stat-paystack" class="text-xl md:text-2xl font-bold text-amber-50 font-mono mt-1">₦0.00</span>
         </div>
     </div>
 
-    <h3 style="margin-bottom: 1rem; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 0.5rem;">Recent Contributions</h3>
-    
-    <div style="overflow-x: auto; background: rgba(15, 23, 42, 0.4); border-radius: 8px;">
-        <table style="width: 100%; text-align: left; border-collapse: collapse; min-width: 800px;">
-            <thead>
-                <tr style="border-bottom: 1px solid rgba(255,255,255,0.1); background: rgba(255,255,255,0.02);">
-                    <th style="padding: 1rem; color: var(--text-muted); font-weight: 600;">Time</th>
-                    <th style="padding: 1rem; color: var(--text-muted); font-weight: 600;">Name</th>
-                    <th style="padding: 1rem; color: var(--text-muted); font-weight: 600;">Amount</th>
-                    <th style="padding: 1rem; color: var(--text-muted); font-weight: 600;">Method</th>
-                    <th style="padding: 1rem; color: var(--text-muted); font-weight: 600;">Source</th>
-                    <th style="padding: 1rem; color: var(--text-muted); font-weight: 600;">Referred By</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for c in contributions %}
-                <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
-                    <td style="padding: 1rem; font-size: 0.9rem; color: var(--text-muted);">{{ c.timestamp|date:"M d, H:i" }}</td>
-                    <td style="padding: 1rem; font-weight: 500;">
-                        {{ c.name }}
-                        {% if c.is_anonymous %}
-                        <span style="font-size: 0.7rem; background: rgba(255,255,255,0.1); padding: 2px 6px; border-radius: 4px; margin-left: 5px;">Anon</span>
-                        {% endif %}
-                    </td>
-                    <td style="padding: 1rem; font-weight: 700; color: var(--success);">₦{{ c.amount|intcomma }}</td>
-                    <td style="padding: 1rem; text-transform: capitalize;">{{ c.method }}</td>
-                    <td style="padding: 1rem; font-size: 0.9rem;">
-                        {% if c.source == 'guest_form' %}Guest Form
-                        {% elif c.source == 'member_hub' %}Member Hub
-                        {% elif c.source == 'live_log' %}Usher Log
-                        {% else %}{{ c.source }}{% endif %}
-                    </td>
-                    <td style="padding: 1rem; font-size: 0.9rem;">{{ c.referred_by.name|default:"-" }}</td>
-                </tr>
-                {% empty %}
-                <tr>
-                    <td colspan="6" style="padding: 2rem; text-align: center; color: var(--text-muted);">No contributions recorded yet.</td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
+    <!-- Filters Form -->
+    <div class="bg-emerald-950/30 backdrop-blur-md border border-amber-500/15 p-5 rounded-2xl">
+        <form id="filter-form" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 items-end">
+            <!-- Method -->
+            <div>
+                <label for="filter-method" class="block text-amber-400/90 text-xs font-bold uppercase tracking-wider mb-1.5">Payment Method</label>
+                <select id="filter-method" name="method" class="filter-select w-full bg-emerald-900/40 border border-amber-500/20 rounded-lg px-3 py-2 text-amber-50 text-sm focus:outline-none focus:border-amber-400 transition">
+                    <option value="" class="text-black">All Methods</option>
+                    <option value="Cash" class="text-black">Cash</option>
+                    <option value="POS" class="text-black">POS</option>
+                    <option value="Transfer" class="text-black">Transfer</option>
+                    <option value="Pledge" class="text-black">Pledge</option>
+                    <option value="Paystack" class="text-black">Paystack</option>
+                </select>
+            </div>
+            <!-- Status -->
+            <div>
+                <label for="filter-status" class="block text-amber-400/90 text-xs font-bold uppercase tracking-wider mb-1.5">Transaction Status</label>
+                <select id="filter-status" name="status" class="filter-select w-full bg-emerald-900/40 border border-amber-500/20 rounded-lg px-3 py-2 text-amber-50 text-sm focus:outline-none focus:border-amber-400 transition">
+                    <option value="" class="text-black">All Statuses</option>
+                    <option value="pending" class="text-black">Pending</option>
+                    <option value="approved" class="text-black">Approved</option>
+                    <option value="rejected" class="text-black">Rejected</option>
+                </select>
+            </div>
+            <!-- Start Date -->
+            <div>
+                <label for="filter-date-from" class="block text-amber-400/90 text-xs font-bold uppercase tracking-wider mb-1.5">Start Date</label>
+                <input type="date" id="filter-date-from" name="date_from" class="w-full bg-emerald-900/40 border border-amber-500/20 rounded-lg px-3 py-2 text-amber-50 text-sm focus:outline-none focus:border-amber-400 transition">
+            </div>
+            <!-- End Date -->
+            <div>
+                <label for="filter-date-to" class="block text-amber-400/90 text-xs font-bold uppercase tracking-wider mb-1.5">End Date</label>
+                <input type="date" id="filter-date-to" name="date_to" class="w-full bg-emerald-900/40 border border-amber-500/20 rounded-lg px-3 py-2 text-amber-50 text-sm focus:outline-none focus:border-amber-400 transition">
+            </div>
+            <!-- Buttons -->
+            <div class="flex gap-2">
+                <button type="submit" class="w-full bg-gradient-to-r from-amber-400 to-amber-600 hover:from-amber-300 hover:to-amber-500 text-emerald-950 font-bold px-4 py-2 rounded-lg transition shadow-md text-sm">
+                    Filter
+                </button>
+                <button type="button" id="clear-filter-btn" class="w-full bg-emerald-800/40 hover:bg-emerald-800/60 text-amber-200 font-semibold px-4 py-2 rounded-lg transition border border-amber-500/10 text-sm">
+                    Clear
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Table & List Section -->
+    <div class="bg-emerald-950/30 backdrop-blur-md border border-amber-500/15 rounded-2xl overflow-hidden p-1 shadow-xl">
+        <div class="px-5 py-4 border-b border-emerald-950/20 flex items-center justify-between">
+            <h3 class="text-base font-bold text-amber-100">Transactions Ledger</h3>
+        </div>
+        
+        <!-- Desktop Table view -->
+        <div class="hidden lg:block overflow-x-auto w-full">
+            <table class="w-full text-left border-collapse">
+                <thead>
+                    <tr class="border-b border-emerald-950/20 bg-emerald-950/40 text-amber-400/80 text-xs font-bold uppercase tracking-wider">
+                        <th class="px-4 py-3 font-semibold">Timestamp</th>
+                        <th class="px-4 py-3 font-semibold">Name</th>
+                        <th class="px-4 py-3 font-semibold">Amount</th>
+                        <th class="px-4 py-3 font-semibold">Method</th>
+                        <th class="px-4 py-3 font-semibold">Status</th>
+                        <th class="px-4 py-3 font-semibold">Proof Link</th>
+                        <th class="px-4 py-3 font-semibold">Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="transactions-table-body" class="divide-y divide-emerald-950/10">
+                    <!-- Dynamic Rows -->
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Mobile view (Card List) -->
+        <div class="block lg:hidden p-4">
+            <div id="transactions-mobile-container" class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <!-- Dynamic Mobile Cards -->
+            </div>
+        </div>
+        
+        <!-- Pagination Controls -->
+        <div class="flex items-center justify-between px-5 py-4 bg-emerald-950/40 border-t border-emerald-950/20">
+            <div class="text-xs text-amber-200/80">
+                Showing <span id="showing-count" class="font-bold text-amber-100">0</span> of <span id="total-count" class="font-bold text-amber-100">0</span> transactions
+            </div>
+            <div class="flex gap-2">
+                <button id="prev-page-btn" class="px-3 py-1.5 bg-emerald-800/60 hover:bg-emerald-700 disabled:opacity-40 disabled:cursor-not-allowed text-amber-200 hover:text-amber-100 text-xs font-semibold rounded border border-amber-500/10 transition" disabled>
+                    Previous
+                </button>
+                <button id="next-page-btn" class="px-3 py-1.5 bg-emerald-800/60 hover:bg-emerald-700 disabled:opacity-40 disabled:cursor-not-allowed text-amber-200 hover:text-amber-100 text-xs font-semibold rounded border border-amber-500/10 transition" disabled>
+                    Next
+                </button>
+            </div>
+        </div>
     </div>
 </div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    let currentFetchUrl = '/dashboard/api/transactions/';
+    let nextUrl = null;
+    let prevUrl = null;
+
+    // Helper to format currency
+    function formatCurrency(amount) {
+        return new Intl.NumberFormat('en-NG', {
+            style: 'currency',
+            currency: 'NGN',
+            minimumFractionDigits: 2
+        }).format(amount).replace('NGN', '₦');
+    }
+
+    // Helper to format dates
+    function formatDate(dateString) {
+        if (!dateString) return '';
+        const date = new Date(dateString);
+        return date.toLocaleDateString('en-US', {
+            month: 'short',
+            day: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit'
+        });
+    }
+
+    // Parse absolute URL to relative
+    function getRelativeUrl(absoluteUrl) {
+        if (!absoluteUrl) return null;
+        try {
+            const urlObj = new URL(absoluteUrl);
+            return urlObj.pathname + urlObj.search;
+        } catch (e) {
+            return absoluteUrl;
+        }
+    }
+
+    // Notification toast helper
+    function showToast(message, type = 'success') {
+        const container = document.getElementById('toast-container');
+        const toast = document.createElement('div');
+        toast.className = `toast-notification px-4 py-3 rounded-xl shadow-xl text-white font-medium flex items-center gap-2 transform translate-y-2 opacity-0 transition-all duration-300 ${
+            type === 'success' ? 'bg-emerald-600' : type === 'error' ? 'bg-rose-600' : 'bg-amber-500'
+        }`;
+        
+        let icon = '';
+        if (type === 'success') {
+            icon = `<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>`;
+        } else if (type === 'error') {
+            icon = `<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>`;
+        } else {
+            icon = `<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>`;
+        }
+        
+        toast.innerHTML = `${icon}<span>${message}</span>`;
+        container.appendChild(toast);
+        
+        setTimeout(() => {
+            toast.classList.remove('translate-y-2', 'opacity-0');
+        }, 10);
+        
+        setTimeout(() => {
+            toast.classList.add('opacity-0', 'translate-y-[-10px]');
+            setTimeout(() => toast.remove(), 300);
+        }, 4000);
+    }
+
+    // Toggle actions loading state in rows
+    function showRowLoading(id, isLoading) {
+        const container = document.getElementById(`actions-${id}`);
+        const mobileContainer = document.getElementById(`mobile-actions-${id}`);
+        if (isLoading) {
+            if (container) container.innerHTML = `<span class="text-xs text-amber-200/60 font-semibold animate-pulse">Processing...</span>`;
+            if (mobileContainer) mobileContainer.innerHTML = `<span class="text-xs text-amber-200/60 font-semibold animate-pulse">Processing...</span>`;
+        }
+    }
+
+    // Update stats cards
+    function updateStats(data) {
+        document.getElementById('stat-total-raised').textContent = formatCurrency(data.total_raised || 0);
+        
+        const progress = data.progress_percentage || 0;
+        document.getElementById('stat-progress-percent').textContent = `${progress}%`;
+        document.getElementById('stat-progress-bar-fill').style.width = `${progress}%`;
+        
+        document.getElementById('stat-cash').textContent = formatCurrency(data.cash || 0);
+        document.getElementById('stat-pos').textContent = formatCurrency(data.pos || 0);
+        document.getElementById('stat-transfer').textContent = formatCurrency(data.transfer || 0);
+        document.getElementById('stat-pledges').textContent = formatCurrency(data.pledges || 0);
+        document.getElementById('stat-paystack').textContent = formatCurrency(data.paystack || 0);
+    }
+
+    // Create a row element
+    function createRowElement(item) {
+        const tr = document.createElement('tr');
+        tr.className = 'border-b border-emerald-950/20 hover:bg-emerald-950/10 transition-colors duration-150';
+        
+        // Timestamp
+        const dateCell = document.createElement('td');
+        dateCell.className = 'px-4 py-3.5 text-xs text-amber-100/70 font-mono';
+        dateCell.textContent = formatDate(item.timestamp);
+        tr.appendChild(dateCell);
+        
+        // Name
+        const nameCell = document.createElement('td');
+        nameCell.className = 'px-4 py-3.5 text-sm font-semibold text-amber-50';
+        let nameHtml = item.name || 'Anonymous';
+        if (item.is_anonymous) {
+            nameHtml += ` <span class="ml-1 text-[10px] bg-amber-500/20 text-amber-400 border border-amber-500/30 px-1.5 py-0.5 rounded font-bold uppercase tracking-wider">Anon</span>`;
+        }
+        nameCell.innerHTML = nameHtml;
+        tr.appendChild(nameCell);
+        
+        // Amount
+        const amountCell = document.createElement('td');
+        amountCell.className = 'px-4 py-3.5 text-sm font-bold text-amber-300 font-mono';
+        amountCell.textContent = formatCurrency(item.amount);
+        tr.appendChild(amountCell);
+        
+        // Method
+        const methodCell = document.createElement('td');
+        methodCell.className = 'px-4 py-3.5 text-xs font-medium text-amber-200/90 capitalize';
+        methodCell.textContent = item.method || '-';
+        tr.appendChild(methodCell);
+        
+        // Status
+        const statusCell = document.createElement('td');
+        statusCell.className = 'px-4 py-3.5 text-xs';
+        let statusClass = 'bg-amber-500/10 text-amber-400 border border-amber-500/30';
+        if (item.status === 'approved') {
+            statusClass = 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/30';
+        } else if (item.status === 'rejected') {
+            statusClass = 'bg-rose-500/10 text-rose-400 border border-rose-500/30';
+        }
+        statusCell.innerHTML = `<span class="inline-flex px-2 py-0.5 rounded text-[11px] font-bold uppercase tracking-wider ${statusClass}">${item.status || 'pending'}</span>`;
+        tr.appendChild(statusCell);
+        
+        // Proof link
+        const proofCell = document.createElement('td');
+        proofCell.className = 'px-4 py-3.5 text-xs';
+        let proofHtml = '<span class="text-amber-200/40">-</span>';
+        if (item.receipt_image) {
+            proofHtml = `<a href="${item.receipt_image}" target="_blank" class="text-amber-400 hover:text-amber-300 underline inline-flex items-center gap-1 font-semibold text-xs">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg> Receipt
+            </a>`;
+        } else if (item.proof_url) {
+            proofHtml = `<a href="${item.proof_url}" target="_blank" class="text-amber-400 hover:text-amber-300 underline inline-flex items-center gap-1 font-semibold text-xs">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path></svg> Link
+            </a>`;
+        }
+        proofCell.innerHTML = proofHtml;
+        tr.appendChild(proofCell);
+        
+        // Actions
+        const actionsCell = document.createElement('td');
+        actionsCell.className = 'px-4 py-3.5 text-xs';
+        
+        let actionsHtml = `<div id="actions-${item.id}" class="flex flex-wrap gap-1">`;
+        if (item.status === 'pending') {
+            actionsHtml += `<button onclick="handleAction('${item.id}', 'approve')" class="px-2 py-0.5 bg-emerald-700 hover:bg-emerald-600 text-white text-[10px] font-bold rounded shadow transition duration-150">Approve</button>`;
+            actionsHtml += `<button onclick="handleAction('${item.id}', 'verify')" class="px-2 py-0.5 bg-blue-600 hover:bg-blue-500 text-white text-[10px] font-bold rounded shadow transition duration-150">Verify</button>`;
+            actionsHtml += `<button onclick="handleAction('${item.id}', 'reject')" class="px-2 py-0.5 bg-rose-700 hover:bg-rose-600 text-white text-[10px] font-bold rounded shadow transition duration-150">Reject</button>`;
+            
+            const isPaystack = item.method && item.method.toLowerCase().includes('paystack');
+            if (isPaystack) {
+                actionsHtml += `<button onclick="handleRequery('${item.id}')" class="px-2 py-0.5 bg-amber-600 hover:bg-amber-500 text-white text-[10px] font-bold rounded shadow transition duration-150">Re-query</button>`;
+            }
+        } else if (item.status === 'approved') {
+            actionsHtml += `<button onclick="handleAction('${item.id}', 'reject')" class="px-2 py-0.5 bg-rose-700/50 hover:bg-rose-600 text-amber-100 text-[10px] font-bold rounded shadow transition duration-150">Reject</button>`;
+        } else if (item.status === 'rejected') {
+            actionsHtml += `<button onclick="handleAction('${item.id}', 'approve')" class="px-2 py-0.5 bg-emerald-700 hover:bg-emerald-600 text-white text-[10px] font-bold rounded shadow transition duration-150">Approve</button>`;
+            actionsHtml += `<button onclick="handleAction('${item.id}', 'verify')" class="px-2 py-0.5 bg-blue-600 hover:bg-blue-500 text-white text-[10px] font-bold rounded shadow transition duration-150">Verify</button>`;
+        }
+        actionsHtml += `</div>`;
+        
+        actionsCell.innerHTML = actionsHtml;
+        tr.appendChild(actionsCell);
+        
+        return tr;
+    }
+
+    // Create a mobile card element
+    function createMobileCardElement(item) {
+        const card = document.createElement('div');
+        card.className = 'bg-emerald-950/30 border border-amber-500/10 rounded-xl p-4 space-y-3';
+        
+        let statusClass = 'bg-amber-500/10 text-amber-400 border border-amber-500/30';
+        if (item.status === 'approved') {
+            statusClass = 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/30';
+        } else if (item.status === 'rejected') {
+            statusClass = 'bg-rose-500/10 text-rose-400 border border-rose-500/30';
+        }
+        
+        let proofHtml = '<span class="text-amber-200/40">No proof</span>';
+        if (item.receipt_image) {
+            proofHtml = `<a href="${item.receipt_image}" target="_blank" class="text-amber-400 hover:text-amber-300 underline inline-flex items-center gap-1 font-semibold text-xs">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg> Receipt
+            </a>`;
+        } else if (item.proof_url) {
+            proofHtml = `<a href="${item.proof_url}" target="_blank" class="text-amber-400 hover:text-amber-300 underline inline-flex items-center gap-1 font-semibold text-xs">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path></svg> Link
+            </a>`;
+        }
+        
+        let actionsHtml = `<div id="mobile-actions-${item.id}" class="flex flex-wrap gap-1 mt-2">`;
+        if (item.status === 'pending') {
+            actionsHtml += `<button onclick="handleAction('${item.id}', 'approve')" class="px-2.5 py-1 bg-emerald-700 hover:bg-emerald-600 text-white text-[10px] font-bold rounded shadow transition duration-150">Approve</button>`;
+            actionsHtml += `<button onclick="handleAction('${item.id}', 'verify')" class="px-2.5 py-1 bg-blue-600 hover:bg-blue-500 text-white text-[10px] font-bold rounded shadow transition duration-150">Verify</button>`;
+            actionsHtml += `<button onclick="handleAction('${item.id}', 'reject')" class="px-2.5 py-1 bg-rose-700 hover:bg-rose-600 text-white text-[10px] font-bold rounded shadow transition duration-150">Reject</button>`;
+            
+            const isPaystack = item.method && item.method.toLowerCase().includes('paystack');
+            if (isPaystack) {
+                actionsHtml += `<button onclick="handleRequery('${item.id}')" class="px-2.5 py-1 bg-amber-600 hover:bg-amber-500 text-white text-[10px] font-bold rounded shadow transition duration-150">Re-query</button>`;
+            }
+        } else if (item.status === 'approved') {
+            actionsHtml += `<button onclick="handleAction('${item.id}', 'reject')" class="px-2.5 py-1 bg-rose-700/50 hover:bg-rose-600 text-amber-100 text-[10px] font-bold rounded shadow transition duration-150">Reject</button>`;
+        } else if (item.status === 'rejected') {
+            actionsHtml += `<button onclick="handleAction('${item.id}', 'approve')" class="px-2.5 py-1 bg-emerald-700 hover:bg-emerald-600 text-white text-[10px] font-bold rounded shadow transition duration-150">Approve</button>`;
+            actionsHtml += `<button onclick="handleAction('${item.id}', 'verify')" class="px-2.5 py-1 bg-blue-600 hover:bg-blue-500 text-white text-[10px] font-bold rounded shadow transition duration-150">Verify</button>`;
+        }
+        actionsHtml += `</div>`;
+        
+        let nameHtml = item.name || 'Anonymous';
+        if (item.is_anonymous) {
+            nameHtml += ` <span class="ml-1 text-[9px] bg-amber-500/20 text-amber-400 border border-amber-500/30 px-1.5 py-0.5 rounded font-bold uppercase tracking-wider">Anon</span>`;
+        }
+
+        card.innerHTML = `
+            <div class="flex justify-between items-start">
+                <span class="text-[10px] text-amber-100/50 font-mono">${formatDate(item.timestamp)}</span>
+                <span class="inline-flex px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider ${statusClass}">${item.status || 'pending'}</span>
+            </div>
+            <div class="flex justify-between items-center">
+                <div>
+                    <h4 class="text-sm font-bold text-amber-50">${nameHtml}</h4>
+                    <div class="flex gap-2 mt-1">
+                        <span class="text-[10px] text-amber-200/80 bg-emerald-900/40 border border-amber-500/10 px-1.5 py-0.5 rounded capitalize">Method: ${item.method || '-'}</span>
+                        <span class="text-[10px] text-amber-200/80 bg-emerald-900/40 border border-amber-500/10 px-1.5 py-0.5 rounded uppercase">Source: ${item.source ? item.source.replace('_', ' ') : '-'}</span>
+                    </div>
+                </div>
+                <div class="text-right">
+                    <span class="text-base font-bold text-amber-300 font-mono">${formatCurrency(item.amount)}</span>
+                </div>
+            </div>
+            <div class="border-t border-emerald-950/20 pt-2 flex justify-between items-center">
+                <div>
+                    <span class="text-[10px] text-amber-100/50 block">Proof:</span>
+                    ${proofHtml}
+                </div>
+                <div class="text-right">
+                    ${actionsHtml}
+                </div>
+            </div>
+        `;
+        
+        return card;
+    }
+
+    // Fetch transactions
+    async function fetchTransactions(url) {
+        const tbody = document.getElementById('transactions-table-body');
+        const mobileContainer = document.getElementById('transactions-mobile-container');
+        
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="7" class="py-12 text-center">
+                    <div class="inline-block animate-spin rounded-full h-8 w-8 border-2 border-t-amber-400 border-amber-500/20"></div>
+                    <p class="text-amber-200/60 text-sm mt-2 font-medium">Loading transactions...</p>
+                </td>
+            </tr>
+        `;
+        mobileContainer.innerHTML = `
+            <div class="py-12 text-center w-full col-span-full">
+                <div class="inline-block animate-spin rounded-full h-8 w-8 border-2 border-t-amber-400 border-amber-500/20"></div>
+                <p class="text-amber-200/60 text-sm mt-2 font-medium">Loading transactions...</p>
+            </div>
+        `;
+        
+        try {
+            const response = await fetch(url);
+            if (!response.ok) throw new Error("Network response was not ok");
+            const data = await response.json();
+            
+            // Update Stats cards
+            updateStats(data);
+            
+            // Update URLs
+            nextUrl = getRelativeUrl(data.next);
+            prevUrl = getRelativeUrl(data.previous);
+            
+            document.getElementById('next-page-btn').disabled = !nextUrl;
+            document.getElementById('prev-page-btn').disabled = !prevUrl;
+            
+            // Update Counter
+            const count = data.count || 0;
+            const results = data.results || [];
+            document.getElementById('total-count').textContent = count;
+            document.getElementById('showing-count').textContent = results.length;
+            
+            // Populate rows
+            if (results.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="7" class="py-12 text-center text-amber-200/60 font-medium">No transactions match the filters.</td>
+                    </tr>
+                `;
+                mobileContainer.innerHTML = `
+                    <div class="py-12 text-center text-amber-200/60 font-medium w-full col-span-full">No transactions match the filters.</div>
+                `;
+                return;
+            }
+            
+            tbody.innerHTML = '';
+            mobileContainer.innerHTML = '';
+            
+            results.forEach(item => {
+                tbody.appendChild(createRowElement(item));
+                mobileContainer.appendChild(createMobileCardElement(item));
+            });
+            
+        } catch (error) {
+            console.error(error);
+            showToast("Failed to load transactions.", "error");
+            tbody.innerHTML = `
+                <tr>
+                    <td colspan="7" class="py-12 text-center text-rose-400 font-bold">Failed to load transactions.</td>
+                </tr>
+            `;
+            mobileContainer.innerHTML = `
+                <div class="py-12 text-center text-rose-400 font-bold w-full col-span-full">Failed to load transactions.</div>
+            `;
+        }
+    }
+
+    // Handle AJAX Action
+    async function handleAction(id, action) {
+        let reason = '';
+        if (action === 'reject') {
+            reason = prompt("Please enter a reason for rejection:");
+            if (reason === null) return; // cancelled
+        }
+        
+        showRowLoading(id, true);
+        
+        try {
+            const csrfToken = document.getElementById('csrf-token-container').dataset.csrf;
+            const response = await fetch(`/dashboard/api/transactions/${id}/action/`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': csrfToken
+                },
+                body: JSON.stringify({ action: action, reason: reason })
+            });
+            
+            const result = await response.json();
+            
+            if (response.ok && result.status === 'success') {
+                showToast(`Transaction successfully ${action === 'reject' ? 'rejected' : 'approved'}!`, 'success');
+                // Refresh full list and stats
+                fetchTransactions(currentFetchUrl);
+            } else {
+                showToast(result.error || `Action failed: ${action}`, 'error');
+                fetchTransactions(currentFetchUrl); // revert state
+            }
+        } catch (error) {
+            console.error(error);
+            showToast("An error occurred while performing the action.", 'error');
+            fetchTransactions(currentFetchUrl); // revert state
+        }
+    }
+
+    // Handle Re-query Paystack
+    async function handleRequery(id) {
+        showRowLoading(id, true);
+        
+        try {
+            const csrfToken = document.getElementById('csrf-token-container').dataset.csrf;
+            const response = await fetch(`/dashboard/api/transactions/${id}/requery/`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': csrfToken
+                }
+            });
+            
+            const result = await response.json();
+            
+            if (response.ok) {
+                if (result.status === 'success') {
+                    showToast("Paystack payment confirmed & transaction approved!", 'success');
+                } else if (result.status === 'failed') {
+                    showToast("Paystack payment failed. Transaction rejected.", 'error');
+                } else {
+                    showToast(result.message || "Paystack transaction is still pending.", 'warning');
+                }
+                fetchTransactions(currentFetchUrl);
+            } else {
+                showToast(result.error || "Re-query request failed.", 'error');
+                fetchTransactions(currentFetchUrl); // revert state
+            }
+        } catch (error) {
+            console.error(error);
+            showToast("An error occurred during verification re-query.", 'error');
+            fetchTransactions(currentFetchUrl); // revert state
+        }
+    }
+
+    // Parse URL query parameters to pre-fill filters
+    function initFiltersFromUrl() {
+        const urlParams = new URLSearchParams(window.location.search);
+        const method = urlParams.get('method');
+        const status = urlParams.get('status');
+        const dateFrom = urlParams.get('date_from');
+        const dateTo = urlParams.get('date_to');
+        
+        if (method) document.getElementById('filter-method').value = method;
+        if (status) document.getElementById('filter-status').value = status;
+        if (dateFrom) document.getElementById('filter-date-from').value = dateFrom;
+        if (dateTo) document.getElementById('filter-date-to').value = dateTo;
+        
+        // Construct initial fetch URL
+        const params = new URLSearchParams();
+        if (method) params.append('method', method);
+        if (status) params.append('status', status);
+        if (dateFrom) params.append('date_from', dateFrom);
+        if (dateTo) params.append('date_to', dateTo);
+        
+        const queryString = params.toString();
+        currentFetchUrl = `/dashboard/api/transactions/${queryString ? '?' + queryString : ''}`;
+        
+        // Update Export CSV button href with query params
+        const exportBtn = document.getElementById('export-csv-btn');
+        exportBtn.href = `{% url 'dashboard:export_csv' %}${queryString ? '?' + queryString : ''}`;
+    }
+
+    // Setup Filter Form handler
+    document.getElementById('filter-form').addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        const method = document.getElementById('filter-method').value;
+        const status = document.getElementById('filter-status').value;
+        const dateFrom = document.getElementById('filter-date-from').value;
+        const dateTo = document.getElementById('filter-date-to').value;
+        
+        const params = new URLSearchParams();
+        if (method) params.append('method', method);
+        if (status) params.append('status', status);
+        if (dateFrom) params.append('date_from', dateFrom);
+        if (dateTo) params.append('date_to', dateTo);
+        
+        const queryString = params.toString();
+        currentFetchUrl = `/dashboard/api/transactions/${queryString ? '?' + queryString : ''}`;
+        
+        // Update browser URL without reloading
+        const newUrl = window.location.pathname + (queryString ? '?' + queryString : '');
+        window.history.pushState({ path: newUrl }, '', newUrl);
+        
+        // Update Export CSV button href with query params
+        const exportBtn = document.getElementById('export-csv-btn');
+        exportBtn.href = `{% url 'dashboard:export_csv' %}${queryString ? '?' + queryString : ''}`;
+        
+        fetchTransactions(currentFetchUrl);
+    });
+
+    // Clear filter handler
+    document.getElementById('clear-filter-btn').addEventListener('click', function() {
+        document.getElementById('filter-method').value = '';
+        document.getElementById('filter-status').value = '';
+        document.getElementById('filter-date-from').value = '';
+        document.getElementById('filter-date-to').value = '';
+        
+        currentFetchUrl = '/dashboard/api/transactions/';
+        
+        // Update browser URL without reloading
+        window.history.pushState({ path: window.location.pathname }, '', window.location.pathname);
+        
+        // Reset Export CSV link
+        const exportBtn = document.getElementById('export-csv-btn');
+        exportBtn.href = `{% url 'dashboard:export_csv' %}`;
+        
+        fetchTransactions(currentFetchUrl);
+    });
+
+    // Pagination handlers
+    document.getElementById('prev-page-btn').addEventListener('click', function() {
+        if (prevUrl) {
+            currentFetchUrl = prevUrl;
+            
+            // Sync filters query to address bar when paginating if query params are in prevUrl
+            const urlObj = new URL(window.location.origin + prevUrl);
+            window.history.pushState({ path: urlObj.pathname + urlObj.search }, '', urlObj.pathname + urlObj.search);
+            
+            fetchTransactions(currentFetchUrl);
+        }
+    });
+
+    document.getElementById('next-page-btn').addEventListener('click', function() {
+        if (nextUrl) {
+            currentFetchUrl = nextUrl;
+            
+            // Sync filters query to address bar when paginating if query params are in nextUrl
+            const urlObj = new URL(window.location.origin + nextUrl);
+            window.history.pushState({ path: urlObj.pathname + urlObj.search }, '', urlObj.pathname + urlObj.search);
+            
+            fetchTransactions(currentFetchUrl);
+        }
+    });
+
+    // Handle back/forward navigation
+    window.addEventListener('popstate', () => {
+        initFiltersFromUrl();
+        fetchTransactions(currentFetchUrl);
+    });
+
+    // Load initial data
+    window.addEventListener('DOMContentLoaded', () => {
+        initFiltersFromUrl();
+        fetchTransactions(currentFetchUrl);
+    });
+</script>
 {% endblock %}
