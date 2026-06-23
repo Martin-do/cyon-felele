@@ -100,9 +100,29 @@
 
     <p style="color:#4B6B57; font-size:0.88rem; margin-bottom:1.5rem;">Ranked by total contributions raised through personal referral links.</p>
 
-    {% if leaderboard %}
-    <div>
-        {% for entry in leaderboard %}
+    {% if youth_leaderboard %}
+    <h3 style="font-size: 1.1rem; margin-bottom: 1rem; border-bottom: 2px solid #C9A227; padding-bottom: 0.5rem; display: inline-block;">Youth Ambassador Category</h3>
+    <div style="margin-bottom: 2rem;">
+        {% for entry in youth_leaderboard %}
+        <div class="lb-row">
+            <div class="lb-rank {% if forloop.counter == 1 %}gold{% elif forloop.counter == 2 %}silver{% elif forloop.counter == 3 %}bronze{% endif %}">
+                {% if forloop.counter == 1 %}🥇{% elif forloop.counter == 2 %}🥈{% elif forloop.counter == 3 %}🥉{% else %}{{ forloop.counter }}{% endif %}
+            </div>
+            <div class="lb-name">
+                {{ entry.name }}
+                {% if entry.gender == 'M' %}<span style="color: #6B7280; font-size: 0.8rem; font-weight: normal;">(Male)</span>
+                {% elif entry.gender == 'F' %}<span style="color: #6B7280; font-size: 0.8rem; font-weight: normal;">(Female)</span>{% endif %}
+            </div>
+            <div class="lb-amount">₦{{ entry.total|floatformat:0|intcomma }}</div>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    {% if children_leaderboard %}
+    <h3 style="font-size: 1.1rem; margin-bottom: 1rem; border-bottom: 2px solid #C9A227; padding-bottom: 0.5rem; display: inline-block;">Master & Miss Harvest Category</h3>
+    <div style="margin-bottom: 2rem;">
+        {% for entry in children_leaderboard %}
         <div class="lb-row">
             <div class="lb-rank {% if forloop.counter == 1 %}gold{% elif forloop.counter == 2 %}silver{% elif forloop.counter == 3 %}bronze{% endif %}">
                 {% if forloop.counter == 1 %}🥇{% elif forloop.counter == 2 %}🥈{% elif forloop.counter == 3 %}🥉{% else %}{{ forloop.counter }}{% endif %}
@@ -112,7 +132,9 @@
         </div>
         {% endfor %}
     </div>
-    {% else %}
+    {% endif %}
+
+    {% if not youth_leaderboard and not children_leaderboard %}
     <div class="empty-state">
         <div class="emoji">🚀</div>
         <p style="font-weight:600; color:#1B3B2B; margin-bottom:0.3rem;">No entries yet!</p>

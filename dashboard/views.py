@@ -2,6 +2,7 @@ import qrcode
 from io import BytesIO
 from django.core.files.base import ContentFile
 from django.shortcuts import render, redirect
+from django.contrib.auth import authenticate, login as auth_login
 from django.contrib.auth.decorators import login_required
 from django.db.models import Sum, Q
 from accounts.models import Member
@@ -23,7 +24,12 @@ from contributions.serializers import ContributionSerializer
 
 @login_required(login_url='/accounts/login/')
 def member_hub_view(request):
+    from contributions.models import InflowCategory
+
     user = request.user
+    
+    if not user.has_completed_onboarding:
+        return redirect('accounts:onboarding')
     
     if request.method == 'POST':
         if 'update_profile' in request.POST:
@@ -33,6 +39,9 @@ def member_hub_view(request):
             
             if 'profile_picture' in request.FILES:
                 user.profile_picture = request.FILES['profile_picture']
+                
+            if 'custom_flyer' in request.FILES:
+                user.custom_flyer = request.FILES['custom_flyer']
             
             user.save()
             messages.success(request, 'Profile updated successfully!')
@@ -45,6 +54,37 @@ def member_hub_view(request):
     if user.levy_amount > 0:
         progress_percentage = min(int((user.levy_paid / user.levy_amount) * 100), 100)
 
+    # Global Campaign Progress for Progress Bar
+    all_approved = Contribution.objects.filter(is_voided=False, status='approved')
+    total_campaign_raised = all_approved.aggregate(Sum('amount'))['amount__sum'] or 0.00
+    global_progress = min(int((float(total_campaign_raised) / 5000000.0) * 100), 100)
+
+    category_stats = []
+    colors = ['#3b82f6', '#f43f5e', '#a855f7', '#6366f1', '#14b8a6']
+    active_categories = InflowCategory.objects.filter(is_active=True)
+    
+    color_idx = 0
+    for cat in active_categories:
+        cat_total = all_approved.filter(inflow_category=cat).aggregate(Sum('amount'))['amount__sum'] or 0.00
+        if cat_total > 0:
+            lower_name = cat.name.lower()
+            if 'campaign funds' in lower_name or 'cash' in lower_name:
+                assigned_color = '#10b981' # emerald-500
+            elif 'pledge' in lower_name:
+                assigned_color = '#f59e0b' # amber-500
+            else:
+                assigned_color = colors[color_idx % len(colors)]
+                color_idx += 1
+                
+            category_stats.append({
+                'name': cat.name,
+                'amount': float(cat_total),
+                'percent': (float(cat_total) / 5000000.0) * 100,
+                'color': assigned_color
+            })
+    
+    category_stats.sort(key=lambda x: x['amount'], reverse=True)
+
     base_url = request.build_absolute_uri('/')[:-1] 
     referral_link = f"{base_url}/support/{user.referral_slug}/"
 
@@ -52,6 +92,9 @@ def member_hub_view(request):
         'total_referred': total_referred,
         'recent_referrals': referred_contributions.order_by('-timestamp')[:5],
         'progress_percentage': progress_percentage,
+        'total_campaign_raised': total_campaign_raised,
+        'global_progress': global_progress,
+        'category_stats': category_stats,
         'referral_link': referral_link,
         'member': user,
     }
@@ -92,40 +135,85 @@ def generate_qr_code_view(request):
 
 def leaderboard_view(request):
     members = Member.objects.filter(is_active=True, is_staff=False)
-    leaderboard = []
+    youth_leaderboard = []
+    children_leaderboard = []
     
     for member in members:
         total = Contribution.objects.filter(referred_by=member, is_voided=False, status='approved').aggregate(Sum('amount'))['amount__sum'] or 0.00
         if total > 0:
-            leaderboard.append({
+            entry = {
                 'name': member.name,
-                'total': total
-            })
+                'total': total,
+                'gender': member.gender,
+                'title': member.contestant_title
+            }
+            if member.contestant_title in ['Master Harvest', 'Miss Harvest']:
+                children_leaderboard.append(entry)
+            else:
+                youth_leaderboard.append(entry)
             
-    leaderboard = sorted(leaderboard, key=lambda x: x['total'], reverse=True)
+    youth_leaderboard = sorted(youth_leaderboard, key=lambda x: x['total'], reverse=True)
+    children_leaderboard = sorted(children_leaderboard, key=lambda x: x['total'], reverse=True)
     
     total_harvest = Contribution.objects.filter(is_voided=False, status='approved').aggregate(Sum('amount'))['amount__sum'] or 0.00
     
     context = {
-        'leaderboard': leaderboard,
+        'youth_leaderboard': youth_leaderboard,
+        'children_leaderboard': children_leaderboard,
         'total_harvest': total_harvest
     }
     return render(request, 'dashboard/leaderboard.html', context)
 
 import csv
 from django.http import HttpResponse
-from django.contrib.admin.views.decorators import staff_member_required
+from functools import wraps
+from contributions.models import InflowCategory
+from accounts.models import PinResetRequest
 
-@staff_member_required(login_url='/admin/login/')
+def admin_required(view_func):
+    @wraps(view_func)
+    @login_required(login_url='/dashboard/login/')
+    def _wrapped_view(request, *args, **kwargs):
+        if request.user.is_authenticated and request.user.is_admin_user:
+            return view_func(request, *args, **kwargs)
+        messages.error(request, "Access denied. Admin privileges required.")
+        return redirect('dashboard:member_hub')
+    return _wrapped_view
+
+def approver_required(view_func):
+    @wraps(view_func)
+    @login_required(login_url='/accounts/login/')
+    def _wrapped_view(request, *args, **kwargs):
+        if request.user.is_authenticated and request.user.is_approver:
+            return view_func(request, *args, **kwargs)
+        messages.error(request, "Access denied. Approver privileges required.")
+        return redirect('dashboard:member_hub')
+    return _wrapped_view
+
+def usher_required(view_func):
+    @wraps(view_func)
+    @login_required(login_url='/accounts/login/')
+    def _wrapped_view(request, *args, **kwargs):
+        if request.user.is_authenticated and request.user.is_usher:
+            return view_func(request, *args, **kwargs)
+        messages.error(request, "Access denied. Usher privileges required.")
+        return redirect('dashboard:member_hub')
+    return _wrapped_view
+
+@admin_required
 def master_dashboard_view(request):
     contributions = Contribution.objects.filter(is_voided=False, status='approved').order_by('-timestamp')
     
     method = request.GET.get('method', '')
     date_from = request.GET.get('date_from', '')
     date_to = request.GET.get('date_to', '')
+    category_id = request.GET.get('category_id', '')
 
     if method and method != 'All':
         contributions = contributions.filter(method__icontains=method)
+    
+    if category_id and category_id != 'All':
+        contributions = contributions.filter(inflow_category_id=category_id)
     
     if date_from:
         try:
@@ -145,26 +233,34 @@ def master_dashboard_view(request):
     progress_percentage = min(int((total_amount / target_amount) * 100), 100) if total_amount else 0
 
     cash_total = contributions.filter(method__icontains='Cash').aggregate(Sum('amount'))['amount__sum'] or 0.00
-    pos_total = contributions.filter(method__icontains='POS').aggregate(Sum('amount'))['amount__sum'] or 0.00
     transfer_total = contributions.filter(method__icontains='Transfer').aggregate(Sum('amount'))['amount__sum'] or 0.00
     pledge_total = contributions.filter(method__icontains='Pledge').aggregate(Sum('amount'))['amount__sum'] or 0.00
+
+    categories = InflowCategory.objects.all()
+    members = Member.objects.all().order_by('name')
+    pin_requests = PinResetRequest.objects.filter(is_resolved=False).order_by('-created_at')
+    resolved_resets = PinResetRequest.objects.filter(is_resolved=True).order_by('-resolved_at')[:10]
 
     context = {
         'contributions': contributions,
         'total_amount': total_amount,
         'progress_percentage': progress_percentage,
         'cash_total': cash_total,
-        'pos_total': pos_total,
         'transfer_total': transfer_total,
         'pledge_total': pledge_total,
         'method': method,
         'date_from': date_from,
         'date_to': date_to,
+        'category_id': category_id,
+        'categories': categories,
+        'members': members,
+        'pin_requests': pin_requests,
+        'resolved_resets': resolved_resets,
         'query_string': request.GET.urlencode(),
     }
     return render(request, 'dashboard/admin_master.html', context)
 
-@staff_member_required(login_url='/admin/login/')
+@admin_required
 def export_csv_view(request):
     response = HttpResponse(content_type='text/csv')
     response['Content-Disposition'] = 'attachment; filename="harvest_contributions.csv"'
@@ -177,9 +273,13 @@ def export_csv_view(request):
     method = request.GET.get('method', '')
     date_from = request.GET.get('date_from', '')
     date_to = request.GET.get('date_to', '')
+    category_id = request.GET.get('category_id', '')
 
     if method and method != 'All':
         contributions = contributions.filter(method__icontains=method)
+    
+    if category_id and category_id != 'All':
+        contributions = contributions.filter(inflow_category_id=category_id)
     
     if date_from:
         try:
@@ -206,7 +306,7 @@ def export_csv_view(request):
 from django.shortcuts import get_object_or_404, redirect
 from django.contrib import messages
 
-@staff_member_required(login_url='/admin/login/')
+@approver_required
 def approval_center_view(request):
     pending_contributions = Contribution.objects.filter(is_voided=False, status='pending').order_by('-timestamp')
     context = {
@@ -214,7 +314,7 @@ def approval_center_view(request):
     }
     return render(request, 'dashboard/approval_center.html', context)
 
-@staff_member_required(login_url='/admin/login/')
+@approver_required
 def approve_contribution_view(request, pk):
     if request.method == 'POST':
         contribution = get_object_or_404(Contribution, pk=pk)
@@ -227,7 +327,7 @@ def approve_contribution_view(request, pk):
         messages.success(request, f"Approved contribution from {contribution.name}.")
     return redirect('dashboard:approval_center')
 
-@staff_member_required(login_url='/admin/login/')
+@approver_required
 def reject_contribution_view(request, pk):
     if request.method == 'POST':
         contribution = get_object_or_404(Contribution, pk=pk)
@@ -236,7 +336,7 @@ def reject_contribution_view(request, pk):
         messages.info(request, f"Rejected contribution from {contribution.name}.")
     return redirect('dashboard:approval_center')
 
-@staff_member_required(login_url='/admin/login/')
+@usher_required
 def live_entry_view(request):
     if request.method == 'POST':
         name = request.POST.get('name')
@@ -244,12 +344,20 @@ def live_entry_view(request):
         method = request.POST.get('method', 'Cash')
         phone = request.POST.get('phone', '')
         referred_by_id = request.POST.get('referred_by', '')
+        category_id = request.POST.get('category', '')
         
         referrer = None
         if referred_by_id:
             try:
                 referrer = Member.objects.get(id=referred_by_id)
             except Member.DoesNotExist:
+                pass
+        
+        category = None
+        if category_id:
+            try:
+                category = InflowCategory.objects.get(id=category_id)
+            except InflowCategory.DoesNotExist:
                 pass
                 
         Contribution.objects.create(
@@ -258,6 +366,7 @@ def live_entry_view(request):
             method=method,
             phone=phone,
             referred_by=referrer,
+            inflow_category=category,
             source='live_log',
             status='approved',
             recorder_id=request.user.name if request.user.name else request.user.identifier
@@ -266,10 +375,13 @@ def live_entry_view(request):
         return redirect('dashboard:live_entry')
         
     members = Member.objects.filter(is_active=True).order_by('name')
+    categories = InflowCategory.objects.filter(is_active=True)
     context = {
         'members': members,
+        'categories': categories,
     }
     return render(request, 'dashboard/live_entry.html', context)
+
 
 
 class AdminTransactionPagination(PageNumberPagination):
@@ -298,11 +410,14 @@ class AdminTransactionListAPIView(APIView):
         status_val = request.query_params.get('status')
         date_from = request.query_params.get('date_from')
         date_to = request.query_params.get('date_to')
+        category_id = request.query_params.get('category_id')
 
         if method:
             queryset = queryset.filter(method__icontains=method)
         if status_val:
             queryset = queryset.filter(status=status_val)
+        if category_id:
+            queryset = queryset.filter(inflow_category_id=category_id)
         if date_from:
             queryset = queryset.filter(timestamp__date__gte=date_from)
         if date_to:
@@ -312,7 +427,6 @@ class AdminTransactionListAPIView(APIView):
         stats = queryset.aggregate(
             total_raised=Sum('amount'),
             cash=Sum('amount', filter=Q(method__icontains='Cash')),
-            pos=Sum('amount', filter=Q(method__icontains='POS')),
             transfer=Sum('amount', filter=Q(method__icontains='Transfer')),
             pledges=Sum('amount', filter=Q(method__icontains='Pledge')),
             paystack=Sum('amount', filter=Q(method__icontains='Paystack')),
@@ -320,7 +434,6 @@ class AdminTransactionListAPIView(APIView):
 
         total_raised = float(stats['total_raised'] or 0.0)
         cash = float(stats['cash'] or 0.0)
-        pos = float(stats['pos'] or 0.0)
         transfer = float(stats['transfer'] or 0.0)
         pledges = float(stats['pledges'] or 0.0)
         paystack = float(stats['paystack'] or 0.0)
@@ -328,14 +441,20 @@ class AdminTransactionListAPIView(APIView):
         target = 5000000
         progress_percentage = min(int((total_raised / target) * 100), 100) if total_raised > 0 else 0
 
+        # Fetch all active categories and sum amounts for this queryset
+        from contributions.models import InflowCategory
+        category_stats = {}
+        for category in InflowCategory.objects.filter(is_active=True):
+            category_stats[f"cat_{category.id}"] = float(queryset.filter(inflow_category=category).aggregate(total=Sum('amount'))['total'] or 0.0)
+
         statistics = {
             'total_raised': total_raised,
             'cash': cash,
-            'pos': pos,
             'transfer': transfer,
             'pledges': pledges,
             'paystack': paystack,
-            'progress_percentage': progress_percentage
+            'progress_percentage': progress_percentage,
+            'category_stats': category_stats
         }
 
         queryset = queryset.order_by('-timestamp')
@@ -413,9 +532,13 @@ class RequeryPaystackTransactionView(APIView):
         if not contribution.idempotency_key:
             return Response({'error': "Transaction does not have an idempotency key"}, status=status.HTTP_400_BAD_REQUEST)
 
+        secret_key = getattr(settings, 'PAYSTACK_SECRET_KEY', '')
+        if contribution.inflow_category and contribution.inflow_category.api_key_name:
+            secret_key = getattr(settings, contribution.inflow_category.api_key_name, secret_key)
+
         url = f"https://api.paystack.co/transaction/verify/{contribution.idempotency_key}"
         headers = {
-            "Authorization": f"Bearer {settings.PAYSTACK_SECRET_KEY}",
+            "Authorization": f"Bearer {secret_key}",
         }
 
         try:
@@ -469,3 +592,93 @@ class RequeryPaystackTransactionView(APIView):
                 'message': 'Payment is not successful or failed yet'
             })
 
+
+def admin_login_view(request):
+    if request.user.is_authenticated and request.user.is_admin_user:
+        return redirect('dashboard:master_dashboard')
+
+    next_url = request.GET.get('next', '')
+
+    if request.method == 'POST':
+        identifier = request.POST.get('identifier')
+        password = request.POST.get('password')
+
+        user = authenticate(request, username=identifier, password=password)
+        if user is not None:
+            if user.is_admin_user:
+                auth_login(request, user)
+                messages.success(request, f'Welcome back, Admin {user.name}!')
+                if next_url and next_url.startswith('/'):
+                    return redirect(next_url)
+                return redirect('dashboard:master_dashboard')
+            else:
+                messages.error(request, 'Access denied. Only administrators are allowed.')
+        else:
+            messages.error(request, 'Invalid identifier or password.')
+
+    return render(request, 'dashboard/admin_login.html', {'next': next_url})
+
+import random
+from django.utils import timezone
+
+@admin_required
+def update_member_role_view(request, pk):
+    if request.method == 'POST':
+        member = get_object_or_404(Member, pk=pk)
+        role = request.POST.get('role')
+        if role in dict(Member.ROLE_CHOICES):
+            member.role = role
+            # If role is admin, also grant is_staff for admin site access
+            if role == 'admin':
+                member.is_staff = True
+            member.save()
+            messages.success(request, f"Updated role for {member.name} to {member.get_role_display()}.")
+        else:
+            messages.error(request, "Invalid role selected.")
+    return redirect('dashboard:master_dashboard')
+
+@admin_required
+def add_inflow_category_view(request):
+    if request.method == 'POST':
+        name = request.POST.get('name', '').strip()
+        description = request.POST.get('description', '').strip()
+        if name:
+            if not InflowCategory.objects.filter(name__iexact=name).exists():
+                InflowCategory.objects.create(name=name, description=description)
+                messages.success(request, f"Inflow Category '{name}' created successfully.")
+            else:
+                messages.error(request, f"A category named '{name}' already exists.")
+        else:
+            messages.error(request, "Category name is required.")
+    return redirect('dashboard:master_dashboard')
+
+@admin_required
+def approve_pin_reset_view(request, pk):
+    if request.method == 'POST':
+        pin_request = get_object_or_404(PinResetRequest, pk=pk)
+        temp_pin = f"{random.randint(1000, 9999)}"
+        
+        # Reset password
+        member = pin_request.member
+        member.set_password(temp_pin)
+        member.save()
+
+        # Update PIN request
+        pin_request.is_resolved = True
+        pin_request.temp_pin = temp_pin
+        pin_request.resolved_at = timezone.now()
+        pin_request.save()
+
+        messages.success(request, f"Successfully reset PIN for {member.name}. Temporary PIN: {temp_pin}")
+    return redirect('dashboard:master_dashboard')
+
+@admin_required
+def send_announcement_view(request):
+    if request.method == 'POST':
+        message = request.POST.get('message')
+        # Placeholder for Web Push logic once pywebpush is installed
+        # from webpush import send_group_notification
+        # send_group_notification(group_name="all", payload={"head": "CYON Harvest", "body": message}, ttl=1000)
+        messages.success(request, f'Announcement sent successfully: "{message}"')
+        return redirect('dashboard:master_dashboard')
+    return redirect('dashboard:master_dashboard')

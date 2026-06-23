@@ -67,8 +67,11 @@ CHANNEL_LAYERS = {
     },
 }
 
+import sys
+TESTING = len(sys.argv) > 1 and sys.argv[1] == 'test'
+
 DB_NAME = os.getenv('DB_NAME')
-if DB_NAME:
+if DB_NAME and not TESTING:
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.postgresql',
@@ -127,3 +130,7 @@ AUTH_USER_MODEL = 'accounts.Member'
 # Paystack Integration
 PAYSTACK_PUBLIC_KEY = os.getenv('PAYSTACK_PUBLIC_KEY', 'pk_test_placeholder')
 PAYSTACK_SECRET_KEY = os.getenv('PAYSTACK_SECRET_KEY', 'sk_test_placeholder')
+
+# Session settings for PWA app-like experience
+SESSION_COOKIE_AGE = 2592000  # 30 days
+SESSION_EXPIRE_AT_BROWSER_CLOSE = False

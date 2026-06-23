@@ -173,6 +173,75 @@
         <a href="{% url 'accounts:logout' %}" style="font-size:0.85rem; color:#6B7280; text-decoration:none; padding:0.4rem 1rem; border:1px solid rgba(201,162,39,0.25); border-radius:8px;">Logout</a>
     </div>
 
+    <!-- Global Campaign Progress -->
+    <div style="background: rgba(255,255,255,0.7); border: 1.5px solid rgba(201,162,39,0.2); border-radius: 14px; padding: 1.25rem; margin-bottom: 1.75rem; cursor: pointer; transition: all 0.3s ease;" onclick="document.getElementById('progress-modal').style.display='flex'" onmouseover="this.style.borderColor='rgba(201,162,39,0.5)'" onmouseout="this.style.borderColor='rgba(201,162,39,0.2)'">
+        <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 0.75rem;">
+            <div>
+                <h3 style="font-size: 0.85rem; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: #1B3B2B; margin: 0; display: flex; align-items: center; gap: 6px;">
+                    Campaign Progress
+                    <svg style="width: 14px; height: 14px; color: #C9A227;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                </h3>
+                <p style="font-size: 0.7rem; color: #6B7280; margin: 2px 0 0 0;">Click to view detailed breakdown</p>
+            </div>
+            <div style="text-align: right;">
+                <span style="font-size: 1.4rem; font-weight: 800; color: #C9A227; font-family: 'Poppins', sans-serif;">{{ global_progress }}%</span>
+                <span style="display: block; font-size: 0.65rem; color: #6B7280; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;">Goal: ₦5,000,000</span>
+            </div>
+        </div>
+        <div style="width: 100%; background: rgba(36,92,63,0.1); border-radius: 9999px; height: 16px; overflow: hidden; display: flex;">
+            {% if category_stats %}
+                {% for cat in category_stats %}
+                <div style="height: 100%; width: 0%; background-color: {{ cat.color }}; transition: width 1s ease-out; border-right: 1px solid rgba(255,255,255,0.2);" title="{{ cat.name }}: ₦{{ cat.amount|floatformat:0|intcomma }}" class="progress-segment" data-width="{{ cat.percent }}%"></div>
+                {% endfor %}
+            {% else %}
+                <div style="height: 100%; width: 100%; background: rgba(36,92,63,0.05);"></div>
+            {% endif %}
+        </div>
+    </div>
+    
+    <!-- Progress Breakdown Modal -->
+    <div id="progress-modal" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.6); z-index: 1000; align-items: center; justify-content: center; backdrop-filter: blur(4px);" onclick="if(event.target===this) this.style.display='none'">
+        <div style="background: #FFFFFF; border: 1.5px solid rgba(201,162,39,0.3); border-radius: 16px; padding: 1.5rem; max-width: 600px; width: 90%; position: relative; box-shadow: 0 20px 40px rgba(0,0,0,0.3);">
+            <button onclick="document.getElementById('progress-modal').style.display='none'" style="position: absolute; top: 1rem; right: 1rem; background: none; border: none; font-size: 1.5rem; color: #6B7280; cursor: pointer; padding: 0.25rem;">&times;</button>
+            <h3 style="font-size: 1.1rem; font-weight: 800; color: #1B3B2B; margin-top: 0; margin-bottom: 0.25rem; font-family: 'Poppins', sans-serif;">Campaign Progress Breakdown</h3>
+            <p style="font-size: 0.8rem; color: #6B7280; margin-bottom: 1.5rem;">Detailed view of collected funds by inflow category.</p>
+            
+            <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 1rem;">
+                {% for cat in category_stats %}
+                <div style="background: rgba(36,92,63,0.04); border: 1px solid rgba(36,92,63,0.1); border-radius: 10px; padding: 1rem; cursor: default; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); animation: modalFadeInUp 0.4s ease-out forwards; animation-delay: {{ forloop.counter0|add:'1'|add:'0' }}00ms; opacity: 0; transform: translateY(10px);" onmouseover="this.style.transform='translateY(-4px)'; this.style.boxShadow='0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)'; this.style.backgroundColor='rgba(36,92,63,0.08)';" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='none'; this.style.backgroundColor='rgba(36,92,63,0.04)';">
+                    <div style="display: flex; align-items: center; gap: 6px; margin-bottom: 6px;">
+                        <span style="width: 12px; height: 12px; border-radius: 50%; background-color: {{ cat.color }}; box-shadow: 0 0 6px {{ cat.color }};"></span>
+                        <span style="font-size: 0.7rem; font-weight: 700; color: #4B6B57; text-transform: uppercase; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; letter-spacing: 0.5px;" title="{{ cat.name }}">{{ cat.name }}</span>
+                    </div>
+                    <div style="font-size: 1.15rem; font-weight: 800; color: #1B3B2B; font-family: 'Poppins', sans-serif;">₦{{ cat.amount|floatformat:0|intcomma }}</div>
+                    <div style="font-size: 0.65rem; color: #6B7280; margin-top: 2px; font-weight: 600;">{{ cat.percent|floatformat:1 }}% of goal</div>
+                </div>
+                {% empty %}
+                <div style="grid-column: 1 / -1; text-align: center; font-size: 0.9rem; color: #6B7280; padding: 1rem;">No contributions recorded yet.</div>
+                {% endfor %}
+            </div>
+            
+            <style>
+                @keyframes modalFadeInUp {
+                    from { opacity: 0; transform: translateY(15px); }
+                    to { opacity: 1; transform: translateY(0); }
+                }
+            </style>
+        </div>
+    </div>
+    
+    <script>
+        // Animate segments on load
+        document.addEventListener('DOMContentLoaded', function() {
+            setTimeout(() => {
+                const segments = document.querySelectorAll('.progress-segment');
+                segments.forEach(seg => {
+                    seg.style.width = seg.getAttribute('data-width');
+                });
+            }, 100);
+        });
+    </script>
+
     <!-- Stats -->
     <div class="stats-grid">
         <div class="stat-card blue">
@@ -204,14 +273,24 @@
                 </div>
             </div>
             
-            <div style="margin-bottom: 1rem;">
+                <label style="font-size: 0.85rem; font-weight: 600; color: #1B3B2B; display: block; margin-bottom: 0.25rem;">Custom Flyer (Optional)</label>
+                <input type="file" name="custom_flyer" accept="image/*" style="font-size: 0.85rem; width: 100%; margin-bottom: 1rem;">
+                
                 <label style="font-size: 0.85rem; font-weight: 600; color: #1B3B2B; display: block; margin-bottom: 0.25rem;">Contestant Title</label>
                 <select name="contestant_title" style="width: 100%; padding: 0.7rem; border-radius: 8px; border: 1.5px solid rgba(201,162,39,0.3); background: #fff; font-size: 0.9rem;">
                     <option value="None" {% if member.contestant_title == 'None' %}selected{% endif %}>Not Contesting</option>
-                    <option value="Mr CYON Felele" {% if member.contestant_title == 'Mr CYON Felele' %}selected{% endif %}>Mr CYON Felele</option>
-                    <option value="Miss CYON Felele" {% if member.contestant_title == 'Miss CYON Felele' %}selected{% endif %}>Miss CYON Felele</option>
+                    <option value="Most Influential Youth Fundraiser" {% if member.contestant_title == 'Most Influential Youth Fundraiser' %}selected{% endif %}>Most Influential Youth Fundraiser</option>
+                    <option value="Master Harvest" {% if member.contestant_title == 'Master Harvest' %}selected{% endif %}>Master Harvest</option>
+                    <option value="Miss Harvest" {% if member.contestant_title == 'Miss Harvest' %}selected{% endif %}>Miss Harvest</option>
                 </select>
             </div>
+            
+            {% if member.custom_flyer %}
+            <div style="margin-bottom: 1rem; padding: 1rem; background: rgba(201,162,39,0.1); border-radius: 8px;">
+                <p style="font-size: 0.85rem; font-weight: 600; color: #1B3B2B; margin-bottom: 0.5rem;">Your Custom Flyer</p>
+                <a href="{{ member.custom_flyer.url }}" download class="btn-copy" style="text-align: center; display: block; background: #245C3F; color: white; text-decoration: none;">Download Flyer</a>
+            </div>
+            {% endif %}
             
             <button type="submit" name="update_profile" class="btn-copy" style="width: 100%;">Update Profile</button>
         </form>

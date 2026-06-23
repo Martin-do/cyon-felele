@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% load static %}
 
-{% block title %}Member Login | CYON Harvest 2026{% endblock %}
+{% block title %}Forgot PIN | CYON Harvest 2026{% endblock %}
 
 {% block head %}
 <style>
@@ -20,7 +20,7 @@
     label { color: #245C3F !important; }
     h1 { color: #1B3B2B !important; background: none !important; -webkit-text-fill-color: initial !important; }
     p.subtitle { color: #4B6B57 !important; }
-    input[type="text"], input[type="password"] {
+    input[type="text"] {
         background: #FAF6EC !important;
         border-color: rgba(201,162,39,0.3) !important;
         color: #1B3B2B !important;
@@ -31,6 +31,7 @@
     }
     .site-footer { background: #F4EFE2 !important; border-color: rgba(201,162,39,0.2) !important; }
     .site-footer p, .site-footer a { color: #4B6B57 !important; }
+    .alert.success { background: rgba(36,92,63,0.08) !important; color: #245C3F !important; border-color: rgba(36,92,63,0.2) !important; }
     .alert.error { background: rgba(179,38,30,0.08) !important; color: #8B1A1A !important; border-color: rgba(179,38,30,0.2) !important; }
 </style>
 {% endblock %}
@@ -39,38 +40,32 @@
 <div class="glass-card">
     <div style="text-align: center; margin-bottom: 1.75rem;">
         <img src="{% static 'images/brand/cyon-logo.png' %}" alt="CYON Logo" style="height: 60px; margin-bottom: 0.75rem;">
-        <h1>Member Hub</h1>
-        <p class="subtitle">Login to access your referral link and track your fundraising</p>
+        <h1>Recover PIN</h1>
+        <p class="subtitle">Enter your registered Phone Number or Email to reset your login PIN.</p>
     </div>
 
     {% if messages %}
-    <div class="alert error" style="display: block; margin-bottom: 1.5rem;">
-        {% for message in messages %}{{ message }}{% endfor %}
-    </div>
+        {% for message in messages %}
+        <div class="alert {% if message.tags %}{{ message.tags }}{% endif %}" style="display: block; margin-bottom: 1.5rem;">
+            {{ message }}
+        </div>
+        {% endfor %}
     {% endif %}
 
-    <form method="POST" action="{% url 'accounts:login' %}">
+    <form method="POST" action="{% url 'accounts:forgot_pin' %}">
         {% csrf_token %}
         <div class="form-group">
             <label for="identifier">Phone Number or Email</label>
             <input type="text" id="identifier" name="identifier" required placeholder="e.g. 08012345678" autocomplete="username">
         </div>
-        <div class="form-group">
-            <div style="display: flex; justify-content: space-between; align-items: center;">
-                <label for="pin">4-Digit PIN</label>
-                <a href="{% url 'accounts:forgot_pin' %}" style="font-size: 0.8rem; color: #C9A227; text-decoration: none; font-weight: 500;">Forgot PIN?</a>
-            </div>
-            <input type="password" id="pin" name="pin" required maxlength="4" pattern="[0-9]{4}" inputmode="numeric" placeholder="••••" autocomplete="current-password">
-        </div>
-        <button type="submit" class="submit-btn">Login to My Hub</button>
+        <button type="submit" class="submit-btn">Request PIN Reset</button>
     </form>
 
     <div style="text-align: center; margin-top: 1.75rem; display: flex; flex-direction: column; gap: 0.75rem; border-top: 1px solid rgba(201,162,39,0.15); padding-top: 1.5rem;">
         <p style="color:#4B6B57; font-size:0.9rem;">
-            New youth member?
-            <a href="{% url 'accounts:signup' %}" style="color:#C9A227; font-weight:700; text-decoration:none;">Create your account & get your link →</a>
+            Remembered your PIN?
+            <a href="{% url 'accounts:login' %}" style="color:#C9A227; font-weight:700; text-decoration:none;">Log in here →</a>
         </p>
-        <a href="{% url 'dashboard:leaderboard' %}" style="color:#4B6B57; font-size:0.85rem; text-decoration:none;">🏆 View the Public Leaderboard</a>
         <a href="/" style="color:#4B6B57; font-size:0.85rem; text-decoration:none;">← Back to Harvest Home</a>
     </div>
 </div>

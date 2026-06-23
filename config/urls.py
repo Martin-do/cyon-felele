@@ -18,6 +18,7 @@ from django.contrib import admin
 from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
+from django.views.generic import TemplateView
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -25,6 +26,8 @@ urlpatterns = [
     path('dashboard/', include('dashboard.urls')),
     path('live/', include('live.urls')),
     path('', include('contributions.urls')),
+    path('manifest.json', TemplateView.as_view(template_name='manifest.json', content_type='application/json')),
+    path('sw.js', TemplateView.as_view(template_name='sw.js', content_type='application/javascript')),
 ]
 
 if settings.DEBUG:

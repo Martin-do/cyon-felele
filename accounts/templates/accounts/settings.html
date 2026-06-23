@@ -1,0 +1,107 @@
+{% extends "base.html" %}
+
+{% block title %}Settings | CYON Harvest 2026{% endblock %}
+
+{% block content %}
+<div class="max-w-md mx-auto mt-8 bg-white p-6 rounded-2xl shadow-xl border border-gray-100">
+    <div class="flex items-center mb-6">
+        <a href="{% url 'dashboard:member_hub' %}" class="text-gray-400 hover:text-green-700 transition">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
+        </a>
+        <h2 class="text-2xl font-bold text-gray-900 ml-4">App Settings</h2>
+    </div>
+
+    {% if messages %}
+    <div class="mb-4">
+        {% for message in messages %}
+            <div class="p-3 rounded-xl text-sm font-medium {% if message.tags == 'error' %}bg-red-50 text-red-700{% else %}bg-green-50 text-green-700{% endif %}">
+                {{ message }}
+            </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <div class="space-y-8">
+        <!-- Security Preferences -->
+        <form method="POST" action="{% url 'accounts:settings' %}" class="space-y-4">
+            {% csrf_token %}
+            <h3 class="text-lg font-bold text-gray-800 border-b pb-2">Security Preferences</h3>
+            
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Inactivity Lock Timeout</label>
+                <p class="text-xs text-gray-500 mb-2">Time before the app locks and requires your PIN again.</p>
+                <select name="lock_timeout" class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all">
+                    <option value="5" {% if user.lock_timeout == 5 %}selected{% endif %}>5 Minutes</option>
+                    <option value="15" {% if user.lock_timeout == 15 %}selected{% endif %}>15 Minutes (Default)</option>
+                    <option value="60" {% if user.lock_timeout == 60 %}selected{% endif %}>60 Minutes</option>
+                </select>
+            </div>
+            
+            <button type="submit" class="w-full bg-green-800 hover:bg-green-900 text-white font-bold py-3 rounded-xl shadow-lg transition-all">
+                Save Preferences
+            </button>
+        </form>
+
+        <!-- Change PIN -->
+        <form method="POST" action="{% url 'accounts:settings' %}" class="space-y-4 pt-4 border-t border-gray-100">
+            {% csrf_token %}
+            <h3 class="text-lg font-bold text-gray-800 mb-2">Change PIN</h3>
+            
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Current PIN</label>
+                <input type="password" name="old_pin" inputmode="numeric" pattern="[0-9]{4}" maxlength="4" class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all">
+            </div>
+            
+            <div class="grid grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">New PIN</label>
+                    <input type="password" name="new_pin" inputmode="numeric" pattern="[0-9]{4}" maxlength="4" class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Confirm New PIN</label>
+                    <input type="password" name="new_pin_confirm" inputmode="numeric" pattern="[0-9]{4}" maxlength="4" class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all">
+                </div>
+            </div>
+            
+            <button type="submit" class="w-full bg-yellow-500 hover:bg-yellow-600 text-green-900 font-bold py-3 rounded-xl shadow-lg transition-all">
+                Update PIN
+            </button>
+        </form>
+
+        <!-- Push Notifications -->
+        <div class="space-y-4 pt-4 border-t border-gray-100">
+            <h3 class="text-lg font-bold text-gray-800 mb-2">Live Notifications</h3>
+            <p class="text-sm text-gray-600 mb-4">Receive live alerts for announcements and when a donation made in your name is approved.</p>
+            
+            <button type="button" id="enableNotificationsBtn" class="w-full bg-green-100 hover:bg-green-200 text-green-800 font-bold py-3 rounded-xl transition-all flex items-center justify-center">
+                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path></svg>
+                Enable Notifications
+            </button>
+        </div>
+    </div>
+</div>
+
+<script>
+    const notifyBtn = document.getElementById('enableNotificationsBtn');
+    
+    if ('Notification' in window) {
+        if (Notification.permission === 'granted') {
+            notifyBtn.innerText = 'Notifications Enabled';
+            notifyBtn.disabled = true;
+            notifyBtn.classList.replace('bg-green-100', 'bg-gray-100');
+            notifyBtn.classList.replace('text-green-800', 'text-gray-500');
+        } else {
+            notifyBtn.addEventListener('click', async () => {
+                const permission = await Notification.requestPermission();
+                if (permission === 'granted') {
+                    notifyBtn.innerText = 'Notifications Enabled';
+                    notifyBtn.disabled = true;
+                    // In the future, send PushSubscription to backend here
+                }
+            });
+        }
+    } else {
+        notifyBtn.style.display = 'none';
+    }
+</script>
+{% endblock %}

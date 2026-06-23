@@ -16,10 +16,51 @@ document.addEventListener('DOMContentLoaded', () => {
         nameInput.parentNode.insertBefore(resultsDiv, nameInput.nextSibling);
     }
 
+    let titleOptionsDiv = document.getElementById('title-options-container');
+    if (!titleOptionsDiv) {
+        titleOptionsDiv = document.createElement('div');
+        titleOptionsDiv.id = 'title-options-container';
+        titleOptionsDiv.style.cssText = 'display: none; margin-top: 10px; gap: 8px; flex-wrap: wrap;';
+        nameInput.parentNode.appendChild(titleOptionsDiv);
+    }
+
+    function hideTitleOptions() {
+        titleOptionsDiv.style.display = 'none';
+    }
+
+    function showTitleOptions(fullName, inputEl) {
+        let baseName = fullName.replace(/Mr\s*&\s*Mrs\.?/i, '').replace(/Mr\.\s*&\s*Mrs\.?/i, '').replace(/Mr\s+and\s+Mrs\.?/i, '').trim();
+        
+        const options = [
+            `Mr. ${baseName}`,
+            `Mrs. ${baseName}`,
+            fullName
+        ];
+        
+        titleOptionsDiv.innerHTML = '<span style="font-size: 0.8rem; color: #C9A227; width: 100%; display: block; margin-bottom: 4px;">Donate as:</span>';
+        options.forEach(opt => {
+            const btn = document.createElement('button');
+            btn.type = 'button';
+            btn.textContent = opt;
+            btn.style.cssText = 'background: rgba(201,162,39,0.1); border: 1px solid rgba(201,162,39,0.5); color: #fff; padding: 4px 10px; border-radius: 20px; font-size: 0.85rem; cursor: pointer; transition: all 0.2s;';
+            btn.addEventListener('mouseenter', () => btn.style.background = 'rgba(201,162,39,0.3)');
+            btn.addEventListener('mouseleave', () => btn.style.background = 'rgba(201,162,39,0.1)');
+            btn.addEventListener('click', () => {
+                inputEl.value = opt;
+                hideTitleOptions();
+                const amountInput = document.getElementById('display_amount');
+                if (amountInput) amountInput.focus();
+            });
+            titleOptionsDiv.appendChild(btn);
+        });
+        titleOptionsDiv.style.display = 'flex';
+    }
+
     let searchTimeout = null;
 
     nameInput.addEventListener('input', () => {
         clearTimeout(searchTimeout);
+        hideTitleOptions();
         const query = nameInput.value.trim();
 
         if (query.length < 2) {
@@ -44,12 +85,18 @@ document.addEventListener('DOMContentLoaded', () => {
                     const items = resultsDiv.querySelectorAll('.suggestion-item');
                     items.forEach(item => {
                         item.addEventListener('click', () => {
-                            nameInput.value = item.getAttribute('data-name');
+                            const selectedName = item.getAttribute('data-name');
+                            nameInput.value = selectedName;
                             resultsDiv.style.display = 'none';
                             
-                            // Move focus to amount
-                            const amountInput = document.getElementById('display_amount');
-                            if (amountInput) amountInput.focus();
+                            const lcName = selectedName.toLowerCase();
+                            if (lcName.includes('mr & mrs') || lcName.includes('mr. & mrs.') || lcName.includes('mr and mrs')) {
+                                showTitleOptions(selectedName, nameInput);
+                            } else {
+                                // Move focus to amount
+                                const amountInput = document.getElementById('display_amount');
+                                if (amountInput) amountInput.focus();
+                            }
                         });
                         item.addEventListener('mouseenter', () => item.style.backgroundColor = 'rgba(255,255,255,0.1)');
                         item.addEventListener('mouseleave', () => item.style.backgroundColor = 'transparent');

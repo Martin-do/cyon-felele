@@ -1,0 +1,21 @@
+{
+    "name": "CYON Harvest 2026",
+    "short_name": "Harvest 26",
+    "description": "CYON Harvest of Divine Fulfillment 2026",
+    "start_url": "/dashboard/",
+    "display": "standalone",
+    "background_color": "#0F2017",
+    "theme_color": "#14301F",
+    "icons": [
+        {
+            "src": "/static/images/brand/church-seal.png",
+            "sizes": "192x192",
+            "type": "image/png"
+        },
+        {
+            "src": "/static/images/brand/church-seal.png",
+            "sizes": "512x512",
+            "type": "image/png"
+        }
+    ]
+}

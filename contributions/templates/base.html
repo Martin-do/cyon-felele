@@ -2,9 +2,11 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>{% block title %}CYON Harvest 2026 — Harvest of Divine Fulfillment{% endblock %}</title>
     <meta name="description" content="Support the CYON Harvest 2026 campaign for Christ the Good Shepherd Catholic Church, Akobo/Felele, Ibadan. Help us reach our ₦5,000,000 target.">
+    <link rel="manifest" href="/manifest.json">
+    <meta name="theme-color" content="#14301F">
     <!-- Google Fonts: Poppins (display), Great Vibes (script), Inter (body) -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -300,5 +302,138 @@
     </footer>
 
     {% block scripts %}{% endblock %}
+
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', function() {
+                navigator.serviceWorker.register('/sw.js').then(function(registration) {
+                    console.log('ServiceWorker registration successful with scope: ', registration.scope);
+                }, function(err) {
+                    console.log('ServiceWorker registration failed: ', err);
+                });
+            });
+        }
+    </script>
+
+    {% if user.is_authenticated %}
+    <div id="pinLockScreen" style="display: none; position: fixed; inset: 0; z-index: 99999; background: rgba(20, 48, 31, 0.98); backdrop-filter: blur(10px); flex-direction: column; align-items: center; justify-content: center; color: #FAF6EC;">
+        <div style="text-align: center; max-width: 320px; width: 100%;">
+            <svg style="width: 64px; height: 64px; margin: 0 auto 1rem; color: #C9A227;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
+            <h2 style="font-family: 'Poppins', sans-serif; font-size: 1.5rem; font-weight: 800; margin-bottom: 0.5rem;">Session Locked</h2>
+            <p style="font-size: 0.9rem; color: #E0C158; margin-bottom: 2rem;">Enter your 4-digit PIN to unlock.</p>
+            
+            <input type="password" id="unlockPinInput" inputmode="numeric" pattern="[0-9]*" maxlength="4" placeholder="••••" style="width: 100%; text-align: center; font-size: 2rem; letter-spacing: 0.5rem; padding: 1rem; border-radius: 12px; border: 2px solid #C9A227; background: #0F2017; color: #E0C158; margin-bottom: 1rem; outline: none;">
+            
+            <button id="unlockBtn" style="width: 100%; background: linear-gradient(135deg, #E8C547 0%, #B8860B 100%); color: #14301F; font-weight: 800; padding: 1rem; border-radius: 12px; border: none; cursor: pointer; font-size: 1.1rem; transition: transform 0.2s;">Unlock</button>
+            <p id="unlockError" style="color: #ff6b6b; font-size: 0.85rem; margin-top: 1rem; display: none;"></p>
+            
+            <div style="margin-top: 2rem;">
+                <a href="{% url 'accounts:logout' %}" style="color: rgba(255,255,255,0.5); text-decoration: none; font-size: 0.85rem; border-bottom: 1px dotted;">Log out completely</a>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        (function() {
+            const TIMEOUT_MS = {{ user.lock_timeout|default:15 }} * 60 * 1000;
+            let inactivityTimer;
+            const lockScreen = document.getElementById('pinLockScreen');
+            const pinInput = document.getElementById('unlockPinInput');
+            const unlockBtn = document.getElementById('unlockBtn');
+            const unlockError = document.getElementById('unlockError');
+            
+            function lockSession() {
+                localStorage.setItem('session_locked', 'true');
+                showLockScreen();
+            }
+
+            function showLockScreen() {
+                if(localStorage.getItem('session_locked') === 'true') {
+                    lockScreen.style.display = 'flex';
+                    pinInput.focus();
+                }
+            }
+
+            function resetTimer() {
+                if (localStorage.getItem('session_locked') === 'true') return;
+                clearTimeout(inactivityTimer);
+                inactivityTimer = setTimeout(lockSession, TIMEOUT_MS);
+                localStorage.setItem('last_activity', Date.now());
+            }
+
+            // Check if already locked or timed out while away
+            function checkInitialState() {
+                if (localStorage.getItem('session_locked') === 'true') {
+                    showLockScreen();
+                } else {
+                    const lastActivity = localStorage.getItem('last_activity');
+                    if (lastActivity && (Date.now() - parseInt(lastActivity)) > TIMEOUT_MS) {
+                        lockSession();
+                    } else {
+                        resetTimer();
+                    }
+                }
+            }
+
+            // Event Listeners for Activity
+            ['mousedown', 'mousemove', 'keypress', 'scroll', 'touchstart'].forEach(evt => {
+                document.addEventListener(evt, resetTimer, true);
+            });
+            
+            document.addEventListener('visibilitychange', () => {
+                if (document.visibilityState === 'visible') {
+                    checkInitialState();
+                }
+            });
+
+            checkInitialState();
+
+            // Unlock Logic
+            async function attemptUnlock() {
+                const pin = pinInput.value;
+                if(pin.length !== 4) return;
+                
+                unlockBtn.disabled = true;
+                unlockBtn.innerText = 'Verifying...';
+                unlockError.style.display = 'none';
+
+                try {
+                    const response = await fetch('/accounts/api/verify-pin/', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRFToken': '{{ csrf_token }}'
+                        },
+                        body: JSON.stringify({ pin: pin })
+                    });
+                    const data = await response.json();
+                    
+                    if(data.status === 'success') {
+                        localStorage.removeItem('session_locked');
+                        lockScreen.style.display = 'none';
+                        pinInput.value = '';
+                        resetTimer();
+                    } else {
+                        unlockError.innerText = data.message || 'Incorrect PIN.';
+                        unlockError.style.display = 'block';
+                        pinInput.value = '';
+                    }
+                } catch(e) {
+                    unlockError.innerText = 'Network error. Try again.';
+                    unlockError.style.display = 'block';
+                } finally {
+                    unlockBtn.disabled = false;
+                    unlockBtn.innerText = 'Unlock';
+                    pinInput.focus();
+                }
+            }
+
+            unlockBtn.addEventListener('click', attemptUnlock);
+            pinInput.addEventListener('keypress', (e) => {
+                if(e.key === 'Enter') attemptUnlock();
+            });
+        })();
+    </script>
+    {% endif %}
 </body>
 </html>

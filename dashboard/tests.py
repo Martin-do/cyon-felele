@@ -14,18 +14,16 @@ class AdminDashboardAPITests(APITestCase):
     def setUp(self):
         # Create an admin user
         self.admin_user = User.objects.create_user(
-            username='admin_user',
+            identifier='admin@example.com',
             name='Admin User',
-            email='admin@example.com',
             password='password123',
             is_staff=True
         )
         
         # Create a regular user
         self.regular_user = User.objects.create_user(
-            username='regular_user',
+            identifier='regular@example.com',
             name='Regular User',
-            email='regular@example.com',
             password='password123',
             is_staff=False
         )
@@ -38,9 +36,9 @@ class AdminDashboardAPITests(APITestCase):
             status="pending"
         )
         self.c2 = Contribution.objects.create(
-            name="Jane POS",
+            name="Jane Transfer",
             amount=50000.00,
-            method="POS",
+            method="Transfer",
             status="approved"
         )
         self.c3 = Contribution.objects.create(
@@ -60,7 +58,7 @@ class AdminDashboardAPITests(APITestCase):
             amount=500000.00,
             method="Paystack",
             status="pending",
-            idempotency_key="paystack-ref-123"
+            idempotency_key="8a7e0892-7473-455b-8664-9be7bd65f3f0"
         )
         self.c_voided = Contribution.objects.create(
             name="Voided User",
@@ -99,7 +97,6 @@ class AdminDashboardAPITests(APITestCase):
         data = response.data
         self.assertIn('total_raised', data)
         self.assertIn('cash', data)
-        self.assertIn('pos', data)
         self.assertIn('transfer', data)
         self.assertIn('pledges', data)
         self.assertIn('paystack', data)
@@ -111,8 +108,7 @@ class AdminDashboardAPITests(APITestCase):
         # Expected total sum = 100k + 50k + 150k + 200k + 500k = 1,000,000
         self.assertEqual(data['total_raised'], 1000000.00)
         self.assertEqual(data['cash'], 100000.00)
-        self.assertEqual(data['pos'], 50000.00)
-        self.assertEqual(data['transfer'], 150000.00)
+        self.assertEqual(data['transfer'], 200000.00) # Bob (150k) + Jane (50k)
         self.assertEqual(data['pledges'], 200000.00)
         self.assertEqual(data['paystack'], 500000.00)
         
@@ -122,7 +118,7 @@ class AdminDashboardAPITests(APITestCase):
         # Test filters: status=approved
         response = self.client.get(url, {'status': 'approved'})
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data['count'], 3) # POS, Transfer, Pledge
+        self.assertEqual(response.data['count'], 3) # Transfer(Jane, Bob), Pledge
         self.assertEqual(response.data['total_raised'], 400000.00)
 
         # Test filters: method=Cash (case-insensitive)
@@ -219,3 +215,85 @@ class AdminDashboardAPITests(APITestCase):
         response = self.client.post(url)
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertIn('Transaction does not have an idempotency key', response.data['error'])
+
+    def test_custom_inflow_category_filtering(self):
+        from contributions.models import InflowCategory
+        category1 = InflowCategory.objects.create(name="Youth Pledge Drive")
+        category2 = InflowCategory.objects.create(name="Harvest Program Extra")
+
+        # Assign categories
+        self.c2.inflow_category = category1
+        self.c2.save()
+        self.c3.inflow_category = category2
+        self.c3.save()
+
+        self.client.force_authenticate(user=self.admin_user)
+        url = reverse('dashboard:admin_transaction_list')
+
+        # Filter by category 1
+        response = self.client.get(url, {'category_id': category1.id})
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        # Should return self.c2 (Jane Transfer)
+        results = response.data['results']
+        self.assertEqual(len(results), 1)
+        self.assertEqual(results[0]['name'], "Jane Transfer")
+
+    def test_role_based_permissions(self):
+        # Create usher, approver, member
+        usher_user = User.objects.create_user(identifier='usher@example.com', name='Usher User', password='password123', role='usher')
+        approver_user = User.objects.create_user(identifier='approver@example.com', name='Approver User', password='password123', role='approver')
+        member_user = User.objects.create_user(identifier='member@example.com', name='Member User', password='password123', role='member')
+
+        # Helper assertions
+        self.assertTrue(usher_user.is_usher)
+        self.assertFalse(usher_user.is_approver)
+        self.assertTrue(approver_user.is_approver)
+        self.assertFalse(approver_user.is_usher)
+        self.assertFalse(member_user.is_usher)
+        self.assertFalse(member_user.is_approver)
+
+        # Test view access using standard Django Client (Session auth)
+        self.client.force_login(member_user)
+        
+        # Member tries to access live entry -> redirect
+        response = self.client.get(reverse('dashboard:live_entry'))
+        self.assertEqual(response.status_code, 302)
+
+        # Member tries to access approval center -> redirect
+        response = self.client.get(reverse('dashboard:approval_center'))
+        self.assertEqual(response.status_code, 302)
+
+        # Usher accesses live entry -> OK
+        self.client.force_login(usher_user)
+        response = self.client.get(reverse('dashboard:live_entry'))
+        self.assertEqual(response.status_code, 200)
+
+        # Approver accesses approval center -> OK
+        self.client.force_login(approver_user)
+        response = self.client.get(reverse('dashboard:approval_center'))
+        self.assertEqual(response.status_code, 200)
+
+    def test_pin_reset_flow(self):
+        from accounts.models import PinResetRequest
+        member_user = User.objects.create_user(identifier='08012345678', name='Phone Member', password='password123', role='member')
+        
+        # Request reset via POST
+        self.client.force_login(member_user)
+        response = self.client.post(reverse('accounts:forgot_pin'), {'identifier': '08012345678'})
+        self.assertEqual(response.status_code, 302) # redirects to login
+
+        # Check request created
+        req = PinResetRequest.objects.get(member=member_user)
+        self.assertFalse(req.is_resolved)
+        self.assertIn("2348012345678", req.whatsapp_link)
+
+        # Admin approves reset
+        self.client.force_login(self.admin_user)
+        response = self.client.post(reverse('dashboard:approve_pin_reset', args=[req.id]))
+        self.assertEqual(response.status_code, 302)
+
+        req.refresh_from_db()
+        self.assertTrue(req.is_resolved)
+        self.assertIsNotNone(req.temp_pin)
+        self.assertEqual(len(req.temp_pin), 4)
+

@@ -12,6 +12,16 @@ class HarvestSession(models.Model):
 
 from django.utils import timezone
 
+class InflowCategory(models.Model):
+    name = models.CharField(max_length=100, unique=True)
+    description = models.TextField(blank=True, null=True)
+    api_key_name = models.CharField(max_length=100, blank=True, null=True, help_text="e.g. PAYSTACK_SECRET_KEY_LAUNCHING (Leave blank for default)")
+    is_active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return self.name
+
 class Parishioner(models.Model):
     SOURCE_CHOICES = (
         ('registry', 'Registry'),
@@ -30,6 +40,7 @@ class Pledge(models.Model):
     phone = models.CharField(max_length=50, blank=True, null=True)
     amount_pledged = models.DecimalField(max_digits=12, decimal_places=2)
     amount_fulfilled = models.DecimalField(max_digits=12, decimal_places=2, default=0.00)
+    inflow_category = models.ForeignKey(InflowCategory, on_delete=models.SET_NULL, null=True, blank=True, related_name='pledges')
     note = models.TextField(blank=True, null=True)
     timestamp = models.DateTimeField(auto_now_add=True)
     
@@ -49,6 +60,7 @@ class Contribution(models.Model):
     amount = models.DecimalField(max_digits=12, decimal_places=2)
     method = models.CharField(max_length=100, blank=True, null=True)
     source = models.CharField(max_length=50, choices=SOURCE_CHOICES, default='guest_form')
+    inflow_category = models.ForeignKey(InflowCategory, on_delete=models.SET_NULL, null=True, blank=True, related_name='contributions')
     
     referred_by = models.ForeignKey(
         settings.AUTH_USER_MODEL, 

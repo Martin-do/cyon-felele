@@ -4,6 +4,14 @@
 {% block title %}Vote for {{ referrer.name }} | CYON Harvest 2026{% endblock %}
 
 {% block head %}
+    {% if referrer.custom_flyer %}
+    <meta property="og:title" content="Vote for {{ referrer.name }} | CYON Harvest 2026">
+    <meta property="og:description" content="Support {{ referrer.name }} in the CYON Harvest 2026 Fundraising Challenge.">
+    <meta property="og:image" content="{{ request.scheme }}://{{ request.get_host }}{{ referrer.custom_flyer.url }}">
+    <meta property="og:url" content="{{ request.build_absolute_uri }}">
+    <meta property="og:type" content="website">
+    <meta name="twitter:card" content="summary_large_image">
+    {% endif %}
 <style>
     /* ── Dark premium feel for contestant page ────────────────────── */
     body {
