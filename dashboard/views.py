@@ -140,12 +140,14 @@ def generate_flyer_view(request):
             try:
                 import os
                 from django.conf import settings
-                os.environ['U2NET_HOME'] = os.path.join(settings.MEDIA_ROOT, 'u2net')
+                u2net_path = os.path.join(settings.MEDIA_ROOT, 'u2net')
+                os.makedirs(u2net_path, exist_ok=True)
+                os.environ['U2NET_HOME'] = u2net_path
                 
                 from rembg import remove, new_session
                 session = new_session("u2net")
                 cleaned_bytes = remove(original_bytes, session=session)
-            except Exception:
+            except BaseException:
                 cleaned_bytes = original_bytes
                 
             photo_b64 = base64.b64encode(cleaned_bytes).decode('utf-8')
