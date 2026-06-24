@@ -1,0 +1,21 @@
+{
+  "name": "CYON Harvest 2026",
+  "short_name": "CYON Harvest",
+  "description": "Fundraising portal for the 2026 CYON Harvest",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#14301F",
+  "theme_color": "#14301F",
+  "icons": [
+    {
+      "src": "/static/images/brand/cyon-logo.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/static/images/brand/cyon-logo.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}

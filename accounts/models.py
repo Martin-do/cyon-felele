@@ -80,8 +80,12 @@ class Member(AbstractBaseUser, PermissionsMixin):
 
     def save(self, *args, **kwargs):
         if not self.referral_slug and self.name:
-            base_slug = slugify(self.name)
-            self.referral_slug = f"{base_slug}-{str(uuid.uuid4())[:6]}"
+            from django.utils.crypto import get_random_string
+            slug = get_random_string(6)
+            # Ensure no collisions
+            while type(self).objects.filter(referral_slug=slug).exists():
+                slug = get_random_string(6)
+            self.referral_slug = slug
             
         # Compress profile picture if it's a new upload
         if self.profile_picture and getattr(self.profile_picture, '_committed', True) is False:
