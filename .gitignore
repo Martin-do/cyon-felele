@@ -6,3 +6,10 @@ db.sqlite3
 .idea/
 .vscode/
 .env
+*.pdf
+*.jpg
+*.png
+*scratch_test.py
+test_api.py
+test_view.py
+progress.md
