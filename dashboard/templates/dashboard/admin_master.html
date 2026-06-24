@@ -56,6 +56,11 @@
     ::-webkit-scrollbar-thumb:hover {
         background: rgba(201, 162, 39, 0.5);
     }
+
+    /* Subtle borders for cards to improve contrast */
+    .bg-\[\#1B3B2B\] {
+        border: 1px solid rgba(255,255,255,0.08);
+    }
 </style>
 {% endblock %}
 
@@ -132,6 +137,10 @@
             <div class="w-full bg-emerald-950/80 rounded-full h-5 md:h-6 border border-amber-500/20 flex overflow-hidden relative group shadow-inner" id="main-progress-bar-container">
                 <div id="progress-placeholder" class="h-full bg-gradient-to-r from-amber-500/20 to-amber-500/10 w-full animate-pulse"></div>
             </div>
+            <div class="mt-3 flex gap-4 text-xs font-semibold uppercase tracking-wider text-amber-200/60 justify-end">
+                <span class="flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]"></span> Approved</span>
+                <span class="flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-amber-500 shadow-[0_0_8px_rgba(245,158,11,0.5)]"></span> Pending</span>
+            </div>
         </div>
 
         <!-- Progress Breakdown Modal -->
@@ -188,7 +197,7 @@
 
     <!-- Filters Form -->
     <div class="bg-emerald-950/30 backdrop-blur-md border border-amber-500/15 p-5 rounded-2xl animate-fade-in-up stagger-3">
-        <form id="filter-form" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-4 items-end">
+        <form id="filter-form" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-7 gap-4 items-end">
             <!-- Method -->
             <div class="text-left">
                 <label class="block text-amber-400/90 text-xs font-bold uppercase tracking-wider mb-1.5">Payment Method</label>
@@ -245,6 +254,25 @@
                         </div>
                     </div>
                     <input type="hidden" id="filter-status" name="status" value="">
+                </div>
+            </div>
+            <!-- Show Entries -->
+            <div class="text-left">
+                <label class="block text-amber-400/90 text-xs font-bold uppercase tracking-wider mb-1.5">Show</label>
+                <div class="relative custom-dropdown" data-input-id="filter-page-size">
+                    <button type="button" class="custom-dropdown-btn w-full bg-emerald-900/40 border border-amber-500/20 rounded-lg px-3 py-2 text-amber-50 text-sm focus:outline-none focus:border-amber-400 transition flex justify-between items-center text-left">
+                        <span class="custom-dropdown-label">5 Entries</span>
+                        <svg class="w-4 h-4 text-amber-500/80 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                    </button>
+                    <div class="custom-dropdown-menu hidden absolute z-30 mt-1 w-full bg-emerald-950 border border-amber-500/25 rounded-lg shadow-xl max-h-60 overflow-y-auto">
+                        <div class="py-1">
+                            <div data-value="5" class="custom-dropdown-item px-3 py-2 text-sm text-amber-100/90 hover:bg-emerald-900 hover:text-white cursor-pointer transition">5 Entries</div>
+                            <div data-value="10" class="custom-dropdown-item px-3 py-2 text-sm text-amber-100/90 hover:bg-emerald-900 hover:text-white cursor-pointer transition">10 Entries</div>
+                            <div data-value="25" class="custom-dropdown-item px-3 py-2 text-sm text-amber-100/90 hover:bg-emerald-900 hover:text-white cursor-pointer transition">25 Entries</div>
+                            <div data-value="50" class="custom-dropdown-item px-3 py-2 text-sm text-amber-100/90 hover:bg-emerald-900 hover:text-white cursor-pointer transition">50 Entries</div>
+                        </div>
+                    </div>
+                    <input type="hidden" id="filter-page-size" name="page_size" value="5">
                 </div>
             </div>
             <!-- Start Date -->
@@ -747,18 +775,18 @@
         let actionsHtml = `<div id="actions-${item.id}" class="flex flex-wrap gap-1">`;
         if (item.status === 'pending') {
             actionsHtml += `<button onclick="handleAction('${item.id}', 'approve')" class="px-2 py-0.5 bg-emerald-700 hover:bg-emerald-600 text-white text-[10px] font-bold rounded shadow transition duration-150">Approve</button>`;
-            actionsHtml += `<button onclick="handleAction('${item.id}', 'verify')" class="px-2 py-0.5 bg-blue-600 hover:bg-blue-500 text-white text-[10px] font-bold rounded shadow transition duration-150">Verify</button>`;
-            actionsHtml += `<button onclick="handleAction('${item.id}', 'reject')" class="px-2 py-0.5 bg-rose-700 hover:bg-rose-600 text-white text-[10px] font-bold rounded shadow transition duration-150">Reject</button>`;
+            actionsHtml += `<button onclick="handleAction('${item.id}', 'verify')" class="px-2 py-0.5 border border-white/40 hover:bg-white/10 text-white text-[10px] font-bold rounded shadow transition duration-150">Verify</button>`;
+            actionsHtml += `<button onclick="handleAction('${item.id}', 'reject')" class="px-2 py-0.5 bg-[#e53935] hover:bg-red-700 text-white text-[10px] font-bold rounded shadow transition duration-150">Reject</button>`;
             
             const isPaystack = item.method && item.method.toLowerCase().includes('paystack');
             if (isPaystack) {
                 actionsHtml += `<button onclick="handleRequery('${item.id}')" class="px-2 py-0.5 bg-amber-600 hover:bg-amber-500 text-white text-[10px] font-bold rounded shadow transition duration-150">Re-query</button>`;
             }
         } else if (item.status === 'approved') {
-            actionsHtml += `<button onclick="handleAction('${item.id}', 'reject')" class="px-2 py-0.5 bg-rose-700/50 hover:bg-rose-600 text-amber-100 text-[10px] font-bold rounded shadow transition duration-150">Reject</button>`;
+            actionsHtml += `<button onclick="handleAction('${item.id}', 'reject')" class="px-2 py-0.5 bg-[#e53935] hover:bg-red-700 text-white text-[10px] font-bold rounded shadow transition duration-150">Reject</button>`;
         } else if (item.status === 'rejected') {
             actionsHtml += `<button onclick="handleAction('${item.id}', 'approve')" class="px-2 py-0.5 bg-emerald-700 hover:bg-emerald-600 text-white text-[10px] font-bold rounded shadow transition duration-150">Approve</button>`;
-            actionsHtml += `<button onclick="handleAction('${item.id}', 'verify')" class="px-2 py-0.5 bg-blue-600 hover:bg-blue-500 text-white text-[10px] font-bold rounded shadow transition duration-150">Verify</button>`;
+            actionsHtml += `<button onclick="handleAction('${item.id}', 'verify')" class="px-2 py-0.5 border border-white/40 hover:bg-white/10 text-white text-[10px] font-bold rounded shadow transition duration-150">Verify</button>`;
         }
         actionsHtml += `</div>`;
         
@@ -794,18 +822,18 @@
         let actionsHtml = `<div id="mobile-actions-${item.id}" class="flex flex-wrap gap-1 mt-2">`;
         if (item.status === 'pending') {
             actionsHtml += `<button onclick="handleAction('${item.id}', 'approve')" class="px-2.5 py-1 bg-emerald-700 hover:bg-emerald-600 text-white text-[10px] font-bold rounded shadow transition duration-150">Approve</button>`;
-            actionsHtml += `<button onclick="handleAction('${item.id}', 'verify')" class="px-2.5 py-1 bg-blue-600 hover:bg-blue-500 text-white text-[10px] font-bold rounded shadow transition duration-150">Verify</button>`;
-            actionsHtml += `<button onclick="handleAction('${item.id}', 'reject')" class="px-2.5 py-1 bg-rose-700 hover:bg-rose-600 text-white text-[10px] font-bold rounded shadow transition duration-150">Reject</button>`;
+            actionsHtml += `<button onclick="handleAction('${item.id}', 'verify')" class="px-2.5 py-1 border border-white/40 hover:bg-white/10 text-white text-[10px] font-bold rounded shadow transition duration-150">Verify</button>`;
+            actionsHtml += `<button onclick="handleAction('${item.id}', 'reject')" class="px-2.5 py-1 bg-[#e53935] hover:bg-red-700 text-white text-[10px] font-bold rounded shadow transition duration-150">Reject</button>`;
             
             const isPaystack = item.method && item.method.toLowerCase().includes('paystack');
             if (isPaystack) {
                 actionsHtml += `<button onclick="handleRequery('${item.id}')" class="px-2.5 py-1 bg-amber-600 hover:bg-amber-500 text-white text-[10px] font-bold rounded shadow transition duration-150">Re-query</button>`;
             }
         } else if (item.status === 'approved') {
-            actionsHtml += `<button onclick="handleAction('${item.id}', 'reject')" class="px-2.5 py-1 bg-rose-700/50 hover:bg-rose-600 text-amber-100 text-[10px] font-bold rounded shadow transition duration-150">Reject</button>`;
+            actionsHtml += `<button onclick="handleAction('${item.id}', 'reject')" class="px-2.5 py-1 bg-[#e53935] hover:bg-red-700 text-white text-[10px] font-bold rounded shadow transition duration-150">Reject</button>`;
         } else if (item.status === 'rejected') {
             actionsHtml += `<button onclick="handleAction('${item.id}', 'approve')" class="px-2.5 py-1 bg-emerald-700 hover:bg-emerald-600 text-white text-[10px] font-bold rounded shadow transition duration-150">Approve</button>`;
-            actionsHtml += `<button onclick="handleAction('${item.id}', 'verify')" class="px-2.5 py-1 bg-blue-600 hover:bg-blue-500 text-white text-[10px] font-bold rounded shadow transition duration-150">Verify</button>`;
+            actionsHtml += `<button onclick="handleAction('${item.id}', 'verify')" class="px-2.5 py-1 border border-white/40 hover:bg-white/10 text-white text-[10px] font-bold rounded shadow transition duration-150">Verify</button>`;
         }
         actionsHtml += `</div>`;
         
@@ -1031,12 +1059,14 @@
         const categoryId = urlParams.get('category_id');
         const dateFrom = urlParams.get('date_from');
         const dateTo = urlParams.get('date_to');
+        const pageSize = urlParams.get('page_size') || '5';
         
         if (method) syncCustomDropdown('filter-method', method);
         if (status) syncCustomDropdown('filter-status', status);
         if (categoryId) syncCustomDropdown('filter-category', categoryId);
         if (dateFrom) document.getElementById('filter-date-from').value = dateFrom;
         if (dateTo) document.getElementById('filter-date-to').value = dateTo;
+        syncCustomDropdown('filter-page-size', pageSize);
         
         // Construct initial fetch URL
         const params = new URLSearchParams();
@@ -1045,6 +1075,7 @@
         if (categoryId) params.append('category_id', categoryId);
         if (dateFrom) params.append('date_from', dateFrom);
         if (dateTo) params.append('date_to', dateTo);
+        if (pageSize && pageSize !== '5') params.append('page_size', pageSize);
         
         const queryString = params.toString();
         currentFetchUrl = `/dashboard/api/transactions/${queryString ? '?' + queryString : ''}`;
@@ -1117,6 +1148,7 @@
         const categoryId = document.getElementById('filter-category').value;
         const dateFrom = document.getElementById('filter-date-from').value;
         const dateTo = document.getElementById('filter-date-to').value;
+        const pageSize = document.getElementById('filter-page-size').value;
         
         const params = new URLSearchParams();
         if (method) params.append('method', method);
@@ -1124,6 +1156,7 @@
         if (categoryId) params.append('category_id', categoryId);
         if (dateFrom) params.append('date_from', dateFrom);
         if (dateTo) params.append('date_to', dateTo);
+        if (pageSize && pageSize !== '5') params.append('page_size', pageSize);
         
         const queryString = params.toString();
         currentFetchUrl = `/dashboard/api/transactions/${queryString ? '?' + queryString : ''}`;
@@ -1144,6 +1177,7 @@
         syncCustomDropdown('filter-method', '');
         syncCustomDropdown('filter-status', '');
         syncCustomDropdown('filter-category', '');
+        syncCustomDropdown('filter-page-size', '5');
         document.getElementById('filter-date-from').value = '';
         document.getElementById('filter-date-to').value = '';
         
@@ -1156,7 +1190,7 @@
         const exportBtn = document.getElementById('export-csv-btn');
         exportBtn.href = `{% url 'dashboard:export_csv' %}`;
         
-        fetchTransactions(currentFetchUrl);hTransactions(currentFetchUrl);
+        fetchTransactions(currentFetchUrl);
     });
 
     // Pagination handlers

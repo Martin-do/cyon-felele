@@ -38,7 +38,33 @@
     }
     .site-footer { background: #F4EFE2 !important; border-color: rgba(201,162,39,0.2) !important; }
     .site-footer p, .site-footer a { color: #4B6B57 !important; }
-    .alert.error { background: rgba(179,38,30,0.08) !important; color: #8B1A1A !important; border-color: rgba(179,38,30,0.2) !important; }
+    
+    .alert {
+        padding: 1.2rem !important;
+        border-radius: 12px !important;
+        margin-bottom: 1.5rem !important;
+        font-size: 0.95rem !important;
+        font-weight: 600 !important;
+        animation: slideDownFade 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards !important;
+        transform: translateY(-20px);
+        opacity: 0;
+        box-shadow: 0 8px 30px rgba(0,0,0,0.05) !important;
+    }
+    @keyframes slideDownFade {
+        to { transform: translateY(0); opacity: 1; }
+    }
+    .alert.success {
+        background: rgba(36, 92, 63, 0.1) !important;
+        border: 1px solid rgba(36, 92, 63, 0.25) !important;
+        color: #1B3B2B !important;
+        border-left: 4px solid #245C3F !important;
+    }
+    .alert.error { 
+        background: rgba(179,38,30,0.1) !important; 
+        border: 1px solid rgba(179,38,30,0.25) !important;
+        color: #8B1A1A !important; 
+        border-left: 4px solid #B3261E !important;
+    }
     
     .step-section {
         display: none;
@@ -185,14 +211,7 @@
                 </select>
             </div>
 
-            <div class="form-group">
-                <label for="contestant_title">Category / Title</label>
-                <select id="contestant_title" name="contestant_title">
-                    {% for value, label in titles %}
-                        <option value="{{ value }}" {% if user.contestant_title == value %}selected{% endif %}>{{ label }}</option>
-                    {% endfor %}
-                </select>
-            </div>
+            <!-- Contestant Title is auto-assigned based on gender in views.py -->
 
             <button type="button" onclick="nextStep()" class="submit-btn" style="width: 100%;">Continue to Rules ➔</button>
         </div>
@@ -221,7 +240,7 @@
                 <ul style="padding-left: 1.5rem; margin-bottom: 0;">
                     <li>Share your unique campaign link with your network.</li>
                     <li>All donations go exclusively into the Harvest account.</li>
-                    <li>Weekly Leaderboards will be published to maintain transparency.</li>
+                    <li>Be an advocate for the 2026 Harvest project.</li>
                     <li>Winners will be celebrated at the Grand Finale!</li>
                 </ul>
             </div>

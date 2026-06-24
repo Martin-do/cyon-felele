@@ -142,8 +142,10 @@
     </div>
     {% endif %}
 
+    {% if not user.is_authenticated %}
     <div style="margin-top: 2rem; text-align: center;">
         <a href="{% url 'accounts:login' %}" class="submit-btn" style="display:inline-block; width:auto; padding:0.8rem 2rem; text-decoration:none; border-radius:100px;">Login to Join the Race →</a>
     </div>
+    {% endif %}
 </div>
 {% endblock %}

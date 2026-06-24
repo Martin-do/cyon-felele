@@ -2,106 +2,170 @@
 
 {% block title %}Settings | CYON Harvest 2026{% endblock %}
 
-{% block content %}
-<div class="max-w-md mx-auto mt-8 bg-white p-6 rounded-2xl shadow-xl border border-gray-100">
-    <div class="flex items-center mb-6">
-        <a href="{% url 'dashboard:member_hub' %}" class="text-gray-400 hover:text-green-700 transition">
-            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
-        </a>
-        <h2 class="text-2xl font-bold text-gray-900 ml-4">App Settings</h2>
-    </div>
-
-    {% if messages %}
-    <div class="mb-4">
-        {% for message in messages %}
-            <div class="p-3 rounded-xl text-sm font-medium {% if message.tags == 'error' %}bg-red-50 text-red-700{% else %}bg-green-50 text-green-700{% endif %}">
-                {{ message }}
-            </div>
-        {% endfor %}
-    </div>
-    {% endif %}
-
-    <div class="space-y-8">
-        <!-- Security Preferences -->
-        <form method="POST" action="{% url 'accounts:settings' %}" class="space-y-4">
-            {% csrf_token %}
-            <h3 class="text-lg font-bold text-gray-800 border-b pb-2">Security Preferences</h3>
-            
-            <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">Inactivity Lock Timeout</label>
-                <p class="text-xs text-gray-500 mb-2">Time before the app locks and requires your PIN again.</p>
-                <select name="lock_timeout" class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all">
-                    <option value="5" {% if user.lock_timeout == 5 %}selected{% endif %}>5 Minutes</option>
-                    <option value="15" {% if user.lock_timeout == 15 %}selected{% endif %}>15 Minutes (Default)</option>
-                    <option value="60" {% if user.lock_timeout == 60 %}selected{% endif %}>60 Minutes</option>
-                </select>
-            </div>
-            
-            <button type="submit" class="w-full bg-green-800 hover:bg-green-900 text-white font-bold py-3 rounded-xl shadow-lg transition-all">
-                Save Preferences
-            </button>
-        </form>
-
-        <!-- Change PIN -->
-        <form method="POST" action="{% url 'accounts:settings' %}" class="space-y-4 pt-4 border-t border-gray-100">
-            {% csrf_token %}
-            <h3 class="text-lg font-bold text-gray-800 mb-2">Change PIN</h3>
-            
-            <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">Current PIN</label>
-                <input type="password" name="old_pin" inputmode="numeric" pattern="[0-9]{4}" maxlength="4" class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all">
-            </div>
-            
-            <div class="grid grid-cols-2 gap-4">
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">New PIN</label>
-                    <input type="password" name="new_pin" inputmode="numeric" pattern="[0-9]{4}" maxlength="4" class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all">
-                </div>
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Confirm New PIN</label>
-                    <input type="password" name="new_pin_confirm" inputmode="numeric" pattern="[0-9]{4}" maxlength="4" class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all">
-                </div>
-            </div>
-            
-            <button type="submit" class="w-full bg-yellow-500 hover:bg-yellow-600 text-green-900 font-bold py-3 rounded-xl shadow-lg transition-all">
-                Update PIN
-            </button>
-        </form>
-
-        <!-- Push Notifications -->
-        <div class="space-y-4 pt-4 border-t border-gray-100">
-            <h3 class="text-lg font-bold text-gray-800 mb-2">Live Notifications</h3>
-            <p class="text-sm text-gray-600 mb-4">Receive live alerts for announcements and when a donation made in your name is approved.</p>
-            
-            <button type="button" id="enableNotificationsBtn" class="w-full bg-green-100 hover:bg-green-200 text-green-800 font-bold py-3 rounded-xl transition-all flex items-center justify-center">
-                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path></svg>
-                Enable Notifications
-            </button>
-        </div>
-    </div>
-</div>
-
-<script>
-    const notifyBtn = document.getElementById('enableNotificationsBtn');
-    
-    if ('Notification' in window) {
-        if (Notification.permission === 'granted') {
-            notifyBtn.innerText = 'Notifications Enabled';
-            notifyBtn.disabled = true;
-            notifyBtn.classList.replace('bg-green-100', 'bg-gray-100');
-            notifyBtn.classList.replace('text-green-800', 'text-gray-500');
-        } else {
-            notifyBtn.addEventListener('click', async () => {
-                const permission = await Notification.requestPermission();
-                if (permission === 'granted') {
-                    notifyBtn.innerText = 'Notifications Enabled';
-                    notifyBtn.disabled = true;
-                    // In the future, send PushSubscription to backend here
-                }
-            });
-        }
-    } else {
-        notifyBtn.style.display = 'none';
+{% block head %}
+<style>
+    body {
+        background: #F4EFE2 !important;
+        background-image: none !important;
+        color: #1B3B2B !important;
     }
-</script>
+    .glass-card {
+        background: #FFFFFF !important;
+        border: 1.5px solid rgba(201,162,39,0.3) !important;
+        box-shadow: 0 8px 40px rgba(20,48,31,0.1) !important;
+        max-width: 600px;
+        margin: 0 auto;
+    }
+    h1, h2, h3 { color: #1B3B2B !important; background: none !important; -webkit-text-fill-color: initial !important; }
+    .site-footer { background: #F4EFE2 !important; border-color: rgba(201,162,39,0.2) !important; }
+    .site-footer p, .site-footer a { color: #4B6B57 !important; }
+
+    /* Form Styles */
+    .form-group { margin-bottom: 1.25rem; }
+    .form-group label {
+        display: block;
+        font-size: 0.85rem;
+        font-weight: 600;
+        color: #1B3B2B;
+        margin-bottom: 0.4rem;
+    }
+    .form-control {
+        width: 100%;
+        padding: 0.8rem;
+        background: #FAF6EC;
+        border: 1px solid rgba(201,162,39,0.3);
+        color: #1B3B2B;
+        border-radius: 8px;
+        box-sizing: border-box;
+        font-family: inherit;
+        font-size: 0.95rem;
+    }
+    .form-control:focus {
+        outline: none;
+        border-color: #C9A227;
+        box-shadow: 0 0 0 3px rgba(201,162,39,0.15);
+    }
+    .btn-submit {
+        background: #245C3F;
+        color: #fff;
+        padding: 0.8rem 1.5rem;
+        border-radius: 8px;
+        border: none;
+        font-weight: 700;
+        cursor: pointer;
+        width: 100%;
+        transition: background 0.2s;
+    }
+    .btn-submit:hover { background: #1B3B2B; }
+    
+    .section-title {
+        font-size: 1.1rem;
+        font-weight: 800;
+        border-bottom: 1.5px solid rgba(201,162,39,0.2);
+        padding-bottom: 0.5rem;
+        margin-bottom: 1rem;
+        margin-top: 2rem;
+        color: #C9A227 !important;
+    }
+
+    .alert {
+        padding: 1.2rem !important;
+        border-radius: 12px !important;
+        margin-bottom: 1.5rem !important;
+        font-size: 0.95rem !important;
+        font-weight: 600 !important;
+        animation: slideDownFade 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards !important;
+        transform: translateY(-20px);
+        opacity: 0;
+        box-shadow: 0 8px 30px rgba(0,0,0,0.05) !important;
+    }
+    @keyframes slideDownFade {
+        to { transform: translateY(0); opacity: 1; }
+    }
+    .alert.success {
+        background: rgba(36, 92, 63, 0.1) !important;
+        border: 1px solid rgba(36, 92, 63, 0.25) !important;
+        color: #1B3B2B !important;
+        border-left: 4px solid #245C3F !important;
+    }
+    .alert.error { 
+        background: rgba(179,38,30,0.1) !important; 
+        border: 1px solid rgba(179,38,30,0.25) !important;
+        color: #8B1A1A !important; 
+        border-left: 4px solid #B3261E !important;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="glass-card">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1.5rem;">
+        <h1 style="font-size:1.6rem; margin:0;">⚙️ App Settings</h1>
+        <a href="{% url 'dashboard:member_hub' %}" style="font-size:0.85rem; color:#6B7280; text-decoration:none; padding:0.4rem 1rem; border:1px solid rgba(201,162,39,0.25); border-radius:8px;">← Back</a>
+    </div>
+
+    <!-- Profile Update Form -->
+    <h3 class="section-title" style="margin-top:0;">Profile & Flyer Settings</h3>
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        <div style="display: flex; gap: 1rem; flex-wrap: wrap; align-items: center; margin-bottom: 1.25rem;">
+            {% if user.profile_picture %}
+            <img src="{{ user.profile_picture.url }}" style="width: 80px; height: 80px; border-radius: 50%; object-fit: cover; border: 2px solid #C9A227;">
+            {% else %}
+            <div style="width: 80px; height: 80px; border-radius: 50%; background: #E8C547; display: flex; align-items: center; justify-content: center; font-size: 2rem; color: #fff;">
+                {{ user.name|make_list|first|upper }}
+            </div>
+            {% endif %}
+            <div style="flex: 1;">
+                <div class="form-group" style="margin-bottom:0;">
+                    <label>Profile Picture</label>
+                    <input type="file" name="profile_picture" accept="image/*" class="form-control" style="padding: 0.5rem;">
+                </div>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label>Custom Flyer Background (Optional)</label>
+            <p style="font-size: 0.75rem; color: #6B7280; margin-bottom: 0.4rem; margin-top: -0.2rem;">Upload a custom flyer background. If none is uploaded, the default CYON flyer will be used.</p>
+            <input type="file" name="custom_flyer" accept="image/*" class="form-control" style="padding: 0.5rem;">
+        </div>
+        
+        <button type="submit" name="update_profile" class="btn-submit">Update Profile</button>
+    </form>
+
+    <!-- Security Preferences Form -->
+    <h3 class="section-title">Security Preferences</h3>
+    <form method="POST" action="{% url 'accounts:settings' %}">
+        {% csrf_token %}
+        <div class="form-group">
+            <label>Inactivity Lock Timeout</label>
+            <p style="font-size: 0.75rem; color: #6B7280; margin-bottom: 0.4rem; margin-top: -0.2rem;">Time before the app locks and requires your PIN again.</p>
+            <select name="lock_timeout" class="form-control">
+                <option value="5" {% if user.lock_timeout == 5 %}selected{% endif %}>5 Minutes</option>
+                <option value="15" {% if user.lock_timeout == 15 %}selected{% endif %}>15 Minutes (Default)</option>
+                <option value="60" {% if user.lock_timeout == 60 %}selected{% endif %}>60 Minutes</option>
+            </select>
+        </div>
+        <button type="submit" name="update_security" class="btn-submit">Save Preferences</button>
+    </form>
+
+    <!-- Change PIN Form -->
+    <h3 class="section-title">Change PIN</h3>
+    <form method="POST" action="{% url 'accounts:settings' %}">
+        {% csrf_token %}
+        <div class="form-group">
+            <label>Current 4-Digit PIN</label>
+            <input type="password" name="old_pin" class="form-control" maxlength="4" pattern="\d{4}" inputmode="numeric">
+        </div>
+        <div class="form-group">
+            <label>New 4-Digit PIN</label>
+            <input type="password" name="new_pin" class="form-control" maxlength="4" pattern="\d{4}" inputmode="numeric">
+        </div>
+        <div class="form-group">
+            <label>Confirm New PIN</label>
+            <input type="password" name="new_pin_confirm" class="form-control" maxlength="4" pattern="\d{4}" inputmode="numeric">
+        </div>
+        <button type="submit" name="update_pin" class="btn-submit">Change PIN</button>
+    </form>
+</div>
 {% endblock %}

@@ -200,11 +200,11 @@
         .site-header .church-name {
             font-family: 'Poppins', sans-serif;
             font-weight: 700;
-            font-size: 0.75rem;
+            font-size: 0.72rem;
             color: var(--harvest-gold-400);
             text-align: center;
-            line-height: 1.3;
             letter-spacing: 0.3px;
+            line-height: 1.3;
         }
 
         /* ── PROGRESS BAR ─────────────────────────────────────────── */
@@ -269,7 +269,8 @@
             <img src="{% static 'images/brand/church-seal.png' %}" alt="Catholic Archdiocese of Ibadan Seal" style="height:48px;width:48px;object-fit:contain;border-radius:50%;">
         </a>
         <div class="church-name">
-            Christ the Good Shepherd<br>Catholic Church · Felele, Ibadan
+            <strong>CHRIST THE GOOD SHEPHERD CATHOLIC CHURCH, FELELE</strong><br>
+            <span style="color:#A0AEC0; font-size:0.65rem; font-weight:600;">CATHOLIC YOUTH ORGANIZATION OF NIGERIA (CYON)</span>
         </div>
         <a href="{% url 'contributions:landing' %}" class="logo-link">
             <img src="{% static 'images/brand/cyon-logo.png' %}" alt="CYON Logo">
@@ -294,9 +295,17 @@
         </p>
         <p>"Those who sow in tears will reap with songs of joy." — Psalm 126:5</p>
         <p style="margin-top:0.75rem;">
-            <a href="{% url 'live:board' %}">Live Board</a> &nbsp;·&nbsp;
-            <a href="{% url 'accounts:login' %}">Member Login</a> &nbsp;·&nbsp;
-            <a href="{% url 'accounts:signup' %}">Join CYON</a>
+            <a href="{% url 'live:board' %}">Live Board</a>
+            {% if not user.is_authenticated %}
+            &nbsp;·&nbsp; <a href="{% url 'accounts:login' %}">Member Login</a> &nbsp;·&nbsp;
+            <a href="{% url 'accounts:signup' %}">Join CYON</a> &nbsp;·&nbsp;
+            <a href="{% url 'dashboard:admin_login' %}">Admin Portal</a>
+            {% else %}
+            &nbsp;·&nbsp; <a href="{% url 'dashboard:member_hub' %}">Member Hub</a>
+            {% if user.is_admin_user %}
+            &nbsp;·&nbsp; <a href="{% url 'dashboard:master_dashboard' %}">Admin Portal</a>
+            {% endif %}
+            {% endif %}
         </p>
         <span class="script-line">Let your light shine!</span>
     </footer>

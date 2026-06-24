@@ -92,11 +92,12 @@ def onboarding_view(request):
         if first_name or last_name:
             user.name = f"{first_name} {last_name}".strip()
             
-        if title in dict(Member.TITLE_CHOICES):
-            user.contestant_title = title
-            
         if gender in dict(Member.GENDER_CHOICES):
             user.gender = gender
+            if gender == 'M':
+                user.contestant_title = 'Master Harvest'
+            elif gender == 'F':
+                user.contestant_title = 'Miss Harvest'
             
         if 'profile_picture' in request.FILES:
             user.profile_picture = request.FILES['profile_picture']
@@ -200,6 +201,25 @@ def settings_view(request):
                 # Re-authenticate to keep session alive
                 login(request, user)
                 messages.success(request, 'PIN changed successfully.')
+                
+        if 'profile_picture' in request.FILES or 'custom_flyer' in request.FILES:
+            if 'profile_picture' in request.FILES:
+                user.profile_picture = request.FILES['profile_picture']
+            if 'custom_flyer' in request.FILES:
+                user.custom_flyer = request.FILES['custom_flyer']
+            user.save()
+            
+            # Invalidate cached flyer
+            import os
+            from django.conf import settings
+            cache_path = os.path.join(settings.MEDIA_ROOT, 'flyers', f"{user.id}.png")
+            if os.path.exists(cache_path):
+                try:
+                    os.remove(cache_path)
+                except Exception:
+                    pass
+                    
+            messages.success(request, 'Profile media updated successfully.')
                 
         return redirect('accounts:settings')
 

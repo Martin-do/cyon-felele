@@ -1,252 +1,425 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Download Flyer</title>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700;800&display=swap" rel="stylesheet">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-    <style>
-        body {
-            background: #f4f4f4;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            margin: 0;
-            font-family: 'Poppins', sans-serif;
-            flex-direction: column;
-        }
+  <meta charset="UTF-8">
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800;900&display=swap');
 
-        .flyer-container {
-            width: 1080px;
-            height: 1080px;
-            background: linear-gradient(135deg, #1B3B2B 0%, #0F2017 100%);
-            position: relative;
-            overflow: hidden;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.2);
-            color: #fff;
-        }
+    *, *::before, *::after {
+      margin: 0; padding: 0; box-sizing: border-box;
+    }
 
-        /* Decorative Elements */
-        .deco-circle-1 {
-            position: absolute;
-            width: 800px;
-            height: 800px;
-            border-radius: 50%;
-            background: radial-gradient(circle, rgba(201,162,39,0.15) 0%, rgba(201,162,39,0) 70%);
-            top: -200px;
-            left: -200px;
-        }
-        .deco-circle-2 {
-            position: absolute;
-            width: 600px;
-            height: 600px;
-            border-radius: 50%;
-            background: radial-gradient(circle, rgba(201,162,39,0.1) 0%, rgba(201,162,39,0) 70%);
-            bottom: -100px;
-            right: -100px;
-        }
+    body {
+      width: 1080px;
+      height: 1080px;
+      background: #ffffff;
+      font-family: 'Montserrat', sans-serif;
+      position: relative;
+      overflow: hidden;
+    }
 
-        .header {
-            position: absolute;
-            top: 60px;
-            text-align: center;
-            width: 100%;
-        }
-        .header-title {
-            color: #C9A227;
-            font-size: 2.5rem;
-            font-weight: 800;
-            letter-spacing: 4px;
-            text-transform: uppercase;
-        }
-        
-        .profile-pic-container {
-            width: 450px;
-            height: 450px;
-            border-radius: 50%;
-            border: 8px solid #C9A227;
-            overflow: hidden;
-            margin-top: -50px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-            background: #E8C547;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 10rem;
-            color: #1B3B2B;
-            font-weight: 800;
-        }
-        .profile-pic-container img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
+    /* ── Fingerprint watermark ──────────────────────────────── */
+    .fp-watermark {
+      position: absolute;
+      top: -60px;
+      right: -100px;
+      width: 520px;
+      height: 580px;
+      opacity: 0.055;
+      pointer-events: none;
+      z-index: 0;
+    }
 
-        .name-tag {
-            margin-top: 40px;
-            font-size: 4rem;
-            font-weight: 800;
-            text-align: center;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
-        }
+    /* ── Main content wrapper ───────────────────────────────── */
+    .content {
+      position: relative;
+      z-index: 1;
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+      padding: 34px 46px 0;
+    }
 
-        .title-tag {
-            margin-top: 15px;
-            font-size: 2rem;
-            font-weight: 600;
-            background: linear-gradient(135deg, #E8C547 0%, #B8860B 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            text-transform: uppercase;
-            letter-spacing: 2px;
-        }
+    /* ── HEADER ─────────────────────────────────────────────── */
+    .header {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      margin-bottom: 20px;
+    }
 
-        .footer-banner {
-            position: absolute;
-            bottom: 0;
-            width: 100%;
-            background: rgba(201,162,39,0.15);
-            backdrop-filter: blur(10px);
-            border-top: 2px solid rgba(201,162,39,0.3);
-            padding: 40px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            box-sizing: border-box;
-        }
+    .header-logo {
+      width: 70px;
+      height: 70px;
+      object-fit: contain;
+      flex-shrink: 0;
+    }
 
-        .qr-section {
-            display: flex;
-            align-items: center;
-            gap: 30px;
-        }
+    .header-text h1 {
+      font-size: 24px;
+      font-weight: 800;
+      color: #1c2f7c;
+      letter-spacing: 0.6px;
+      line-height: 1.2;
+    }
 
-        .qr-code {
-            width: 160px;
-            height: 160px;
-            background: #fff;
-            padding: 10px;
-            border-radius: 12px;
-        }
+    .header-text p {
+      font-size: 11px;
+      color: #555;
+      letter-spacing: 0.5px;
+      margin-top: 3px;
+      text-transform: uppercase;
+    }
 
-        .cta-text {
-            font-size: 2.2rem;
-            font-weight: 700;
-            line-height: 1.2;
-        }
-        .cta-subtext {
-            font-size: 1.4rem;
-            color: #E8C547;
-            margin-top: 8px;
-        }
+    /* ── CYON BANNER ────────────────────────────────────────── */
+    .cyon-banner {
+      background: #f6c100;
+      padding: 14px 22px;
+      text-align: center;
+      margin-bottom: 18px;
+    }
 
-        /* Control Panel */
-        .controls {
-            margin-top: 30px;
-            padding: 20px;
-            background: #fff;
-            border-radius: 12px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-            display: flex;
-            gap: 20px;
-            align-items: center;
-        }
-        .btn-download {
-            padding: 15px 30px;
-            background: #1B3B2B;
-            color: #fff;
-            border: none;
-            border-radius: 8px;
-            font-size: 1.2rem;
-            font-family: 'Poppins', sans-serif;
-            font-weight: 600;
-            cursor: pointer;
-            transition: background 0.3s;
-        }
-        .btn-download:hover { background: #245C3F; }
-        .btn-back {
-            color: #6B7280;
-            text-decoration: none;
-            font-size: 1.1rem;
-            font-weight: 600;
-        }
-    </style>
+    .cyon-banner h2 {
+      font-size: 28px;
+      font-weight: 900;
+      color: #1c2f7c;
+      letter-spacing: 2.5px;
+      line-height: 1.3;
+      text-transform: uppercase;
+    }
+
+    /* ── PRESENT / HARVEST TITLE ────────────────────────────── */
+    .present-block {
+      text-align: center;
+      margin-bottom: 14px;
+    }
+
+    .present-label {
+      font-size: 11.5px;
+      letter-spacing: 5px;
+      color: #888;
+      margin-bottom: 5px;
+    }
+
+    .harvest-title {
+      font-size: 28px;
+      font-weight: 900;
+      color: #1c2f7c;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+    }
+
+    /* ── CARD WRAPPER ───────────────────────────────────────────
+       IMPORTANT: The photo lives here as a sibling of .blue-card,
+       NOT inside it. This is intentional — it lets the photo bleed
+       above the card freely while overflow:hidden on .blue-card
+       still clips the card corners cleanly.
+       The red bar is also a sibling so overflow:hidden can never
+       clip it — guaranteeing full-width coverage.
+    ────────────────────────────────────────────────────────── */
+    .card-wrapper {
+      position: relative;
+      flex-shrink: 0;
+      padding-top: 22px; /* room for photo to bleed above the card */
+    }
+
+    /* Portrait photo — bleeds above card via wrapper padding-top */
+    .contestant-photo {
+      position: absolute;
+      left: -20px;
+      bottom: 0;
+      width: 400px;
+      height: 520px;
+      object-fit: contain;
+      object-position: bottom center;
+      z-index: 4;
+    }
+
+    /* ── BLUE MAIN CARD ─────────────────────────────────────── */
+    .blue-card {
+      background: #1c2f7c;
+      border-radius: 6px 6px 0 0; /* flat bottom so red bar butts flush */
+      position: relative;
+      height: 390px;
+      overflow: hidden;            /* safe — photo is outside this element */
+    }
+
+    /* Theme text — right side of card only */
+    .theme-block {
+      position: absolute;
+      left: 285px;
+      top: 26px;
+      right: 20px;
+    }
+
+    .theme-eyebrow {
+      font-size: 11.5px;
+      letter-spacing: 5px;
+      color: rgba(255, 255, 255, 0.60);
+      margin-bottom: 8px;
+    }
+
+    .theme-title {
+      font-size: 60px;
+      font-weight: 900;
+      color: #ffffff;
+      line-height: 0.93;
+      text-transform: uppercase;
+    }
+
+    .theme-title .yellow { color: #f6c100; }
+
+    .tagline {
+      margin-top: 18px;
+      font-size: 17px;
+      color: rgba(255, 255, 255, 0.90);
+      font-weight: 500;
+      line-height: 1.45;
+    }
+
+    /* ── RED CONTESTANT BAR ─────────────────────────────────────
+       Sibling of .blue-card — block element fills 100% wrapper
+       width automatically. No clipping, no partial coverage.
+    ────────────────────────────────────────────────────────── */
+    .contestant-bar {
+      position: relative;
+      background: #c0161c;
+      border-radius: 0 0 6px 6px;
+      padding: 13px 18px 13px 296px;
+      z-index: 3;
+    }
+
+    /* Gold arrow pointer */
+    .contestant-bar::before {
+      content: '';
+      position: absolute;
+      left: 275px;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 0;
+      height: 0;
+      border-top: 12px solid transparent;
+      border-bottom: 12px solid transparent;
+      border-left: 16px solid #f6c100;
+    }
+
+    .contestant-name {
+      font-size: 32px;
+      font-weight: 900;
+      color: #ffffff;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      line-height: 1.2;
+    }
+
+    .contestant-role {
+      font-size: 15px;
+      color: rgba(255, 255, 255, 0.88);
+      margin-top: 4px;
+      line-height: 1.35;
+    }
+
+    /* ── VOTE PRICING ROW ───────────────────────────────────── */
+    .vote-section {
+      padding: 14px 0 0 282px;
+    }
+
+    .vote-row {
+      display: flex;
+      gap: 8px;
+    }
+
+    .vote-btn {
+      flex: 1;
+      padding: 11px 6px;
+      text-align: center;
+      border-radius: 3px;
+    }
+
+    .vote-btn .v-amount {
+      display: block;
+      font-size: 22px;
+      font-weight: 800;
+    }
+
+    .vote-btn .v-count {
+      display: block;
+      font-size: 14px;
+      font-weight: 500;
+      margin-top: 2px;
+    }
+
+    .vote-btn.gold  { background: #f6c100; color: #1c2f7c; }
+    .vote-btn.navy  { background: #1c2f7c; color: #ffffff; }
+    .vote-btn.red   { background: #c0161c; color: #ffffff; }
+    .vote-btn.black { background: #111111; color: #ffffff; }
+
+    .vote-note {
+      font-size: 11.5px;
+      color: #333;
+      padding: 8px 0 0 282px;
+    }
+
+    /* ── FOOTER ─────────────────────────────────────────────── */
+    .footer {
+      background: #1c2f7c;
+      margin: auto -46px 0;
+      padding: 22px 46px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 20px;
+      flex-shrink: 0;
+    }
+
+    .footer-contact .f-label {
+      font-size: 12.5px;
+      color: rgba(255, 255, 255, 0.72);
+      margin-bottom: 4px;
+    }
+
+    .footer-contact .f-phone {
+      font-size: 20px;
+      font-weight: 700;
+      color: #ffffff;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .footer-contact .f-phone::before {
+      content: '📱';
+      font-size: 18px;
+    }
+
+    .footer-message {
+      text-align: center;
+      font-size: 13px;
+      color: #ffffff;
+      line-height: 1.55;
+      flex: 1;
+    }
+
+    .footer-message .vote-link {
+      display: block;
+      font-size: 11px;
+      color: #8faeff;
+      margin-top: 5px;
+    }
+
+    .footer-qr img {
+      width: 82px;
+      height: 82px;
+      display: block;
+      border: 3px solid #fff;
+    }
+  </style>
 </head>
 <body>
 
-    <div class="flyer-container" id="flyer">
-        <div class="deco-circle-1"></div>
-        <div class="deco-circle-2"></div>
-        
-        <div class="header">
-            <div class="header-title">CYON Harvest 2026</div>
-        </div>
+  <!-- Fingerprint watermark (concentric ellipse SVG) -->
+  <svg class="fp-watermark" viewBox="0 0 400 450" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <ellipse cx="200" cy="225" rx="18"  ry="20"  stroke="#000" stroke-width="2.5" fill="none"/>
+    <ellipse cx="200" cy="225" rx="34"  ry="38"  stroke="#000" stroke-width="2.5" fill="none"/>
+    <ellipse cx="200" cy="225" rx="52"  ry="58"  stroke="#000" stroke-width="2.5" fill="none"/>
+    <ellipse cx="200" cy="225" rx="72"  ry="80"  stroke="#000" stroke-width="2.5" fill="none"/>
+    <ellipse cx="200" cy="225" rx="93"  ry="104" stroke="#000" stroke-width="2.5" fill="none"/>
+    <ellipse cx="200" cy="225" rx="116" ry="130" stroke="#000" stroke-width="2.5" fill="none"/>
+    <ellipse cx="200" cy="225" rx="140" ry="158" stroke="#000" stroke-width="2.5" fill="none"/>
+    <ellipse cx="200" cy="225" rx="166" ry="188" stroke="#000" stroke-width="2.5" fill="none"/>
+    <ellipse cx="200" cy="225" rx="194" ry="220" stroke="#000" stroke-width="2.5" fill="none"/>
+  </svg>
 
-        <div class="profile-pic-container">
-            {% if member.profile_picture %}
-                <!-- Use a trick to render absolute URL or base64 if needed, for html2canvas we must ensure no CORS issue. Usually relative path on same domain works perfectly -->
-                <img src="{{ member.profile_picture.url }}" crossorigin="anonymous">
-            {% else %}
-                {{ member.name|make_list|first|upper }}
-            {% endif %}
-        </div>
+  <div class="content">
 
-        <div class="name-tag">{{ member.name }}</div>
-        
-        {% if member.contestant_title and member.contestant_title != 'None' %}
-            <div class="title-tag">Vying for {{ member.contestant_title }}</div>
-        {% else %}
-            <div class="title-tag">CYON Champion</div>
-        {% endif %}
-
-        <div class="footer-banner">
-            <div class="qr-section">
-                <img src="{{ qr_url }}" class="qr-code" crossorigin="anonymous">
-                <div>
-                    <div class="cta-text">Scan to Vote &<br>Support My Campaign</div>
-                    <div class="cta-subtext">Every contribution counts!</div>
-                </div>
-            </div>
-            <div style="text-align: right;">
-                <div style="font-size: 1.5rem; font-weight: 700; color: #C9A227;">Catholic Youth Organization</div>
-                <div style="font-size: 1.2rem; opacity: 0.8; margin-top: 5px;">St. Gabriel, Felele</div>
-            </div>
-        </div>
+    <!-- Header -->
+    <div class="header">
+      <img class="header-logo" src="{{ logo_url }}" alt="Church Logo">
+      <div class="header-text">
+        <h1>CATHOLIC ARCHDIOCESE OF IBADAN</h1>
+        <p>Christ the Good Shepherd Parish, Felele, Ibadan, Oyo State.</p>
+      </div>
     </div>
 
-    <div class="controls">
-        <a href="{% url 'dashboard:member_hub' %}" class="btn-back">← Back to Hub</a>
-        <button class="btn-download" onclick="downloadFlyer()">↓ Download as Image</button>
+    <!-- CYON Banner -->
+    <div class="cyon-banner">
+      <h2>Catholic Youth Organization<br>of Nigeria (CYON)</h2>
     </div>
 
-    <script>
-        function downloadFlyer() {
-            const flyer = document.getElementById('flyer');
-            const btn = document.querySelector('.btn-download');
-            btn.textContent = "Generating...";
-            
-            html2canvas(flyer, {
-                scale: 2, // High resolution
-                useCORS: true,
-                allowTaint: true,
-                backgroundColor: '#1B3B2B'
-            }).then(canvas => {
-                const link = document.createElement('a');
-                link.download = `CYON_Flyer_{{ member.name|slugify }}.png`;
-                link.href = canvas.toDataURL('image/png');
-                link.click();
-                btn.textContent = "↓ Download as Image";
-            }).catch(err => {
-                console.error(err);
-                btn.textContent = "Error generating image";
-            });
-        }
-    </script>
+    <!-- Present / Harvest -->
+    <div class="present-block">
+      <p class="present-label">P R E S E N T :</p>
+      <h3 class="harvest-title">2026 Children and Youth Harvest</h3>
+    </div>
+
+    <!-- Card Wrapper: photo + blue card + red bar -->
+    <div class="card-wrapper">
+
+      <!-- Photo is a child of card-wrapper, NOT .blue-card -->
+      <img class="contestant-photo" src="{{ photo_url }}" alt="{{ name }}">
+
+      <!-- Blue card: theme text only -->
+      <div class="blue-card">
+        <div class="theme-block">
+          <p class="theme-eyebrow">T H E M E :</p>
+          <h2 class="theme-title">
+            FUNDRAISING<br>
+            AMBASSADOR<br>
+            <span class="yellow">CHALLENGE</span>
+          </h2>
+          <p class="tagline">Support Our Harvest, Crown<br>a Champion.</p>
+        </div>
+      </div>
+
+      <!-- Red bar: sibling of .blue-card, always full width -->
+      <div class="contestant-bar">
+        <div class="contestant-name">{{ name }}</div>
+        <div class="contestant-role">{{ category }}</div>
+      </div>
+
+    </div><!-- .card-wrapper -->
+
+    <!-- Vote Pricing -->
+    <div class="vote-section">
+      <div class="vote-row">
+        <div class="vote-btn gold">
+          <span class="v-amount">₦500</span>
+          <span class="v-count">1 Vote</span>
+        </div>
+        <div class="vote-btn navy">
+          <span class="v-amount">₦1,000</span>
+          <span class="v-count">2 Votes</span>
+        </div>
+        <div class="vote-btn red">
+          <span class="v-amount">₦5,000</span>
+          <span class="v-count">10 Votes</span>
+        </div>
+        <div class="vote-btn black">
+          <span class="v-amount">₦10,000</span>
+          <span class="v-count">20 Votes</span>
+        </div>
+      </div>
+    </div>
+    <p class="vote-note">
+      <strong>Note:</strong> There is no limit to the number of votes a supporter can cast.
+    </p>
+
+    <!-- Footer -->
+    <div class="footer">
+      <div class="footer-contact">
+        <div class="f-label">For more enquiry contact:</div>
+        <div class="f-phone">{{ contact_phone }}</div>
+      </div>
+      <div class="footer-message">
+        I kindly invite you to support my campaign<br>
+        And partner with us in this worthy cause.
+        <span class="vote-link">{{ vote_url }}</span>
+      </div>
+      <div class="footer-qr">
+        <img src="{{ qr_url }}" alt="QR Code">
+      </div>
+    </div>
+
+  </div><!-- .content -->
 </body>
 </html>

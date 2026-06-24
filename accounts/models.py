@@ -82,6 +82,41 @@ class Member(AbstractBaseUser, PermissionsMixin):
         if not self.referral_slug and self.name:
             base_slug = slugify(self.name)
             self.referral_slug = f"{base_slug}-{str(uuid.uuid4())[:6]}"
+            
+        # Compress profile picture if it's a new upload
+        if self.profile_picture and getattr(self.profile_picture, '_committed', True) is False:
+            from PIL import Image, ImageOps
+            from io import BytesIO
+            from django.core.files.uploadedfile import InMemoryUploadedFile
+            import sys
+            
+            try:
+                img = Image.open(self.profile_picture)
+                # Correct orientation if EXIF data is present
+                img = ImageOps.exif_transpose(img)
+                
+                if img.mode in ("RGBA", "P"):
+                    img = img.convert("RGB")
+                    
+                # Resize if it's huge, keeping aspect ratio
+                max_size = (800, 800)
+                img.thumbnail(max_size, Image.Resampling.LANCZOS)
+                
+                output = BytesIO()
+                # Save as JPEG with 75% quality to significantly reduce file size
+                img.save(output, format='JPEG', quality=75, optimize=True)
+                output.seek(0)
+                
+                # Replace the field's file with the compressed version
+                file_name = self.profile_picture.name.split('.')[0] + '.jpg'
+                self.profile_picture = InMemoryUploadedFile(
+                    output, 'ImageField', file_name, 
+                    'image/jpeg', sys.getsizeof(output), None
+                )
+            except Exception as e:
+                # If compression fails, just continue and save normally
+                pass
+
         super().save(*args, **kwargs)
 
     def __str__(self):

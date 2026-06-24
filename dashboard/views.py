@@ -32,20 +32,7 @@ def member_hub_view(request):
         return redirect('accounts:onboarding')
     
     if request.method == 'POST':
-        if 'update_profile' in request.POST:
-            title = request.POST.get('contestant_title')
-            if title in dict(Member.TITLE_CHOICES):
-                user.contestant_title = title
-            
-            if 'profile_picture' in request.FILES:
-                user.profile_picture = request.FILES['profile_picture']
-                
-            if 'custom_flyer' in request.FILES:
-                user.custom_flyer = request.FILES['custom_flyer']
-            
-            user.save()
-            messages.success(request, 'Profile updated successfully!')
-            return redirect('dashboard:member_hub')
+        pass
 
     referred_contributions = Contribution.objects.filter(referred_by=user, is_voided=False, status='approved')
     total_referred = referred_contributions.aggregate(Sum('amount'))['amount__sum'] or 0.00
@@ -103,15 +90,112 @@ def member_hub_view(request):
 @login_required(login_url='/accounts/login/')
 def generate_flyer_view(request):
     user = request.user
-    base_url = request.build_absolute_uri('/')[:-1] 
-    referral_link = f"{base_url}/support/{user.referral_slug}/"
     
-    context = {
-        'member': user,
-        'referral_link': referral_link,
-        'qr_url': f"{base_url}/dashboard/qr-code/"
-    }
-    return render(request, 'dashboard/flyer.html', context)
+    if user.custom_flyer:
+        try:
+            from django.http import FileResponse
+            response = FileResponse(user.custom_flyer.open(), content_type="image/jpeg")
+            response['Content-Disposition'] = f'attachment; filename="flyer_{user.name.replace(" ", "_")}.jpg"'
+            return response
+        except Exception:
+            pass
+
+    import os
+    from django.conf import settings
+    from django.http import HttpResponse
+    
+    # Define cache path
+    flyers_dir = os.path.join(settings.MEDIA_ROOT, 'flyers')
+    os.makedirs(flyers_dir, exist_ok=True)
+    cache_path = os.path.join(flyers_dir, f"{user.id}.png")
+    
+    if os.path.exists(cache_path):
+        with open(cache_path, "rb") as f:
+            response = HttpResponse(f.read(), content_type="image/png")
+            response['Content-Disposition'] = f'attachment; filename="flyer_{user.name.replace(" ", "_")}.png"'
+            return response
+
+    # If not cached, generate using Playwright
+    from django.template.loader import render_to_string
+    from playwright.sync_api import sync_playwright
+    import base64
+    
+    # Base64 encode the logo
+    logo_path = os.path.join(settings.BASE_DIR, 'static', 'images', 'brand', 'cyon-logo.png')
+    try:
+        with open(logo_path, "rb") as img_file:
+            bg_b64 = base64.b64encode(img_file.read()).decode('utf-8')
+            cyon_logo_base64 = f"data:image/png;base64,{bg_b64}"
+    except Exception:
+        cyon_logo_base64 = ""
+
+    # Base64 encode the profile picture
+    photo_base64 = ""
+    if user.profile_picture:
+        try:
+            with open(user.profile_picture.path, "rb") as img_file:
+                original_bytes = img_file.read()
+            
+            # Strip background
+            try:
+                from rembg import remove, new_session
+                session = new_session("u2net")
+                cleaned_bytes = remove(original_bytes, session=session)
+            except Exception:
+                cleaned_bytes = original_bytes
+                
+            photo_b64 = base64.b64encode(cleaned_bytes).decode('utf-8')
+            photo_base64 = f"data:image/png;base64,{photo_b64}"
+        except Exception:
+            pass
+
+    title = user.contestant_title if user.contestant_title and user.contestant_title != 'None' else "CYON AMBASSADOR"
+    
+    # Generate vote_url and QR code
+    base_url = request.build_absolute_uri('/')[:-1] 
+    vote_url = f"{base_url}/support/{user.referral_slug}/"
+    
+    import qrcode
+    import io
+    img = qrcode.make(vote_url)
+    buf = io.BytesIO()
+    img.save(buf, format="PNG")
+    qr_b64 = base64.b64encode(buf.getvalue()).decode('utf-8')
+    qr_url = f"data:image/png;base64,{qr_b64}"
+        
+    html_content = render_to_string('dashboard/flyer.html', {
+        'name': user.name,
+        'photo_url': photo_base64,
+        'logo_url': cyon_logo_base64,
+        'category': title,
+        'vote_url': vote_url,
+        'contact_phone': "09134156737",
+        'qr_url': qr_url,
+    })
+    
+    import sys
+    import asyncio
+    if sys.platform == 'win32':
+        asyncio.set_event_loop_policy(asyncio.WindowsProactorEventLoopPolicy())
+        
+    try:
+        with sync_playwright() as p:
+            browser = p.chromium.launch(args=['--no-sandbox', '--disable-setuid-sandbox'])
+            page = browser.new_page(viewport={"width": 1080, "height": 1080})
+            page.set_content(html_content, wait_until="load", timeout=30000)
+            page.wait_for_timeout(1500) # Give it 1.5s to render Google Fonts just in case
+            img_bytes = page.screenshot(type="png")
+            browser.close()
+            
+        # Cache it
+        with open(cache_path, "wb") as f:
+            f.write(img_bytes)
+            
+        response = HttpResponse(img_bytes, content_type="image/png")
+        response['Content-Disposition'] = f'attachment; filename="flyer_{user.name.replace(" ", "_")}.png"'
+        return response
+    except Exception as e:
+        return HttpResponse(f"Error generating flyer with Playwright: {str(e)}", status=500)
 
 @login_required(login_url='/accounts/login/')
 def generate_qr_code_view(request):
@@ -385,7 +469,9 @@ def live_entry_view(request):
 
 
 class AdminTransactionPagination(PageNumberPagination):
-    page_size = 50
+    page_size = 5
+    page_size_query_param = 'page_size'
+    max_page_size = 50
 
     def get_paginated_response(self, data):
         response_data = OrderedDict([

@@ -20,6 +20,33 @@
     h1, h2, h3 { color: #1B3B2B !important; background: none !important; -webkit-text-fill-color: initial !important; }
     .site-footer { background: #F4EFE2 !important; border-color: rgba(201,162,39,0.2) !important; }
     .site-footer p, .site-footer a { color: #4B6B57 !important; }
+    
+    .alert {
+        padding: 1.2rem !important;
+        border-radius: 12px !important;
+        margin-bottom: 1.5rem !important;
+        font-size: 0.95rem !important;
+        font-weight: 600 !important;
+        animation: slideDownFade 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards !important;
+        transform: translateY(-20px);
+        opacity: 0;
+        box-shadow: 0 8px 30px rgba(0,0,0,0.05) !important;
+    }
+    @keyframes slideDownFade {
+        to { transform: translateY(0); opacity: 1; }
+    }
+    .alert.success {
+        background: rgba(36, 92, 63, 0.1) !important;
+        border: 1px solid rgba(36, 92, 63, 0.25) !important;
+        color: #1B3B2B !important;
+        border-left: 4px solid #245C3F !important;
+    }
+    .alert.error { 
+        background: rgba(179,38,30,0.1) !important; 
+        border: 1px solid rgba(179,38,30,0.25) !important;
+        color: #8B1A1A !important; 
+        border-left: 4px solid #B3261E !important;
+    }
 
     /* ── Stats ───────────────────────────────────────────────────── */
     .stats-grid {
@@ -27,12 +54,16 @@
         grid-template-columns: 1fr 1fr;
         gap: 1rem;
         margin-bottom: 1.75rem;
+        animation: fadeUp 0.5s ease-out backwards;
+        animation-delay: 0.1s;
     }
     .stat-card {
         border-radius: 12px;
         padding: 1.25rem;
         text-align: center;
+        transition: transform 0.2s;
     }
+    .stat-card:hover { transform: translateY(-2px); }
     .stat-card.blue {
         background: rgba(201,162,39,0.08);
         border: 1px solid rgba(201,162,39,0.25);
@@ -58,6 +89,14 @@
         border-radius: 14px;
         padding: 1.5rem;
         margin-bottom: 1.75rem;
+        animation: fadeUp 0.5s ease-out backwards;
+        animation-delay: 0.2s;
+    }
+    
+    @keyframes fadeUp {
+        from { opacity: 0; transform: translateY(15px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
     }
     .link-block-title {
         font-size: 0.78rem;
@@ -254,46 +293,24 @@
         </div>
     </div>
 
-    <!-- Profile Update Form -->
+    <!-- Settings Link -->
     <div class="link-block" style="margin-bottom: 1.75rem;">
-        <div class="link-block-title">👤 Your Contestant Profile</div>
-        <form method="post" enctype="multipart/form-data">
-            {% csrf_token %}
-            <div style="display: flex; gap: 1rem; flex-wrap: wrap; align-items: center; margin-bottom: 1rem;">
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+            <div style="display: flex; align-items: center; gap: 1rem;">
                 {% if member.profile_picture %}
-                <img src="{{ member.profile_picture.url }}" style="width: 80px; height: 80px; border-radius: 50%; object-fit: cover; border: 2px solid #C9A227;">
+                <img src="{{ member.profile_picture.url }}" style="width: 50px; height: 50px; border-radius: 50%; object-fit: cover; border: 2px solid #C9A227;">
                 {% else %}
-                <div style="width: 80px; height: 80px; border-radius: 50%; background: #E8C547; display: flex; align-items: center; justify-content: center; font-size: 2rem; color: #fff;">
+                <div style="width: 50px; height: 50px; border-radius: 50%; background: #E8C547; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; color: #fff; font-weight: bold;">
                     {{ member.name|make_list|first|upper }}
                 </div>
                 {% endif %}
-                <div style="flex: 1;">
-                    <label style="font-size: 0.85rem; font-weight: 600; color: #1B3B2B; display: block; margin-bottom: 0.25rem;">Profile Picture</label>
-                    <input type="file" name="profile_picture" accept="image/*" style="font-size: 0.85rem;">
+                <div>
+                    <h3 style="margin: 0; font-size: 1rem; color: #1B3B2B;">{{ member.name }}</h3>
+                    <p style="margin: 0; font-size: 0.8rem; color: #6B7280;">{{ member.contestant_title }}</p>
                 </div>
             </div>
-            
-                <label style="font-size: 0.85rem; font-weight: 600; color: #1B3B2B; display: block; margin-bottom: 0.25rem;">Custom Flyer (Optional)</label>
-                <input type="file" name="custom_flyer" accept="image/*" style="font-size: 0.85rem; width: 100%; margin-bottom: 1rem;">
-                
-                <label style="font-size: 0.85rem; font-weight: 600; color: #1B3B2B; display: block; margin-bottom: 0.25rem;">Contestant Title</label>
-                <select name="contestant_title" style="width: 100%; padding: 0.7rem; border-radius: 8px; border: 1.5px solid rgba(201,162,39,0.3); background: #fff; font-size: 0.9rem;">
-                    <option value="None" {% if member.contestant_title == 'None' %}selected{% endif %}>Not Contesting</option>
-                    <option value="Most Influential Youth Fundraiser" {% if member.contestant_title == 'Most Influential Youth Fundraiser' %}selected{% endif %}>Most Influential Youth Fundraiser</option>
-                    <option value="Master Harvest" {% if member.contestant_title == 'Master Harvest' %}selected{% endif %}>Master Harvest</option>
-                    <option value="Miss Harvest" {% if member.contestant_title == 'Miss Harvest' %}selected{% endif %}>Miss Harvest</option>
-                </select>
-            </div>
-            
-            {% if member.custom_flyer %}
-            <div style="margin-bottom: 1rem; padding: 1rem; background: rgba(201,162,39,0.1); border-radius: 8px;">
-                <p style="font-size: 0.85rem; font-weight: 600; color: #1B3B2B; margin-bottom: 0.5rem;">Your Custom Flyer</p>
-                <a href="{{ member.custom_flyer.url }}" download class="btn-copy" style="text-align: center; display: block; background: #245C3F; color: white; text-decoration: none;">Download Flyer</a>
-            </div>
-            {% endif %}
-            
-            <button type="submit" name="update_profile" class="btn-copy" style="width: 100%;">Update Profile</button>
-        </form>
+            <a href="{% url 'accounts:settings' %}" class="btn-leaderboard" style="margin: 0;">⚙️ Settings</a>
+        </div>
     </div>
 
     <!-- Referral link -->
@@ -303,10 +320,11 @@
             <input type="text" id="ref-link" value="{{ referral_link }}" readonly>
             <button class="btn-copy" id="copy-btn" onclick="copyLink()">Copy</button>
         </div>
-        <div class="share-row">
-            <a class="btn-whatsapp" onclick="shareWhatsApp()">📱 Share via WhatsApp</a>
-            <a href="{% url 'dashboard:flyer' %}" class="btn-leaderboard">🎨 Download Flyer</a>
-            <a href="{% url 'dashboard:leaderboard' %}" class="btn-leaderboard">🏆 Leaderboard</a>
+        <div class="share-row" style="display: flex; gap: 0.5rem; flex-wrap: wrap; margin-top: 1rem;">
+            <a class="btn-whatsapp" onclick="shareWhatsApp()" style="flex: 1; text-align: center;">📱 WhatsApp</a>
+            <a href="{% url 'dashboard:qr_code' %}" download="qr_code.png" class="btn-leaderboard" style="flex: 1; text-align: center;">🔲 QR Code</a>
+            <a href="{% url 'dashboard:flyer' %}" class="btn-leaderboard" style="flex: 1; text-align: center;">🎨 Flyer</a>
+            <a href="{% url 'dashboard:leaderboard' %}" class="btn-leaderboard" style="flex: 1; text-align: center;">🏆 Leaderboard</a>
         </div>
         <p class="link-hint">Share this link! Every donation made through it appears on your leaderboard score.</p>
     </div>
@@ -339,11 +357,23 @@
 {% block scripts %}
 <script>
 function copyLink() {
-    const val = document.getElementById('ref-link').value;
-    navigator.clipboard.writeText(val).then(() => {
-        const btn = document.getElementById('copy-btn');
+    const input = document.getElementById('ref-link');
+    const btn = document.getElementById('copy-btn');
+    
+    // Fallback for non-https/localhost
+    if (!navigator.clipboard) {
+        input.select();
+        document.execCommand('copy');
         btn.textContent = '✓ Copied!';
         setTimeout(() => btn.textContent = 'Copy', 2500);
+        return;
+    }
+    
+    navigator.clipboard.writeText(input.value).then(() => {
+        btn.textContent = '✓ Copied!';
+        setTimeout(() => btn.textContent = 'Copy', 2500);
+    }).catch(err => {
+        console.error('Failed to copy: ', err);
     });
 }
 function shareWhatsApp() {
