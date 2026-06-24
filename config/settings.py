@@ -13,6 +13,15 @@ DEBUG = os.getenv('DEBUG', 'True') == 'True'
 
 ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', '*').split(',')
 
+CSRF_TRUSTED_ORIGINS = [
+    'http://cyonfelele.com.ng',
+    'https://cyonfelele.com.ng',
+    'http://www.cyonfelele.com.ng',
+    'https://www.cyonfelele.com.ng',
+]
+
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+
 INSTALLED_APPS = [
     'daphne',
     'django.contrib.admin',
