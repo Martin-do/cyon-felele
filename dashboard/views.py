@@ -138,6 +138,10 @@ def generate_flyer_view(request):
             
             # Strip background
             try:
+                import os
+                from django.conf import settings
+                os.environ['U2NET_HOME'] = os.path.join(settings.MEDIA_ROOT, 'u2net')
+                
                 from rembg import remove, new_session
                 session = new_session("u2net")
                 cleaned_bytes = remove(original_bytes, session=session)
