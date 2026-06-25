@@ -7,17 +7,37 @@
 <!-- Tailwind CSS CDN -->
 <script src="https://cdn.tailwindcss.com"></script>
 <style>
+    /* Override base body layout for full-width admin dashboard */
+    body {
+        background-color: #14301F !important;
+        scroll-behavior: smooth;
+        display: block !important;     /* Remove flex from base.html */
+        align-items: unset !important;
+        padding: 0 !important;         /* Remove 2rem padding from base.html */
+    }
+
     /* Override base container constraints for desktop */
     .container {
-        max-width: 1200px !important;
+        max-width: 100% !important;
         width: 100% !important;
-        margin: 0 auto !important;
+        margin: 0 !important;
+        padding: 1rem !important;
     }
-    
-    /* Ensure background is consistent */
-    body {
-        background-color: #14301F;
-        scroll-behavior: smooth;
+
+    /* Fix site-header to center and expand properly */
+    .site-header {
+        max-width: 100% !important;
+        width: 100% !important;
+        padding: 0.75rem 1.5rem !important;
+        margin-bottom: 0 !important;
+        border-bottom: 1px solid rgba(201, 162, 39, 0.15);
+        background: rgba(20, 48, 31, 0.6);
+    }
+
+    /* Fix site-footer to center itself */
+    .site-footer {
+        max-width: 540px !important;
+        margin: 2rem auto 0 auto !important;
     }
 
     @keyframes fadeInUp {
