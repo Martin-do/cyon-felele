@@ -5,6 +5,7 @@ echo "🚀 Starting Deployment Process..."
 
 # 1. Get latest code
 echo "📦 Pulling latest code from GitHub..."
+git stash
 git pull origin main
 
 # 2. Install any new dependencies
