@@ -252,7 +252,7 @@
         </a>
     {% else %}
         {% if contribution.referred_by %}
-        <a href="{% url 'contributions:donation_form' contribution.referred_by.referral_slug %}" class="btn-secondary">
+        <a href="{% url 'contributions:referral_donation' contribution.referred_by.referral_slug %}" class="btn-secondary">
             🙏 Support {{ contribution.referred_by.name }} Again
         </a>
         {% else %}
