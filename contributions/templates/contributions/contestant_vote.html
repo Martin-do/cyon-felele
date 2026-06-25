@@ -436,15 +436,22 @@ async function submitForm(e) {
                         is_anonymous: is_anonymous
                     })
                 })
-                .then(res => {
-                    if(!res.ok) throw new Error("Payment verification failed");
+                .then(async res => {
+                    if(!res.ok) {
+                        let errStr = "Payment verification failed";
+                        try {
+                            const errData = await res.json();
+                            errStr = errData.error || errStr;
+                        } catch(e) {}
+                        throw new Error(errStr);
+                    }
                     return res.json();
                 })
                 .then(data => {
                     window.location.href = '/receipt/' + data.id + '/';
                 })
                 .catch(ex => {
-                    err.innerText = "Payment succeeded, but verification failed. Please contact support.";
+                    err.innerText = "Error: " + ex.message;
                     err.style.display = 'block';
                     btn.disabled = false;
                     btn.innerText = 'Submit Vote & Pay with Paystack';
