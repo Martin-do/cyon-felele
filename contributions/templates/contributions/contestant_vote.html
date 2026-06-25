@@ -407,13 +407,14 @@ async function submitForm(e) {
     if (route === 'paystack') {
         // --- PAYSTACK FLOW ---
         const email = "supporter@cyonfelele.com";
+        const idempotency_key = document.getElementById('idempotency_key').value;
 
         const handler = PaystackPop.setup({
             key: '{{ paystack_public_key }}', 
             email: email,
             amount: amount * 100, // in kobo
             currency: 'NGN',
-            ref: 'CYON_' + Math.floor((Math.random() * 1000000000) + 1),
+            ref: idempotency_key,
             metadata: {
                 custom_fields: [
                     { display_name: "Contributor Name", variable_name: "contributor_name", value: name },
