@@ -352,7 +352,7 @@
     </div> <!-- End tab-content-ledger -->
 
     <!-- Tab Section: Youth Roles -->
-    <div id="tab-content-roles" class="tab-content hidden bg-emerald-950/30 border border-amber-500/15 p-6 rounded-2xl backdrop-blur-md flex flex-col gap-4">
+    <div id="tab-content-roles" class="tab-content bg-emerald-950/30 border border-amber-500/15 p-6 rounded-2xl backdrop-blur-md flex flex-col gap-4" style="display:none;">
         <div>
             <h3 class="text-lg font-bold text-amber-100 text-left">Youth Roles Assignment</h3>
             <p class="text-sm text-amber-200/70 text-left">Assign system roles to selected youth parish members to grant access to live entries or receipt approvals.</p>
@@ -413,7 +413,7 @@
     </div>
 
     <!-- Tab Section: Inflow Categories -->
-    <div id="tab-content-categories" class="tab-content hidden bg-emerald-950/30 border border-amber-500/15 p-6 rounded-2xl backdrop-blur-md flex flex-col gap-6">
+    <div id="tab-content-categories" class="tab-content bg-emerald-950/30 border border-amber-500/15 p-6 rounded-2xl backdrop-blur-md flex flex-col gap-6" style="display:none;">
         <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
             <!-- Add Category Form -->
             <div class="md:col-span-1 bg-emerald-900/10 border border-amber-500/15 p-5 rounded-xl flex flex-col gap-4">
@@ -462,7 +462,7 @@
     </div>
 
     <!-- Tab Section: PIN Reset Requests -->
-    <div id="tab-content-resets" class="tab-content hidden bg-emerald-950/30 border border-amber-500/15 p-6 rounded-2xl backdrop-blur-md flex flex-col gap-6">
+    <div id="tab-content-resets" class="tab-content bg-emerald-950/30 border border-amber-500/15 p-6 rounded-2xl backdrop-blur-md flex flex-col gap-6" style="display:none;">
         <div>
             <h3 class="text-lg font-bold text-amber-100 text-left">PIN Reset Requests Queue</h3>
             <p class="text-sm text-amber-200/70 text-left">Approve pending PIN resets. Once approved, the temporary PIN will be listed below for manual WhatsApp sharing.</p>
@@ -1034,12 +1034,15 @@
 
     // Tabs switching logic
     function switchTab(tabId) {
-        // Hide all tab contents
+        // Hide all tab contents using inline style to avoid Tailwind class conflicts
         document.querySelectorAll('.tab-content').forEach(el => {
-            el.classList.add('hidden');
+            el.style.display = 'none';
         });
         // Show target tab content
-        document.getElementById(`tab-content-${tabId}`).classList.remove('hidden');
+        var target = document.getElementById('tab-content-' + tabId);
+        if (target) {
+            target.style.display = 'flex';
+        }
 
         // Reset button states
         const tabButtons = {
