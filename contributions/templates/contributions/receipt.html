@@ -251,9 +251,15 @@
             📺 Watch the Live Board
         </a>
     {% else %}
-        <a href="{% url 'contributions:landing' %}" class="btn-secondary">
-            🙏 Go to Home
+        {% if contribution.referred_by %}
+        <a href="{% url 'contributions:donation_form' contribution.referred_by.referral_slug %}" class="btn-secondary">
+            🙏 Support {{ contribution.referred_by.name }} Again
         </a>
+        {% else %}
+        <a href="{% url 'contributions:landing' %}" class="btn-secondary">
+            🙏 Make Another Contribution
+        </a>
+        {% endif %}
     {% endif %}
 </div>
 {% endblock %}

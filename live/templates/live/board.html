@@ -38,31 +38,44 @@
         .board-topbar {
             position: fixed;
             top: 0; left: 0; right: 0;
-            height: 64px;
             background: rgba(20,48,31,0.95);
             border-bottom: 1px solid rgba(201,162,39,0.2);
             backdrop-filter: blur(12px);
             display: flex;
-            align-items: center;
             justify-content: space-between;
-            padding: 0 2rem;
+            align-items: center;
+            padding: 1rem 2rem;
             z-index: 50;
         }
-        .board-topbar img { height: 38px; width: auto; }
-        .board-campaign-name {
-            position: absolute;
-            left: 50%;
-            transform: translateX(-50%);
+        .board-topbar img.cyon-logo { height: 75px; width: auto; }
+        .board-topbar .arch-seal { height: 65px; width: 65px; object-fit: contain; border-radius: 50%; background: rgba(255,255,255,0.92); padding: 3px; }
+        .board-topbar .church-name-bar {
             font-family: 'Poppins', sans-serif;
-            font-weight: 800;
-            font-size: 0.8rem;
-            text-transform: uppercase;
-            letter-spacing: 2px;
-            background: var(--harvest-gold-gradient);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
+            font-weight: 700;
+            font-size: 0.85rem;
+            color: var(--harvest-gold-400);
             text-align: center;
+            letter-spacing: 0.5px;
+            line-height: 1.6;
+            flex: 1;
+        }
+
+        .logo-link {
+            display: inline-flex;
+            align-items: center;
+            transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+            text-decoration: none;
+            outline: none;
+            border: none;
+        }
+        .logo-link:hover { transform: scale(1.06); }
+        
+        @media (max-width: 768px) {
+            .board-topbar { padding: 0.8rem 1rem; gap: 0.5rem; }
+            .board-topbar img.cyon-logo { height: 45px; }
+            .board-topbar .arch-seal { height: 40px; width: 40px; padding: 2px; }
+            .board-topbar .church-name-bar { font-size: 0.65rem; line-height: 1.3; letter-spacing: 0.2px; }
+            .board-topbar .church-name-bar span { font-size: 0.55rem !important; }
         }
 
         /* ── STATUS DOT ──────────────────────────────────────────── */
@@ -228,21 +241,26 @@
 
 <!-- Top bar -->
 <div class="board-topbar">
-    <div style="font-size:1.5rem;">✝️</div>
-    <div class="board-campaign-name">HARVEST OF DIVINE FULFILLMENT 2026</div>
-    <a href="{% url 'contributions:landing' %}" class="logo-link" style="display:inline-flex; align-items:center; transition:transform 0.25s; text-decoration:none; outline:none; border:none;">
-        <img src="{% static 'images/brand/cyon-logo.png' %}" alt="CYON">
+    <a href="{% url 'contributions:landing' %}" class="logo-link">
+        <img class="arch-seal" src="{% static 'images/brand/church-seal.png' %}" alt="Catholic Archdiocese of Ibadan">
+    </a>
+    <div class="church-name-bar">
+        <strong>CHRIST THE GOOD SHEPHERD CATHOLIC CHURCH, FELELE</strong><br>
+        <span style="color:rgba(250,246,236,0.6); font-size:0.78rem; font-weight:600;">CATHOLIC YOUTH ORGANIZATION OF NIGERIA (CYON)</span>
+    </div>
+    <a href="{% url 'contributions:landing' %}" class="logo-link">
+        <img class="cyon-logo" src="{% static 'images/brand/cyon-logo.png' %}" alt="CYON Logo">
     </a>
 </div>
 
 <!-- Status indicator -->
-<div id="connection-status" class="status-disconnected" style="position:fixed; top:76px; right:1.5rem; z-index:40;">
+<div id="connection-status" class="status-disconnected" style="position:fixed; top:116px; right:1.5rem; z-index:40;">
     <div class="status-dot"></div>
     <span id="status-text">Connecting…</span>
 </div>
 
 <!-- Main board -->
-<div class="board-main">
+<div class="board-main" style="margin-top: 100px;">
     <div class="board-label">Total Harvest Collection</div>
     <div class="board-total" id="total-display">
         ₦<span id="total-number">0</span>
