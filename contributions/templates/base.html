@@ -261,7 +261,7 @@
     </style>
     {% block head %}{% endblock %}
 </head>
-<body>
+<body style="{% block body_style %}{% endblock %}">
 
     <!-- Site Header -->
     <div class="site-header">
@@ -295,20 +295,16 @@
         </p>
         <p>"Those who sow in tears will reap with songs of joy." — Psalm 126:5</p>
         <p style="margin-top:0.75rem;">
-            {% if user.is_authenticated %}
-            <a href="{% url 'live:board' %}">Live Board</a> &nbsp;·&nbsp;
-            {% endif %}
-            
-            {% if request.path == '/' or user.is_authenticated %}
-                {% if not user.is_authenticated %}
+            {% if not user.is_authenticated %}
+                {% if request.path == '/' %}
                 <a href="{% url 'accounts:login' %}">Member Login</a> &nbsp;·&nbsp;
                 <a href="{% url 'accounts:signup' %}">Join CYON</a> &nbsp;·&nbsp;
+                {% endif %}
                 <a href="{% url 'dashboard:admin_login' %}">Admin Portal</a>
-                {% else %}
+            {% else %}
                 <a href="{% url 'dashboard:member_hub' %}">Member Hub</a>
                 {% if user.is_admin_user %}
                 &nbsp;·&nbsp; <a href="{% url 'dashboard:master_dashboard' %}">Admin Portal</a>
-                {% endif %}
                 {% endif %}
             {% endif %}
         </p>
