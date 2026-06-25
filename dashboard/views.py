@@ -778,3 +778,24 @@ def send_announcement_view(request):
         messages.success(request, f'Announcement sent successfully: "{message}"')
         return redirect('dashboard:master_dashboard')
     return redirect('dashboard:master_dashboard')
+
+
+from django.http import JsonResponse
+
+@admin_required
+def debug_members_view(request):
+    """Temporary debug endpoint to diagnose member visibility issues."""
+    all_members = Member.objects.all().order_by('name').values(
+        'id', 'name', 'identifier', 'role', 'is_superuser', 'is_staff',
+        'is_active', 'has_completed_onboarding'
+    )
+    youth_members = Member.objects.filter(is_superuser=False).order_by('name').values(
+        'id', 'name', 'identifier', 'role', 'is_superuser', 'is_staff',
+        'is_active', 'has_completed_onboarding'
+    )
+    return JsonResponse({
+        'total_all': Member.objects.count(),
+        'total_youth_visible': Member.objects.filter(is_superuser=False).count(),
+        'all_members': list(all_members),
+        'youth_members_shown_in_roles_tab': list(youth_members),
+    }, json_dumps_params={'indent': 2})
