@@ -328,7 +328,7 @@ def master_dashboard_view(request):
     pledge_total = contributions.filter(method__icontains='Pledge').aggregate(Sum('amount'))['amount__sum'] or 0.00
 
     categories = InflowCategory.objects.all()
-    members = Member.objects.all().order_by('name')
+    members = Member.objects.filter(is_superuser=False).order_by('name')
     pin_requests = PinResetRequest.objects.filter(is_resolved=False).order_by('-created_at')
     resolved_resets = PinResetRequest.objects.filter(is_resolved=True).order_by('-resolved_at')[:10]
 
@@ -522,7 +522,7 @@ class AdminTransactionListAPIView(APIView):
             cash=Sum('amount', filter=Q(method__icontains='Cash')),
             transfer=Sum('amount', filter=Q(method__icontains='Transfer')),
             pledges=Sum('amount', filter=Q(method__icontains='Pledge')),
-            paystack=Sum('amount', filter=Q(method__icontains='Paystack')),
+            paystack=Sum('amount', filter=Q(method__icontains='Paystack') | Q(method__icontains='Online')),
         )
 
         total_raised = float(stats['total_raised'] or 0.0)
@@ -539,6 +539,9 @@ class AdminTransactionListAPIView(APIView):
         category_stats = {}
         for category in InflowCategory.objects.filter(is_active=True):
             category_stats[f"cat_{category.id}"] = float(queryset.filter(inflow_category=category).aggregate(total=Sum('amount'))['total'] or 0.0)
+
+        # Include uncategorized payments
+        category_stats["uncategorized"] = float(queryset.filter(inflow_category__isnull=True).aggregate(total=Sum('amount'))['total'] or 0.0)
 
         statistics = {
             'total_raised': total_raised,
