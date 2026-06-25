@@ -5,8 +5,7 @@ echo "🚀 Starting Deployment Process..."
 
 # 1. Get latest code
 echo "📦 Pulling latest code from GitHub..."
-git fetch --all
-git reset --hard origin/main
+git pull origin main
 
 # 2. Install any new dependencies
 echo "🐍 Activating virtual environment and installing dependencies..."
