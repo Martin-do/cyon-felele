@@ -176,7 +176,7 @@ class VerifyPaystackPaymentView(APIView):
         if res_data.get('status') and res_data.get('data', {}).get('status') == 'success':
             try:
                 data = res_data['data']
-                amount = data['amount'] / 100.0  # Convert back from kobo
+                amount = (data['amount'] - data.get('fees', 0)) / 100.0  # Convert back from kobo, deducting Paystack fees
 
                 referrer = None
                 if referred_by_id:
@@ -192,7 +192,7 @@ class VerifyPaystackPaymentView(APIView):
                         'name': name or 'Anonymous Paystack User',
                         'phone': phone,
                         'amount': amount,
-                        'method': 'Paystack',
+                        'method': 'Online',
                         'source': 'guest_form',
                         'referred_by': referrer,
                         'is_anonymous': is_anonymous,

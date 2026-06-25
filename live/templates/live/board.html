@@ -50,6 +50,9 @@
         }
         .board-topbar img { height: 38px; width: auto; }
         .board-campaign-name {
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
             font-family: 'Poppins', sans-serif;
             font-weight: 800;
             font-size: 0.8rem;
@@ -110,7 +113,7 @@
         .board-total {
             font-family: 'Poppins', sans-serif;
             font-weight: 800;
-            font-size: clamp(5rem, 16vw, 13rem);
+            font-size: clamp(4rem, 14vw, 12rem); /* Slightly smaller so it fits better */
             line-height: 1;
             background: var(--harvest-gold-gradient);
             -webkit-background-clip: text;
@@ -201,6 +204,7 @@
         }
         .tag-cash { background: rgba(201,162,39,0.2); color: var(--harvest-gold-400); border: 1px solid rgba(201,162,39,0.3); }
         .tag-transfer { background: rgba(46,125,79,0.25); color: #4ade80; border: 1px solid rgba(46,125,79,0.4); }
+        .tag-online { background: rgba(46,125,79,0.25); color: #4ade80; border: 1px solid rgba(46,125,79,0.4); }
         .tag-pos { background: rgba(250,246,236,0.08); color: rgba(250,246,236,0.7); border: 1px solid rgba(250,246,236,0.15); }
 
         @keyframes slideIn {

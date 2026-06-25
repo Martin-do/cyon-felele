@@ -174,10 +174,8 @@
     }
     .btn-secondary:hover { background: rgba(36,92,63,0.06); border-color: #245C3F; }
 
-    /* Light footer */
-    .site-footer { background: #F4EFE2 !important; border-color: rgba(201,162,39,0.2) !important; }
-    .site-footer p { color: #4B6B57 !important; }
-    .site-footer a { color: #245C3F !important; }
+    /* Light footer - Hide completely on receipt */
+    .site-footer { display: none !important; }
 
     @media print {
         body { background: white; }
@@ -228,7 +226,7 @@
             </div>
             <div class="cert-detail-row">
                 <span class="cert-detail-label">Date</span>
-                <span class="cert-detail-value">{{ contribution.timestamp|date:"F j, Y · g:i a" }}</span>
+                <span class="cert-detail-value" style="font-size: 0.8rem; white-space: nowrap;">{{ contribution.timestamp|date:"F j, Y · g:i a" }}</span>
             </div>
         </div>
 
@@ -245,12 +243,18 @@
     <button class="btn-download" id="download-btn" onclick="downloadReceipt()">
         ⬇️ Download Receipt
     </button>
-    <a href="{% url 'contributions:generic_donation' %}" class="btn-secondary">
-        🙏 Make Another Contribution
-    </a>
-    <a href="{% url 'live:board' %}" class="btn-secondary" style="border-color:rgba(201,162,39,0.4); color:#C9A227;">
-        📺 Watch the Live Board
-    </a>
+    {% if user.is_authenticated %}
+        <a href="{% url 'contributions:record_contribution' %}" class="btn-secondary">
+            🙏 Record Another Payment
+        </a>
+        <a href="{% url 'live:board' %}" class="btn-secondary" style="border-color:rgba(201,162,39,0.4); color:#C9A227;">
+            📺 Watch the Live Board
+        </a>
+    {% else %}
+        <a href="{% url 'contributions:landing' %}" class="btn-secondary">
+            🙏 Go to Home
+        </a>
+    {% endif %}
 </div>
 {% endblock %}
 

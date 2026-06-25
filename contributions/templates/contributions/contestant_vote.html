@@ -452,6 +452,7 @@ async function submitForm(e) {
                     window.location.href = '/receipt/' + data.id + '/';
                 })
                 .catch(ex => {
+                    document.getElementById('idempotency_key').value = crypto.randomUUID();
                     err.innerText = "Error: " + ex.message;
                     err.style.display = 'block';
                     btn.disabled = false;
@@ -459,6 +460,9 @@ async function submitForm(e) {
                 });
             },
             onClose: function(){
+                document.getElementById('idempotency_key').value = crypto.randomUUID();
+                err.innerText = "Transaction was not completed, window closed.";
+                err.style.display = 'block';
                 btn.disabled = false;
                 btn.innerText = 'Submit Vote & Pay with Paystack';
             }
