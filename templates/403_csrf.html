@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% block title %}Session Expired | CYON Harvest{% endblock %}
+
+{% block content %}
+<div class="glass-card" style="text-align: center; max-width: 500px; margin: 4rem auto; padding: 3rem 2rem;">
+    <svg style="width: 80px; height: 80px; margin: 0 auto 1.5rem; color: #C9A227;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
+    </svg>
+    <h1 style="color: #FAF6EC; margin-bottom: 1rem;">Session Expired</h1>
+    <p style="color: #A0AEC0; margin-bottom: 2rem;">For your security, your session expired because it was inactive for too long. Please refresh the page and try again.</p>
+    
+    <div style="display: flex; gap: 1rem; justify-content: center;">
+        <button onclick="window.history.back()" class="btn-secondary" style="padding: 0.75rem 1.5rem;">Go Back</button>
+        <button onclick="window.location.reload()" class="btn-submit" style="padding: 0.75rem 1.5rem; margin-top: 0;">Refresh Page</button>
+    </div>
+</div>
+{% endblock %}

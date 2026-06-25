@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bad Gateway | CYON Harvest</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #14301F;
+            --text-color: #FAF6EC;
+            --text-muted: #A0AEC0;
+            --primary-accent: #C9A227;
+            --danger-color: #E53E3E;
+        }
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 2rem 1rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+        }
+        .container {
+            width: 100%;
+            max-width: 500px;
+            margin-top: 4rem;
+        }
+        .glass-card {
+            background: rgba(20, 48, 31, 0.4);
+            border: 1px solid rgba(201, 162, 39, 0.15);
+            border-radius: 16px;
+            padding: 3rem 2rem;
+            text-align: center;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(12px);
+        }
+        h1 {
+            font-size: 4rem;
+            color: var(--danger-color);
+            margin: 0;
+            line-height: 1;
+        }
+        h2 {
+            font-size: 1.5rem;
+            margin: 0.5rem 0 1rem;
+            font-weight: 700;
+        }
+        p {
+            color: var(--text-muted);
+            margin-bottom: 2rem;
+            line-height: 1.6;
+        }
+        .btn-group {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+        }
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            font-weight: 600;
+            text-decoration: none;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: none;
+            font-size: 0.95rem;
+            font-family: inherit;
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, #C9A227 0%, #D4AF37 100%);
+            color: #14301F;
+            box-shadow: 0 4px 15px rgba(201, 162, 39, 0.3);
+        }
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(201, 162, 39, 0.4);
+        }
+        .btn-secondary {
+            background: transparent;
+            color: var(--primary-accent);
+            border: 1px solid rgba(201, 162, 39, 0.3);
+        }
+        .btn-secondary:hover {
+            background: rgba(201, 162, 39, 0.1);
+            transform: translateY(-2px);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="glass-card">
+            <h1>502</h1>
+            <h2>Bad Gateway</h2>
+            <p>The server encountered a temporary error and could not complete your request. Please try again.</p>
+            
+            <div class="btn-group">
+                <a href="/" class="btn btn-secondary">Go Home</a>
+                <button onclick="window.location.reload()" class="btn btn-primary">Try Again</button>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

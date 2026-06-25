@@ -115,7 +115,7 @@ class Member(AbstractBaseUser, PermissionsMixin):
                 file_name = self.profile_picture.name.split('.')[0] + '.jpg'
                 self.profile_picture = InMemoryUploadedFile(
                     output, 'ImageField', file_name, 
-                    'image/jpeg', sys.getsizeof(output), None
+                    'image/jpeg', len(output.getvalue()), None
                 )
             except Exception as e:
                 # If compression fails, just continue and save normally

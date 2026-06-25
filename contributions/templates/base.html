@@ -299,15 +299,17 @@
             <a href="{% url 'live:board' %}">Live Board</a> &nbsp;·&nbsp;
             {% endif %}
             
-            {% if not user.is_authenticated %}
-            <a href="{% url 'accounts:login' %}">Member Login</a> &nbsp;·&nbsp;
-            <a href="{% url 'accounts:signup' %}">Join CYON</a> &nbsp;·&nbsp;
-            <a href="{% url 'dashboard:admin_login' %}">Admin Portal</a>
-            {% else %}
-            <a href="{% url 'dashboard:member_hub' %}">Member Hub</a>
-            {% if user.is_admin_user %}
-            &nbsp;·&nbsp; <a href="{% url 'dashboard:master_dashboard' %}">Admin Portal</a>
-            {% endif %}
+            {% if request.path == '/' or user.is_authenticated %}
+                {% if not user.is_authenticated %}
+                <a href="{% url 'accounts:login' %}">Member Login</a> &nbsp;·&nbsp;
+                <a href="{% url 'accounts:signup' %}">Join CYON</a> &nbsp;·&nbsp;
+                <a href="{% url 'dashboard:admin_login' %}">Admin Portal</a>
+                {% else %}
+                <a href="{% url 'dashboard:member_hub' %}">Member Hub</a>
+                {% if user.is_admin_user %}
+                &nbsp;·&nbsp; <a href="{% url 'dashboard:master_dashboard' %}">Admin Portal</a>
+                {% endif %}
+                {% endif %}
             {% endif %}
         </p>
         <span class="script-line">Let your light shine!</span>
