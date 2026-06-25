@@ -118,6 +118,10 @@ def donation_form_view(request, referral_slug=None):
         target_amount = 5000000 
         progress_percentage = min(int((total_amount / target_amount) * 100), 100)
 
+        import os
+        flyer_path = os.path.join(settings.MEDIA_ROOT, 'flyers', f"{referrer.id}.png")
+        og_image_url = f"{settings.MEDIA_URL}flyers/{referrer.id}.png" if os.path.exists(flyer_path) else None
+
         context = {
             'referrer': referrer,
             'idempotency_key': str(uuid.uuid4()),
@@ -127,6 +131,7 @@ def donation_form_view(request, referral_slug=None):
             'progress_percentage': progress_percentage,
             'target_amount': target_amount,
             'paystack_public_key': settings.PAYSTACK_PUBLIC_KEY,
+            'og_image_url': og_image_url,
         }
         return render(request, 'contributions/contestant_vote.html', context)
         

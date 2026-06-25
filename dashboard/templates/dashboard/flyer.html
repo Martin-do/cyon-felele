@@ -42,13 +42,20 @@
 
     /* ── HEADER ─────────────────────────────────────────────── */
     .header {
-      display: flex;
-      align-items: center;
-      gap: 16px;
+      position: relative;
       margin-bottom: 20px;
+      text-align: center;
+      min-height: 70px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
     }
 
     .header-logo {
+      position: absolute;
+      left: 0;
+      top: 50%;
+      transform: translateY(-50%);
       width: 70px;
       height: 70px;
       object-fit: contain;
@@ -132,7 +139,7 @@
       height: 520px;
       object-fit: contain;
       object-position: bottom center;
-      z-index: 4;
+      z-index: 2;
     }
 
     /* ── BLUE MAIN CARD ─────────────────────────────────────── */
