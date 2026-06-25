@@ -174,56 +174,65 @@ class VerifyPaystackPaymentView(APIView):
             return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
         if res_data.get('status') and res_data.get('data', {}).get('status') == 'success':
-            data = res_data['data']
-            amount = data['amount'] / 100.0  # Convert back from kobo
+            try:
+                data = res_data['data']
+                amount = data['amount'] / 100.0  # Convert back from kobo
 
-            referrer = None
-            if referred_by_id:
-                try:
-                    referrer = Member.objects.get(id=referred_by_id)
-                except Member.DoesNotExist:
-                    pass
+                referrer = None
+                if referred_by_id:
+                    try:
+                        referrer = Member.objects.get(id=referred_by_id)
+                    except (Member.DoesNotExist, ValueError):
+                        pass
 
-            # Check if contribution already exists for this reference (using idempotency_key = reference)
-            contribution, created = Contribution.objects.get_or_create(
-                idempotency_key=reference,
-                defaults={
-                    'name': name or 'Anonymous Paystack User',
-                    'phone': phone,
-                    'amount': amount,
-                    'method': 'Paystack',
-                    'source': 'guest_form',
-                    'referred_by': referrer,
-                    'is_anonymous': is_anonymous,
-                    'status': 'approved'
-                }
-            )
-
-            if created:
-                # Trigger WebSocket push for Live Board
-                channel_layer = get_channel_layer()
-                total = Contribution.objects.filter(is_voided=False).aggregate(Sum('amount'))['amount__sum'] or 0.00
-                
-                display_name = 'Anonymous' if contribution.is_anonymous else contribution.name
-                
-                ws_data = {
-                    'id': str(contribution.id),
-                    'name': display_name,
-                    'amount': str(contribution.amount),
-                    'source': contribution.source,
-                    'timestamp': contribution.timestamp.isoformat(),
-                    'total_harvest': str(total)
-                }
-                
-                async_to_sync(channel_layer.group_send)(
-                    'live_board',
-                    {
-                        'type': 'new_contribution',
-                        'data': ws_data
+                # Check if contribution already exists for this reference (using idempotency_key = reference)
+                contribution, created = Contribution.objects.get_or_create(
+                    idempotency_key=reference,
+                    defaults={
+                        'name': name or 'Anonymous Paystack User',
+                        'phone': phone,
+                        'amount': amount,
+                        'method': 'Paystack',
+                        'source': 'guest_form',
+                        'referred_by': referrer,
+                        'is_anonymous': is_anonymous,
+                        'status': 'approved'
                     }
                 )
 
-            return Response({'id': str(contribution.id), 'status': 'success'})
+                if created:
+                    # Trigger WebSocket push for Live Board
+                    try:
+                        channel_layer = get_channel_layer()
+                        total = Contribution.objects.filter(is_voided=False).aggregate(Sum('amount'))['amount__sum'] or 0.00
+                        
+                        display_name = 'Anonymous' if contribution.is_anonymous else contribution.name
+                        
+                        ws_data = {
+                            'id': str(contribution.id),
+                            'name': display_name,
+                            'amount': str(contribution.amount),
+                            'source': contribution.source,
+                            'timestamp': contribution.timestamp.isoformat(),
+                            'total_harvest': str(total)
+                        }
+                        
+                        if channel_layer:
+                            async_to_sync(channel_layer.group_send)(
+                                'live_board',
+                                {
+                                    'type': 'new_contribution',
+                                    'data': ws_data
+                                }
+                            )
+                    except Exception as ws_err:
+                        # Don't fail the payment if websocket push fails
+                        pass
+
+                return Response({'id': str(contribution.id), 'status': 'success'})
+            except Exception as e:
+                import traceback
+                return Response({'error': f"Internal Server Error: {str(e)}", 'traceback': traceback.format_exc()}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
             
         else:
-            return Response({'error': 'Payment verification failed'}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({'error': 'Payment verification failed at Paystack'}, status=status.HTTP_400_BAD_REQUEST)
