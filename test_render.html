@@ -1,17 +1,272 @@
-{% extends "base.html" %}
-{% load humanize %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Master Dashboard | CYON Harvest</title>
+    <meta name="description" content="Support the CYON Harvest 2026 campaign for Christ the Good Shepherd Catholic Church, Akobo/Felele, Ibadan. Help us reach our ₦5,000,000 target.">
+    <link rel="manifest" href="/manifest.json">
+    <meta name="theme-color" content="#14301F">
+    <!-- Google Fonts: Poppins (display), Great Vibes (script), Inter (body) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;800&family=Great+Vibes&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        /* ── CYON HARVEST 2026 DESIGN TOKENS ─────────────────────── */
+        :root {
+            /* Greens */
+            --harvest-green-900: #14301F;
+            --harvest-green-800: #1B4332;
+            --harvest-green-700: #245C3F;
+            /* Golds */
+            --harvest-gold-500: #C9A227;
+            --harvest-gold-400: #E0C158;
+            --harvest-gold-gradient: linear-gradient(135deg, #E8C547 0%, #B8860B 100%);
+            /* Creams */
+            --harvest-cream: #FAF6EC;
+            --harvest-cream-card: #F4EFE2;
+            /* Supporting */
+            --harvest-brown: #8B5A2B;
+            --harvest-white: #FFFFFF;
+            --harvest-text-dark: #1B3B2B;
+            /* Status */
+            --harvest-success: #2E7D4F;
+            --harvest-pending: #C9A227;
+            --harvest-danger: #B3261E;
 
-{% block title %}Master Dashboard | CYON Harvest{% endblock %}
+            /* Legacy aliases kept for backward compat with existing templates */
+            --bg-dark: #14301F;
+            --card-bg: rgba(27, 67, 50, 0.75);
+            --text-main: #FAF6EC;
+            --text-muted: #A8C5B5;
+            --accent: #C9A227;
+            --accent-hover: #B8860B;
+            --success: #2E7D4F;
+        }
 
-{% block head %}
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--harvest-green-900);
+            background-image:
+                radial-gradient(ellipse at top left, rgba(36, 92, 63, 0.5) 0%, transparent 60%),
+                radial-gradient(ellipse at bottom right, rgba(201, 162, 39, 0.08) 0%, transparent 60%);
+            color: var(--harvest-cream);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 2rem 1rem;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 540px;
+        }
+
+        /* ── GLASS CARD ─────────────────────────────────────────── */
+        .glass-card {
+            background: rgba(27, 67, 50, 0.55);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(201, 162, 39, 0.25);
+            border-radius: 20px;
+            padding: 2.5rem;
+            box-shadow: 0 25px 60px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.06);
+        }
+
+        /* ── TYPOGRAPHY ──────────────────────────────────────────── */
+        h1, h2, h3 {
+            font-family: 'Poppins', sans-serif;
+            font-weight: 800;
+            color: var(--harvest-cream);
+            line-height: 1.2;
+        }
+        h1 { font-size: 1.9rem; margin-bottom: 0.5rem; text-align: center; }
+        h2 { font-size: 1.5rem; margin-bottom: 0.5rem; }
+        h3 { font-size: 1.15rem; font-weight: 600; }
+
+        .script-line {
+            font-family: 'Great Vibes', cursive;
+            color: var(--harvest-gold-400);
+            font-size: 1.4rem;
+        }
+
+        p.subtitle {
+            text-align: center;
+            color: var(--text-muted);
+            margin-bottom: 1.5rem;
+            font-weight: 400;
+            font-size: 0.95rem;
+        }
+
+        /* ── FORMS ────────────────────────────────────────────────── */
+        .form-group { margin-bottom: 1.4rem; }
+
+        label {
+            display: block;
+            margin-bottom: 0.4rem;
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--harvest-gold-400);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        input[type="text"],
+        input[type="number"],
+        input[type="tel"],
+        input[type="date"],
+        input[type="email"],
+        input[type="password"],
+        textarea,
+        select {
+            width: 100%;
+            padding: 0.85rem 1rem;
+            background: rgba(20, 48, 31, 0.7);
+            border: 1.5px solid rgba(201, 162, 39, 0.25);
+            border-radius: 10px;
+            color: var(--harvest-cream);
+            font-family: 'Inter', sans-serif;
+            font-size: 1rem;
+            transition: border-color 0.25s, box-shadow 0.25s;
+        }
+
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: var(--harvest-gold-500);
+            box-shadow: 0 0 0 3px rgba(201, 162, 39, 0.2);
+        }
+
+        input::placeholder { color: rgba(168, 197, 181, 0.5); }
+
+        select option { background: #1B4332; color: var(--harvest-cream); }
+
+        /* ── BUTTONS ──────────────────────────────────────────────── */
+        button.submit-btn, a.submit-btn {
+            display: block;
+            width: 100%;
+            padding: 1rem;
+            border: none;
+            border-radius: 10px;
+            background: var(--harvest-gold-gradient);
+            color: var(--harvest-green-900);
+            font-family: 'Poppins', sans-serif;
+            font-weight: 800;
+            font-size: 1.05rem;
+            cursor: pointer;
+            transition: opacity 0.2s, transform 0.1s;
+            margin-top: 0.5rem;
+            text-align: center;
+            text-decoration: none;
+            letter-spacing: 0.3px;
+        }
+        button.submit-btn:hover, a.submit-btn:hover { opacity: 0.9; }
+        button.submit-btn:active, a.submit-btn:active { transform: scale(0.98); }
+        button.submit-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+
+        /* ── ALERTS ───────────────────────────────────────────────── */
+        .alert {
+            padding: 1rem;
+            border-radius: 10px;
+            margin-bottom: 1.25rem;
+            display: none;
+            font-size: 0.9rem;
+        }
+        .alert.error {
+            background: rgba(179, 38, 30, 0.15);
+            border: 1px solid rgba(179, 38, 30, 0.4);
+            color: #FFBBB8;
+        }
+        .alert.success {
+            background: rgba(46, 125, 79, 0.2);
+            border: 1px solid rgba(46, 125, 79, 0.5);
+            color: #A5FFCC;
+        }
+
+        /* ── SITE HEADER (for pages that want it) ─────────────────── */
+        .site-header {
+            width: 100%;
+            max-width: 540px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            padding: 0 0.25rem;
+        }
+        .site-header img { height: 44px; width: auto; }
+        .site-header .church-name {
+            font-family: 'Poppins', sans-serif;
+            font-weight: 700;
+            font-size: 0.72rem;
+            color: var(--harvest-gold-400);
+            text-align: center;
+            letter-spacing: 0.3px;
+            line-height: 1.3;
+        }
+
+        /* ── PROGRESS BAR ─────────────────────────────────────────── */
+        .progress-track {
+            width: 100%;
+            background: rgba(201,162,39,0.15);
+            border-radius: 100px;
+            height: 10px;
+            overflow: hidden;
+        }
+        .progress-fill {
+            height: 100%;
+            background: var(--harvest-gold-gradient);
+            border-radius: 100px;
+            transition: width 1.2s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        /* ── FOOTER ───────────────────────────────────────────────── */
+        .site-footer {
+            width: 100%;
+            max-width: 540px;
+            margin-top: 3rem;
+            padding: 1.5rem;
+            background: rgba(20,48,31,0.6);
+            border: 1px solid rgba(201,162,39,0.15);
+            border-radius: 14px;
+            text-align: center;
+        }
+        .site-footer p { color: var(--text-muted); font-size: 0.8rem; line-height: 1.6; }
+        .site-footer .script-line { font-size: 1.2rem; display: block; margin-top: 0.5rem; }
+        .site-footer a { color: var(--harvest-gold-400); text-decoration: none; }
+        .site-footer a:hover { text-decoration: underline; }
+
+        /* Logo links hover scale */
+        .logo-link {
+            display: inline-flex;
+            align-items: center;
+            transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+            text-decoration: none;
+            outline: none;
+            border: none;
+        }
+        .logo-link:hover {
+            transform: scale(1.06);
+        }
+
+        /* ── RESPONSIVE ───────────────────────────────────────────── */
+
+        @media (max-width: 600px) {
+            body { padding: 1rem 0.75rem; }
+            .glass-card { padding: 1.75rem 1.25rem; border-radius: 16px; }
+            h1 { font-size: 1.5rem; }
+        }
+    </style>
+    
 <!-- Tailwind CSS CDN -->
 <script src="https://cdn.tailwindcss.com"></script>
 <style>
-    /* Override base container constraints for desktop */
+    /* Override base container constraints */
     .container {
-        max-width: 1200px !important;
+        max-width: 100% !important;
         width: 100% !important;
-        margin: 0 auto !important;
     }
     
     /* Ensure background is consistent */
@@ -63,11 +318,36 @@
         border: 1px solid rgba(255,255,255,0.08);
     }
 </style>
-{% endblock %}
 
-{% block content %}
+</head>
+<body>
+
+    <!-- Site Header -->
+    <div class="site-header">
+        <a href="/" class="logo-link">
+            <img src="/static/images/brand/church-seal.png" alt="Catholic Archdiocese of Ibadan Seal" style="height:48px;width:48px;object-fit:contain;border-radius:50%;">
+        </a>
+        <div class="church-name">
+            <strong>CHRIST THE GOOD SHEPHERD CATHOLIC CHURCH, FELELE</strong><br>
+            <span style="color:#A0AEC0; font-size:0.65rem; font-weight:600;">CATHOLIC YOUTH ORGANIZATION OF NIGERIA (CYON)</span>
+        </div>
+        <div style="display:flex; align-items:center; gap:0.5rem;">
+            <a href="/accounts/login/" style="color:var(--text-muted); opacity:0.4; transition:opacity 0.2s; text-decoration:none;" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=0.4" title="Member & Admin Login">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+            </a>
+            <a href="/" class="logo-link">
+                <img src="/static/images/brand/cyon-logo.png" alt="CYON Logo">
+            </a>
+        </div>
+    </div>
+
+
+    <div class="container">
+        
+
+        
 <!-- CSRF Token container for JS requests -->
-<span id="csrf-token-container" data-csrf="{{ csrf_token }}" class="hidden"></span>
+<span id="csrf-token-container" data-csrf="" class="hidden"></span>
 
 <!-- Floating Toast Container -->
 <div id="toast-container" class="fixed top-5 right-5 z-50 flex flex-col gap-2"></div>
@@ -81,15 +361,15 @@
             <p class="text-sm text-amber-200/70 font-medium">Harvest of Divine Fulfillment 2026 Admin Panel</p>
         </div>
         <div class="flex flex-wrap gap-2.5">
-            <a href="{% url 'dashboard:live_entry' %}" class="inline-flex items-center justify-center gap-1.5 px-4 py-2 bg-emerald-800/80 hover:bg-emerald-700 text-amber-100 font-semibold rounded-lg border border-amber-500/20 transition shadow-sm text-sm hover:scale-[1.02]">
+            <a href="/dashboard/live-entry/" class="inline-flex items-center justify-center gap-1.5 px-4 py-2 bg-emerald-800/80 hover:bg-emerald-700 text-amber-100 font-semibold rounded-lg border border-amber-500/20 transition shadow-sm text-sm hover:scale-[1.02]">
                 <svg class="w-4 h-4 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v3m0 0v3m0-3h3m-3 0H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
                 Live Entry
             </a>
-            <a href="{% url 'dashboard:approval_center' %}" class="inline-flex items-center justify-center gap-1.5 px-4 py-2 bg-amber-500 hover:bg-amber-400 text-emerald-950 font-bold rounded-lg transition shadow-sm text-sm hover:scale-[1.02]">
+            <a href="/dashboard/approvals/" class="inline-flex items-center justify-center gap-1.5 px-4 py-2 bg-amber-500 hover:bg-amber-400 text-emerald-950 font-bold rounded-lg transition shadow-sm text-sm hover:scale-[1.02]">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
                 Approval Center
             </a>
-            <a href="{% url 'accounts:logout' %}" class="inline-flex items-center justify-center gap-1.5 px-3 py-2 bg-rose-900/40 hover:bg-rose-800 text-rose-200 font-semibold rounded-lg border border-rose-500/20 transition shadow-sm text-sm hover:scale-[1.02]">
+            <a href="/accounts/logout/" class="inline-flex items-center justify-center gap-1.5 px-3 py-2 bg-rose-900/40 hover:bg-rose-800 text-rose-200 font-semibold rounded-lg border border-rose-500/20 transition shadow-sm text-sm hover:scale-[1.02]">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path></svg>
                 Logout
             </a>
@@ -109,11 +389,7 @@
         </button>
         <button id="tab-btn-resets" onclick="switchTab('resets')" class="px-4 py-2 text-amber-100/70 hover:text-amber-100 font-semibold rounded-lg text-sm transition-all duration-300 flex items-center gap-1.5 shrink-0">
             🔑 PIN Resets
-            {% if pin_requests.count > 0 %}
-            <span class="bg-rose-500 text-white font-bold text-[10px] w-5 h-5 rounded-full flex items-center justify-center animate-pulse">
-                {{ pin_requests.count }}
-            </span>
-            {% endif %}
+            
         </button>
     </div>
 
@@ -188,12 +464,7 @@
         </div>
 
         <!-- Dynamic Category Cards -->
-        {% for cat in categories %}
-        <div class="bg-emerald-950/40 backdrop-blur-md border border-amber-500/15 rounded-xl p-4 flex flex-col justify-between hover:border-amber-500/35 hover:scale-[1.02] transition-all duration-300 shadow-lg">
-            <span class="text-[10px] font-bold tracking-wider text-amber-400/90 uppercase">{{ cat.name }}</span>
-            <span id="stat-category-{{ cat.id }}" class="text-lg md:text-xl font-bold text-amber-50 font-mono mt-1">₦0.00</span>
-        </div>
-        {% endfor %}
+        
     </div>
 
     <!-- Filters Form -->
@@ -230,9 +501,7 @@
                     <div class="custom-dropdown-menu hidden absolute z-30 mt-1 w-full bg-emerald-950 border border-amber-500/25 rounded-lg shadow-xl max-h-60 overflow-y-auto">
                         <div class="py-1">
                             <div data-value="" class="custom-dropdown-item px-3 py-2 text-sm text-amber-100/90 hover:bg-emerald-900 hover:text-white cursor-pointer transition">All Categories</div>
-                            {% for cat in categories %}
-                            <div data-value="{{ cat.id }}" class="custom-dropdown-item px-3 py-2 text-sm text-amber-100/90 hover:bg-emerald-900 hover:text-white cursor-pointer transition">{{ cat.name }}</div>
-                            {% endfor %}
+                            
                         </div>
                     </div>
                     <input type="hidden" id="filter-category" name="category_id" value="">
@@ -302,7 +571,7 @@
     <div class="bg-emerald-950/30 backdrop-blur-md border border-amber-500/15 rounded-2xl overflow-hidden p-1 shadow-xl animate-fade-in-up stagger-4">
         <div class="px-5 py-4 border-b border-emerald-950/20 flex items-center justify-between">
             <h3 class="text-base font-bold text-amber-100">Transactions Ledger</h3>
-            <a id="export-csv-btn" href="{% url 'dashboard:export_csv' %}" class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-emerald-800/80 hover:bg-emerald-700 text-amber-100 font-semibold rounded-lg border border-amber-500/20 transition shadow-sm text-xs hover:scale-[1.02]">
+            <a id="export-csv-btn" href="/dashboard/master/export/" class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-emerald-800/80 hover:bg-emerald-700 text-amber-100 font-semibold rounded-lg border border-amber-500/20 transition shadow-sm text-xs hover:scale-[1.02]">
                 <svg class="w-3.5 h-3.5 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
                 Export CSV
             </a>
@@ -368,45 +637,13 @@
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-emerald-950/10">
-                    {% for member in members %}
-                    <tr class="border-b border-emerald-950/20 hover:bg-emerald-950/10 transition-colors">
-                        <td class="px-4 py-3.5 text-sm font-semibold text-amber-50">{{ member.name }}</td>
-                        <td class="px-4 py-3.5 text-sm text-amber-200/80 font-mono">{{ member.identifier }}</td>
-                        <td class="px-4 py-3.5 text-xs">
-                            <span class="inline-flex px-2 py-0.5 rounded text-[11px] font-bold uppercase tracking-wider
-                                {% if member.role == 'admin' %}bg-amber-500/20 text-amber-400 border border-amber-500/30
-                                {% elif member.role == 'approver' %}bg-emerald-500/20 text-emerald-400 border border-emerald-500/30
-                                {% elif member.role == 'usher' %}bg-blue-500/20 text-blue-400 border border-blue-500/30
-                                {% else %}bg-amber-100/10 text-amber-200/60 border border-amber-200/20{% endif %}">
-                                {{ member.get_role_display }}
-                            </span>
-                        </td>
-                        <td class="px-4 py-3.5 text-right">
-                            <form method="POST" action="{% url 'dashboard:update_member_role' member.pk %}" class="inline-flex items-center gap-2">
-                                {% csrf_token %}
-                                <div class="relative inline-block text-left">
-                                    <select name="role" class="appearance-none bg-emerald-900/40 border border-amber-500/20 rounded pl-2 pr-6 py-1 text-amber-50 text-xs focus:outline-none focus:border-amber-400 cursor-pointer">
-                                        {% for r_val, r_lbl in member.ROLE_CHOICES %}
-                                        <option value="{{ r_val }}" class="text-black" {% if member.role == r_val %}selected{% endif %}>{{ r_lbl }}</option>
-                                        {% endfor %}
-                                    </select>
-                                    <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-1 text-amber-500">
-                                        <svg class="fill-current h-3 w-3" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/></svg>
-                                    </div>
-                                </div>
-                                <button type="submit" class="bg-amber-500 hover:bg-amber-400 text-emerald-950 font-bold px-2 py-1 rounded text-xs transition">
-                                    Update
-                                </button>
-                            </form>
-                        </td>
-                    </tr>
-                    {% empty %}
+                    
                     <tr>
                         <td colspan="4" class="px-4 py-8 text-center text-amber-200/50 text-sm">
                             👥 No youth members registered yet.
                         </td>
                     </tr>
-                    {% endfor %}
+                    
                 </tbody>
             </table>
         </div>
@@ -418,8 +655,8 @@
             <!-- Add Category Form -->
             <div class="md:col-span-1 bg-emerald-900/10 border border-amber-500/15 p-5 rounded-xl flex flex-col gap-4">
                 <h4 class="text-sm font-bold text-amber-100 uppercase tracking-wider border-b border-amber-500/10 pb-2 text-left">Add New Category</h4>
-                <form method="POST" action="{% url 'dashboard:add_inflow_category' %}" class="flex flex-col gap-4">
-                    {% csrf_token %}
+                <form method="POST" action="/dashboard/master/categories/add/" class="flex flex-col gap-4">
+                    
                     <div class="text-left">
                         <label class="block text-amber-400 text-xs font-semibold mb-1.5">Category Name</label>
                         <input type="text" name="name" required placeholder="e.g. Youth Week Program" class="w-full bg-emerald-900/40 border border-amber-500/20 rounded-lg px-3 py-2 text-amber-50 text-sm focus:outline-none focus:border-amber-400 transition">
@@ -438,24 +675,11 @@
             <div class="md:col-span-2">
                 <h4 class="text-sm font-bold text-amber-100 uppercase tracking-wider mb-4 text-left">Configured Inflow Categories</h4>
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    {% for cat in categories %}
-                    <div class="bg-emerald-950/40 border border-amber-500/15 p-4 rounded-xl flex flex-col gap-2 hover:border-amber-500/30 transition-all duration-300">
-                        <div class="flex items-center justify-between border-b border-amber-500/10 pb-1.5">
-                            <span class="text-sm font-bold text-amber-100 font-mono">{{ cat.name }}</span>
-                            <span class="text-[10px] uppercase font-bold tracking-wider px-1.5 py-0.5 rounded {% if cat.is_active %}bg-emerald-500/20 text-emerald-400 border border-emerald-500/30{% else %}bg-rose-500/20 text-rose-400 border border-rose-500/30{% endif %}">
-                                {% if cat.is_active %}Active{% else %}Inactive{% endif %}
-                            </span>
-                        </div>
-                        <p class="text-xs text-amber-200/70 text-left line-clamp-2 min-h-[2rem]">
-                            {{ cat.description|default:"No description provided." }}
-                        </p>
-                        <span class="text-[9px] text-amber-400/50 mt-1 text-left">Created on {{ cat.created_at|date:"M d, Y" }}</span>
-                    </div>
-                    {% empty %}
+                    
                     <div class="col-span-full py-8 text-center text-amber-200/50 text-sm bg-emerald-950/20 rounded-xl border border-amber-500/10">
                         📁 No Inflow Categories configured yet.
                     </div>
-                    {% endfor %}
+                    
                 </div>
             </div>
         </div>
@@ -468,81 +692,38 @@
             <p class="text-sm text-amber-200/70 text-left">Approve pending PIN resets. Once approved, the temporary PIN will be listed below for manual WhatsApp sharing.</p>
         </div>
 
-        {% if pin_requests %}
-        <div class="overflow-x-auto w-full">
-            <table class="w-full text-left border-collapse">
-                <thead>
-                    <tr class="border-b border-emerald-950/20 bg-emerald-950/40 text-amber-400/80 text-xs font-bold uppercase tracking-wider">
-                        <th class="px-4 py-3">Member Name</th>
-                        <th class="px-4 py-3">Phone/Email</th>
-                        <th class="px-4 py-3">Requested At</th>
-                        <th class="px-4 py-3 text-right">Action</th>
-                    </tr>
-                </thead>
-                <tbody class="divide-y divide-emerald-950/10">
-                    {% for req in pin_requests %}
-                    <tr class="border-b border-emerald-950/20 hover:bg-emerald-950/10 transition-colors">
-                        <td class="px-4 py-3.5 text-sm font-semibold text-amber-50">{{ req.member.name }}</td>
-                        <td class="px-4 py-3.5 text-sm text-amber-200/80 font-mono">{{ req.member.identifier }}</td>
-                        <td class="px-4 py-3.5 text-xs text-amber-200/60 font-mono">{{ req.created_at|date:"M d, Y H:i" }}</td>
-                        <td class="px-4 py-3.5 text-right">
-                            <form method="POST" action="{% url 'dashboard:approve_pin_reset' req.pk %}">
-                                {% csrf_token %}
-                                <button type="submit" class="bg-emerald-600 hover:bg-emerald-500 text-white font-bold px-3 py-1.5 rounded text-xs transition shadow-md">
-                                    Approve & Reset
-                                </button>
-                            </form>
-                        </td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
-        {% else %}
+        
         <div class="py-6 text-center text-amber-200/60 font-medium">
             🎉 No pending PIN reset requests!
         </div>
-        {% endif %}
+        
 
         <!-- Recently Resolved PIN Resets (For ease of copying & sharing) -->
         <div class="mt-4 border-t border-amber-500/10 pt-4">
             <h4 class="text-sm font-bold text-amber-100 uppercase tracking-wider mb-4 text-left">Recently Reset PINs (Last 10)</h4>
-            {% if resolved_resets %}
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {% for res in resolved_resets %}
-                <div class="bg-emerald-950/40 border border-emerald-500/20 p-4 rounded-xl flex flex-col gap-3">
-                    <div class="flex justify-between items-start">
-                        <div class="text-left">
-                            <span class="text-sm font-bold text-amber-50 block">{{ res.member.name }}</span>
-                            <span class="text-xs text-amber-200/60 font-mono">{{ res.member.identifier }}</span>
-                        </div>
-                        <span class="text-lg font-bold font-mono text-amber-300 tracking-widest bg-emerald-950 border border-amber-500/25 px-2.5 py-0.5 rounded">
-                            {{ res.temp_pin }}
-                        </span>
-                    </div>
-                    <div class="flex gap-2">
-                        <button onclick="navigator.clipboard.writeText('{{ res.temp_pin }}'); showToast('PIN copied!', 'success');" class="w-full bg-emerald-800/40 hover:bg-emerald-800/60 border border-amber-500/10 text-amber-100 font-semibold py-1.5 px-3 rounded text-xs transition">
-                            Copy PIN
-                        </button>
-                        {% if res.whatsapp_link %}
-                        <a href="{{ res.whatsapp_link }}" target="_blank" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-1.5 px-3 rounded text-xs transition inline-flex items-center justify-center gap-1 shadow-sm">
-                            <svg class="w-3.5 h-3.5 fill-current" viewBox="0 0 24 24"><path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946C.06 5.348 5.397.01 12.008.01c3.202.001 6.212 1.246 8.477 3.514 2.266 2.268 3.507 5.28 3.505 8.484-.004 6.657-5.34 11.997-11.953 11.997-2.005-.001-3.973-.502-5.724-1.455L0 24zm6.59-4.846c1.6.95 3.188 1.449 4.825 1.451 5.436 0 9.86-4.37 9.863-9.736.001-2.599-1.01-5.042-2.85-6.885-1.837-1.84-4.285-2.855-6.888-2.856-5.43 0-9.856 4.37-9.861 9.736-.002 1.761.465 3.48 1.353 5.004l-1.01 3.681 3.768-.979zm11.233-7.55c-.29-.145-1.716-.838-1.979-.933-.262-.096-.452-.144-.643.145-.19.29-.738.933-.905 1.127-.166.19-.333.213-.623.068-.29-.145-1.222-.444-2.327-1.414-.86-.757-1.44-1.692-1.61-1.982-.167-.29-.018-.446.127-.59.13-.13.29-.338.435-.507.145-.169.193-.29.29-.483.097-.19.048-.362-.024-.507-.073-.145-.643-1.522-.881-2.078-.23-.54-.464-.466-.643-.475-.165-.008-.356-.01-.547-.01s-.5.072-.762.338c-.262.266-1.002.966-1.002 2.354 0 1.388 1.026 2.732 1.17 2.925.143.193 2.019 3.044 4.891 4.26.684.29 1.217.463 1.633.593.687.215 1.312.185 1.806.112.551-.082 1.716-.69 1.958-1.357.242-.666.242-1.238.17-1.357-.072-.119-.262-.19-.553-.335z"/></svg> WhatsApp
-                        </a>
-                        {% endif %}
-                    </div>
-                </div>
-                {% endfor %}
-            </div>
-            {% else %}
+            
             <p class="text-xs text-amber-200/40 text-left">No PINs reset recently.</p>
-            {% endif %}
+            
         </div>
     </div>
 
 </div> <!-- End outer container -->
-{% endblock %}
 
-{% block scripts %}
+    </div>
+
+    <!-- Site Footer -->
+    <footer class="site-footer">
+        <p style="font-family:'Poppins',sans-serif; font-weight:800; font-size:0.9rem; color:var(--harvest-gold-400); margin-bottom:0.3rem;">
+            HARVEST OF DIVINE FULFILLMENT 2026
+        </p>
+        <p>"Those who sow in tears will reap with songs of joy." — Psalm 126:5</p>
+        <p style="margin-top:0.75rem;">
+            <a href="/live/board/">Live Board</a>
+        </p>
+        <span class="script-line">Let your light shine!</span>
+    </footer>
+
+    
 <script>
     let currentFetchUrl = '/dashboard/api/transactions/';
     let nextUrl = null;
@@ -635,16 +816,7 @@
 
         // Update Inflow Category Stats dynamically
         const categoryData = [];
-        {% for cat in categories %}
-        if (data.category_stats && data.category_stats['cat_{{ cat.id }}'] !== undefined) {
-            const val = data.category_stats['cat_{{ cat.id }}'] || 0;
-            const catElem = document.getElementById('stat-category-{{ cat.id }}');
-            if (catElem) {
-                catElem.textContent = formatCurrency(val);
-            }
-            categoryData.push({ name: '{{ cat.name|escapejs }}', amount: val });
-        }
-        {% endfor %}
+        
 
         // Also add uncategorized payments to the progress breakdown
         if (data.category_stats && data.category_stats['uncategorized'] !== undefined) {
@@ -1091,7 +1263,7 @@
         
         // Update Export CSV button href with query params
         const exportBtn = document.getElementById('export-csv-btn');
-        exportBtn.href = `{% url 'dashboard:export_csv' %}${queryString ? '?' + queryString : ''}`;
+        exportBtn.href = `/dashboard/master/export/${queryString ? '?' + queryString : ''}`;
     }
 
     function syncCustomDropdown(inputId, value) {
@@ -1176,7 +1348,7 @@
         
         // Update Export CSV button href with query params
         const exportBtn = document.getElementById('export-csv-btn');
-        exportBtn.href = `{% url 'dashboard:export_csv' %}${queryString ? '?' + queryString : ''}`;
+        exportBtn.href = `/dashboard/master/export/${queryString ? '?' + queryString : ''}`;
         
         fetchTransactions(currentFetchUrl);
     });
@@ -1197,7 +1369,7 @@
         
         // Reset Export CSV link
         const exportBtn = document.getElementById('export-csv-btn');
-        exportBtn.href = `{% url 'dashboard:export_csv' %}`;
+        exportBtn.href = `/dashboard/master/export/`;
         
         fetchTransactions(currentFetchUrl);
     });
@@ -1239,4 +1411,20 @@
         fetchTransactions(currentFetchUrl);
     });
 </script>
-{% endblock %}
+
+
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', function() {
+                navigator.serviceWorker.register('/sw.js').then(function(registration) {
+                    console.log('ServiceWorker registration successful with scope: ', registration.scope);
+                }, function(err) {
+                    console.log('ServiceWorker registration failed: ', err);
+                });
+            });
+        }
+    </script>
+
+    
+</body>
+</html>
