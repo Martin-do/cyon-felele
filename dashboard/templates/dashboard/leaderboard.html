@@ -118,7 +118,7 @@
                 {% if entry.gender == 'M' %}<span style="color: #6B7280; font-size: 0.8rem; font-weight: normal;">(Male)</span>
                 {% elif entry.gender == 'F' %}<span style="color: #6B7280; font-size: 0.8rem; font-weight: normal;">(Female)</span>{% endif %}
             </div>
-            <div class="lb-amount">₦{{ entry.total|floatformat:0|intcomma }}</div>
+            <div class="lb-amount">{{ entry.votes|intcomma }} Vote{{ entry.votes|pluralize }}</div>
         </div>
         {% endfor %}
     </div>
@@ -133,7 +133,7 @@
                 {% if forloop.counter == 1 %}🥇{% elif forloop.counter == 2 %}🥈{% elif forloop.counter == 3 %}🥉{% else %}{{ forloop.counter }}{% endif %}
             </div>
             <div class="lb-name">{{ entry.name }}</div>
-            <div class="lb-amount">₦{{ entry.total|floatformat:0|intcomma }}</div>
+            <div class="lb-amount">{{ entry.votes|intcomma }} Vote{{ entry.votes|pluralize }}</div>
         </div>
         {% endfor %}
     </div>

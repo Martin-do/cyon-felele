@@ -107,6 +107,7 @@ def donation_form_view(request, referral_slug=None):
                         'rank': index + 1,
                         'name': comp_member.name,
                         'total': item['total'],
+                        'votes': int(item['total'] // 500),
                         'picture_url': comp_member.profile_picture.url if comp_member.profile_picture else None,
                         'initial': comp_member.name[0].upper()
                     })

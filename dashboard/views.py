@@ -234,6 +234,7 @@ def leaderboard_view(request):
             entry = {
                 'name': member.name,
                 'total': total,
+                'votes': int(total // 500),
                 'gender': member.gender,
                 'title': member.contestant_title
             }

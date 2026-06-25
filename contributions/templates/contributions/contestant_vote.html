@@ -248,7 +248,7 @@
                 {% endif %}
             </div>
             <div style="flex: 1; font-weight: 600; color: #FFFFFF; font-size: 1rem;">{{ comp.name }}</div>
-            <div style="font-weight: 800; color: #E8C547;">₦{{ comp.total|floatformat:0|intcomma }}</div>
+            <div style="font-weight: 800; color: #E8C547;">{{ comp.votes|intcomma }} Vote{{ comp.votes|pluralize }}</div>
         </div>
         {% endfor %}
     </div>
@@ -258,6 +258,18 @@
 <style>
 @keyframes slideUp {
     to { opacity: 1; transform: translateY(0); }
+}
+@keyframes fadeInScale {
+    from { opacity: 0; transform: scale(0.95); }
+    to { opacity: 1; transform: scale(1); }
+}
+.contestant-card {
+    animation: fadeInScale 0.6s ease-out forwards;
+}
+.vote-form-wrapper {
+    animation: slideUp 0.8s ease-out forwards;
+    opacity: 0;
+    transform: translateY(20px);
 }
 </style>
 
