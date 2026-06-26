@@ -279,11 +279,13 @@
 
 
     <div class="container">
+        {% block messages %}
         {% if messages %}
         <div class="alert {% if messages|length > 0 %}{% for m in messages %}{{ m.tags }}{% endfor %}{% endif %}" style="display:block;">
             {% for message in messages %}{{ message }}{% endfor %}
         </div>
         {% endif %}
+        {% endblock %}
 
         {% block content %}{% endblock %}
     </div>

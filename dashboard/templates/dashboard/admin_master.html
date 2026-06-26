@@ -5,14 +5,13 @@
 
 {% block body_style %}display:block;padding:0;align-items:unset;background-color:#14301F;scroll-behavior:smooth;{% endblock %}
 
+{% block messages %}{% endblock %}
+
 {% block head %}
 <!-- Tailwind CSS CDN -->
 <script src="https://cdn.tailwindcss.com"></script>
 <style>
-    /* Tab visibility control — must use !important to override Tailwind */
-    .tab-hidden {
-        display: none !important;
-    }
+    /* Tab visibility is now controlled entirely by inline styles in JS — no CSS classes needed */
 
     /* Fix site-header to match content width */
     .site-header {
@@ -100,6 +99,13 @@
 <div id="toast-container" class="fixed top-5 right-5 z-50 flex flex-col gap-2"></div>
 
 <div class="max-w-[1400px] mx-auto w-full flex flex-col gap-6">
+    
+    <!-- Welcome banner (auto-dismisses after 4s) -->
+    {% if messages %}
+    <div id="admin-welcome-banner" style="background:rgba(46,125,79,0.15);border:1px solid rgba(46,125,79,0.3);color:#A5FFCC;padding:0.75rem 1rem;border-radius:12px;font-size:0.9rem;transition:all 0.5s ease;overflow:hidden;">
+        {% for message in messages %}{{ message }}{% endfor %}
+    </div>
+    {% endif %}
     
     <!-- Header Area -->
     <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 bg-emerald-950/30 border border-amber-500/15 p-4 sm:p-6 rounded-2xl backdrop-blur-md animate-fade-in-up stagger-1">
@@ -379,7 +385,7 @@
     </div> <!-- End tab-content-ledger -->
 
     <!-- Tab Section: Youth Roles -->
-    <div id="tab-content-roles" class="tab-content tab-hidden bg-emerald-950/30 border border-amber-500/15 p-6 rounded-2xl backdrop-blur-md" style="flex-direction:column;gap:1rem;">
+    <div id="tab-content-roles" class="tab-content" style="display:none;flex-direction:column;gap:1rem;background:rgba(6,78,59,0.3);border:1px solid rgba(245,158,11,0.15);padding:1.5rem;border-radius:1rem;backdrop-filter:blur(12px);">
         <div>
             <h3 class="text-lg font-bold text-amber-100 text-left">Youth Roles Assignment</h3>
             <p class="text-sm text-amber-200/70 text-left">Assign system roles to selected youth parish members to grant access to live entries or receipt approvals.</p>
@@ -440,7 +446,7 @@
     </div>
 
     <!-- Tab Section: Inflow Categories -->
-    <div id="tab-content-categories" class="tab-content tab-hidden bg-emerald-950/30 border border-amber-500/15 p-6 rounded-2xl backdrop-blur-md" style="flex-direction:column;gap:1.5rem;">
+    <div id="tab-content-categories" class="tab-content" style="display:none;flex-direction:column;gap:1.5rem;background:rgba(6,78,59,0.3);border:1px solid rgba(245,158,11,0.15);padding:1.5rem;border-radius:1rem;backdrop-filter:blur(12px);">
         <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
             <!-- Add Category Form -->
             <div class="md:col-span-1 bg-emerald-900/10 border border-amber-500/15 p-5 rounded-xl flex flex-col gap-4">
@@ -489,7 +495,7 @@
     </div>
 
     <!-- Tab Section: PIN Reset Requests -->
-    <div id="tab-content-resets" class="tab-content tab-hidden bg-emerald-950/30 border border-amber-500/15 p-6 rounded-2xl backdrop-blur-md" style="flex-direction:column;gap:1.5rem;">
+    <div id="tab-content-resets" class="tab-content" style="display:none;flex-direction:column;gap:1.5rem;background:rgba(6,78,59,0.3);border:1px solid rgba(245,158,11,0.15);padding:1.5rem;border-radius:1rem;backdrop-filter:blur(12px);">
         <div>
             <h3 class="text-lg font-bold text-amber-100 text-left">PIN Reset Requests Queue</h3>
             <p class="text-sm text-amber-200/70 text-left">Approve pending PIN resets. Once approved, the temporary PIN will be listed below for manual WhatsApp sharing.</p>
@@ -1059,21 +1065,30 @@
         }
     }
 
-    // Tabs switching logic — uses CSS class .tab-hidden with !important
+    // Tabs switching — PURE inline styles, zero CSS class dependencies
     function switchTab(tabId) {
-        // Hide all tab contents by adding tab-hidden class
-        var allTabs = document.querySelectorAll('.tab-content');
-        for (var i = 0; i < allTabs.length; i++) {
-            allTabs[i].classList.add('tab-hidden');
+        // Get all tab content divs by their IDs directly
+        var ids = ['tab-content-ledger', 'tab-content-roles', 'tab-content-categories', 'tab-content-resets'];
+        for (var i = 0; i < ids.length; i++) {
+            var el = document.getElementById(ids[i]);
+            if (el) {
+                // Read existing style, replace display value
+                var currentStyle = el.getAttribute('style') || '';
+                // Remove any existing display property
+                currentStyle = currentStyle.replace(/display\s*:\s*[^;]+;?/gi, '');
+                // Set display to none
+                el.setAttribute('style', 'display:none;' + currentStyle);
+            }
         }
-        // Show target tab content by removing tab-hidden class
+        // Show the target tab
         var target = document.getElementById('tab-content-' + tabId);
         if (target) {
-            target.classList.remove('tab-hidden');
-            target.style.display = 'flex';
+            var targetStyle = target.getAttribute('style') || '';
+            targetStyle = targetStyle.replace(/display\s*:\s*[^;]+;?/gi, '');
+            target.setAttribute('style', 'display:flex;' + targetStyle);
         }
 
-        // Reset button states
+        // Update button styles
         var btnIds = ['ledger', 'roles', 'categories', 'resets'];
         for (var j = 0; j < btnIds.length; j++) {
             var btn = document.getElementById('tab-btn-' + btnIds[j]);
@@ -1087,13 +1102,17 @@
         }
     }
 
-    // Auto-dismiss the welcome message after 4 seconds
+    // Auto-dismiss the welcome banner after 4 seconds
     (function() {
-        var alertEl = document.querySelector('.container > .alert.success');
-        if (alertEl) {
+        var banner = document.getElementById('admin-welcome-banner');
+        if (banner) {
             setTimeout(function() {
-                alertEl.classList.add('dismiss-msg');
-                setTimeout(function() { alertEl.remove(); }, 600);
+                banner.style.opacity = '0';
+                banner.style.maxHeight = '0';
+                banner.style.padding = '0';
+                banner.style.marginBottom = '0';
+                banner.style.border = 'none';
+                setTimeout(function() { banner.remove(); }, 600);
             }, 4000);
         }
     })();
