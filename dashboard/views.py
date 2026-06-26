@@ -332,7 +332,7 @@ def master_dashboard_view(request):
     pledge_total = contributions.filter(method__icontains='Pledge').aggregate(Sum('amount'))['amount__sum'] or 0.00
 
     categories = InflowCategory.objects.all()
-    members = Member.objects.filter(is_superuser=False).order_by('name')
+    members = Member.objects.filter(is_active=True).order_by('name')
     pin_requests = PinResetRequest.objects.filter(is_resolved=False).order_by('-created_at')
     resolved_resets = PinResetRequest.objects.filter(is_resolved=True).order_by('-resolved_at')[:10]
 
@@ -793,13 +793,13 @@ def debug_members_view(request):
         'id', 'name', 'identifier', 'role', 'is_superuser', 'is_staff',
         'is_active', 'has_completed_onboarding'
     )
-    youth_members = Member.objects.filter(is_superuser=False).order_by('name').values(
+    youth_members = Member.objects.filter(is_active=True).order_by('name').values(
         'id', 'name', 'identifier', 'role', 'is_superuser', 'is_staff',
         'is_active', 'has_completed_onboarding'
     )
     return JsonResponse({
         'total_all': Member.objects.count(),
-        'total_youth_visible': Member.objects.filter(is_superuser=False).count(),
+        'total_youth_visible': Member.objects.filter(is_active=True).count(),
         'all_members': list(all_members),
         'youth_members_shown_in_roles_tab': list(youth_members),
     }, json_dumps_params={'indent': 2})
