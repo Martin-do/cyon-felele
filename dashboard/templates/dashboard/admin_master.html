@@ -9,6 +9,11 @@
 <!-- Tailwind CSS CDN -->
 <script src="https://cdn.tailwindcss.com"></script>
 <style>
+    /* Tab visibility control — must use !important to override Tailwind */
+    .tab-hidden {
+        display: none !important;
+    }
+
     /* Fix site-header to match content width */
     .site-header {
         max-width: 1400px !important;
@@ -31,6 +36,15 @@
         width: 100% !important;
         margin: 0 !important;
         padding: 0.5rem 1rem !important;
+    }
+
+    /* Dismiss animation for welcome message */
+    @keyframes fadeOutUp {
+        from { opacity: 1; transform: translateY(0); max-height: 80px; margin-bottom: 1rem; padding: 0.75rem 1rem; }
+        to { opacity: 0; transform: translateY(-10px); max-height: 0; margin-bottom: 0; padding: 0; overflow: hidden; }
+    }
+    .dismiss-msg {
+        animation: fadeOutUp 0.5s ease forwards;
     }
 
     @keyframes fadeInUp {
@@ -88,21 +102,21 @@
 <div class="max-w-[1400px] mx-auto w-full flex flex-col gap-6">
     
     <!-- Header Area -->
-    <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 bg-emerald-950/30 border border-amber-500/15 p-6 rounded-2xl backdrop-blur-md animate-fade-in-up stagger-1">
+    <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 bg-emerald-950/30 border border-amber-500/15 p-4 sm:p-6 rounded-2xl backdrop-blur-md animate-fade-in-up stagger-1">
         <div class="text-left">
-            <h1 class="text-2xl md:text-3xl font-extrabold text-amber-100 tracking-tight mb-1 text-left">Harvest Command Center</h1>
-            <p class="text-sm text-amber-200/70 font-medium">Harvest of Divine Fulfillment 2026 Admin Panel</p>
+            <h1 class="text-xl sm:text-2xl md:text-3xl font-extrabold text-amber-100 tracking-tight mb-1 text-left">Harvest Command Center</h1>
+            <p class="text-xs sm:text-sm text-amber-200/70 font-medium">Harvest of Divine Fulfillment 2026 Admin Panel</p>
         </div>
-        <div class="flex flex-wrap gap-2.5">
-            <a href="{% url 'dashboard:live_entry' %}" class="inline-flex items-center justify-center gap-1.5 px-4 py-2 bg-emerald-800/80 hover:bg-emerald-700 text-amber-100 font-semibold rounded-lg border border-amber-500/20 transition shadow-sm text-sm hover:scale-[1.02]">
+        <div class="flex flex-wrap gap-2">
+            <a href="{% url 'dashboard:live_entry' %}" class="inline-flex items-center justify-center gap-1.5 px-4 py-2.5 bg-emerald-800/80 hover:bg-emerald-700 text-amber-100 font-semibold rounded-lg border border-amber-500/20 transition shadow-sm text-sm hover:scale-[1.02] min-w-[130px]">
                 <svg class="w-4 h-4 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v3m0 0v3m0-3h3m-3 0H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
                 Live Entry
             </a>
-            <a href="{% url 'dashboard:approval_center' %}" class="inline-flex items-center justify-center gap-1.5 px-4 py-2 bg-amber-500 hover:bg-amber-400 text-emerald-950 font-bold rounded-lg transition shadow-sm text-sm hover:scale-[1.02]">
+            <a href="{% url 'dashboard:approval_center' %}" class="inline-flex items-center justify-center gap-1.5 px-4 py-2.5 bg-amber-500 hover:bg-amber-400 text-emerald-950 font-bold rounded-lg transition shadow-sm text-sm hover:scale-[1.02] min-w-[130px]">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
                 Approval Center
             </a>
-            <a href="{% url 'accounts:logout' %}" class="inline-flex items-center justify-center gap-1.5 px-3 py-2 bg-rose-900/40 hover:bg-rose-800 text-rose-200 font-semibold rounded-lg border border-rose-500/20 transition shadow-sm text-sm hover:scale-[1.02]">
+            <a href="{% url 'accounts:logout' %}" class="inline-flex items-center justify-center gap-1.5 px-4 py-2.5 bg-rose-900/40 hover:bg-rose-800 text-rose-200 font-semibold rounded-lg border border-rose-500/20 transition shadow-sm text-sm hover:scale-[1.02] min-w-[130px]">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path></svg>
                 Logout
             </a>
@@ -131,7 +145,7 @@
     </div>
 
     <!-- Tab Contents -->
-    <div id="tab-content-ledger" class="tab-content flex flex-col gap-6">
+    <div id="tab-content-ledger" class="tab-content" style="display:flex;flex-direction:column;gap:1.5rem;">
         
         <!-- Expanded Progress Bar -->
         <div class="bg-emerald-950/40 border border-amber-500/15 p-5 rounded-2xl backdrop-blur-md animate-fade-in-up stagger-1 cursor-pointer hover:border-amber-500/40 transition-all duration-300 shadow-lg" onclick="document.getElementById('progress-modal').classList.remove('hidden')">
@@ -365,7 +379,7 @@
     </div> <!-- End tab-content-ledger -->
 
     <!-- Tab Section: Youth Roles -->
-    <div id="tab-content-roles" class="tab-content bg-emerald-950/30 border border-amber-500/15 p-6 rounded-2xl backdrop-blur-md flex flex-col gap-4" style="display:none;">
+    <div id="tab-content-roles" class="tab-content tab-hidden bg-emerald-950/30 border border-amber-500/15 p-6 rounded-2xl backdrop-blur-md" style="flex-direction:column;gap:1rem;">
         <div>
             <h3 class="text-lg font-bold text-amber-100 text-left">Youth Roles Assignment</h3>
             <p class="text-sm text-amber-200/70 text-left">Assign system roles to selected youth parish members to grant access to live entries or receipt approvals.</p>
@@ -426,7 +440,7 @@
     </div>
 
     <!-- Tab Section: Inflow Categories -->
-    <div id="tab-content-categories" class="tab-content bg-emerald-950/30 border border-amber-500/15 p-6 rounded-2xl backdrop-blur-md flex flex-col gap-6" style="display:none;">
+    <div id="tab-content-categories" class="tab-content tab-hidden bg-emerald-950/30 border border-amber-500/15 p-6 rounded-2xl backdrop-blur-md" style="flex-direction:column;gap:1.5rem;">
         <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
             <!-- Add Category Form -->
             <div class="md:col-span-1 bg-emerald-900/10 border border-amber-500/15 p-5 rounded-xl flex flex-col gap-4">
@@ -475,7 +489,7 @@
     </div>
 
     <!-- Tab Section: PIN Reset Requests -->
-    <div id="tab-content-resets" class="tab-content bg-emerald-950/30 border border-amber-500/15 p-6 rounded-2xl backdrop-blur-md flex flex-col gap-6" style="display:none;">
+    <div id="tab-content-resets" class="tab-content tab-hidden bg-emerald-950/30 border border-amber-500/15 p-6 rounded-2xl backdrop-blur-md" style="flex-direction:column;gap:1.5rem;">
         <div>
             <h3 class="text-lg font-bold text-amber-100 text-left">PIN Reset Requests Queue</h3>
             <p class="text-sm text-amber-200/70 text-left">Approve pending PIN resets. Once approved, the temporary PIN will be listed below for manual WhatsApp sharing.</p>
@@ -1045,36 +1059,44 @@
         }
     }
 
-    // Tabs switching logic
+    // Tabs switching logic — uses CSS class .tab-hidden with !important
     function switchTab(tabId) {
-        // Hide all tab contents using inline style to avoid Tailwind class conflicts
-        document.querySelectorAll('.tab-content').forEach(el => {
-            el.style.display = 'none';
-        });
-        // Show target tab content
+        // Hide all tab contents by adding tab-hidden class
+        var allTabs = document.querySelectorAll('.tab-content');
+        for (var i = 0; i < allTabs.length; i++) {
+            allTabs[i].classList.add('tab-hidden');
+        }
+        // Show target tab content by removing tab-hidden class
         var target = document.getElementById('tab-content-' + tabId);
         if (target) {
+            target.classList.remove('tab-hidden');
             target.style.display = 'flex';
         }
 
         // Reset button states
-        const tabButtons = {
-            ledger: document.getElementById('tab-btn-ledger'),
-            roles: document.getElementById('tab-btn-roles'),
-            categories: document.getElementById('tab-btn-categories'),
-            resets: document.getElementById('tab-btn-resets')
-        };
-
-        for (const [key, btn] of Object.entries(tabButtons)) {
+        var btnIds = ['ledger', 'roles', 'categories', 'resets'];
+        for (var j = 0; j < btnIds.length; j++) {
+            var btn = document.getElementById('tab-btn-' + btnIds[j]);
             if (btn) {
-                if (key === tabId) {
-                    btn.className = "px-4 py-2 text-amber-100 font-bold rounded-lg text-sm transition-all duration-300 bg-amber-500/20 border border-amber-500/30 flex items-center gap-1.5";
+                if (btnIds[j] === tabId) {
+                    btn.className = "px-4 py-2 text-amber-100 font-bold rounded-lg text-sm transition-all duration-300 bg-amber-500/20 border border-amber-500/30 shrink-0";
                 } else {
-                    btn.className = "px-4 py-2 text-amber-100/70 hover:text-amber-100 font-semibold rounded-lg text-sm transition-all duration-300 flex items-center gap-1.5";
+                    btn.className = "px-4 py-2 text-amber-100/70 hover:text-amber-100 font-semibold rounded-lg text-sm transition-all duration-300 shrink-0";
                 }
             }
         }
     }
+
+    // Auto-dismiss the welcome message after 4 seconds
+    (function() {
+        var alertEl = document.querySelector('.container > .alert.success');
+        if (alertEl) {
+            setTimeout(function() {
+                alertEl.classList.add('dismiss-msg');
+                setTimeout(function() { alertEl.remove(); }, 600);
+            }, 4000);
+        }
+    })();
 
     // Parse URL query parameters to pre-fill filters
     function initFiltersFromUrl() {
