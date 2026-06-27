@@ -410,38 +410,8 @@ def approval_center_view(request):
     return render(request, 'dashboard/approval_center.html', context)
 
 def send_whatsapp_approval_notice(request, contribution):
-    import requests as http_requests
-    from django.urls import reverse
-    
-    receipt_url = request.build_absolute_uri(
-        reverse('contributions:receipt', args=[str(contribution.id)])
-    )
-    try:
-        phone = contribution.phone
-        if phone:
-            phone = phone.strip()
-            # If phone starts with + or is just numbers, format it
-            if not phone.startswith('+'):
-                # Normalise Nigerian numbers
-                phone = '234' + phone.lstrip('0')
-            # Strip out any non-numeric characters just in case
-            phone = ''.join(c for c in phone if c.isdigit() or c == '+')
-            
-            http_requests.post(
-                'http://localhost:3000/send',   # Baileys service port
-                json={
-                    'phone': phone,
-                    'message': (
-                        f"✅ Hello {contribution.name}, your contribution of "
-                        f"₦{contribution.amount:,.0f} to the CYON Harvest has been confirmed!\n\n"
-                        f"View your receipt here: {receipt_url}\n\n"
-                        "Thank you for supporting our youth. 🙏"
-                    )
-                },
-                timeout=5
-            )
-    except Exception as e:
-        print(f"Failed to send WhatsApp notification: {e}")
+    # Disabled for now to avoid WhatsApp spam/anti-ban issues.
+    pass
 
 @approver_required
 def approve_contribution_view(request, pk):
