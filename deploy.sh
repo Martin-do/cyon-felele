@@ -5,13 +5,14 @@ echo "🚀 Starting Deployment Process..."
 
 # 1. Get latest code
 echo "📦 Pulling latest code from GitHub..."
-git stash
-git pull origin main
+git fetch origin main
+git reset --hard origin/main
 
 # 2. Install any new dependencies
 echo "🐍 Activating virtual environment and installing dependencies..."
 source venv/bin/activate
 pip install -r requirements.txt
+python -m playwright install chromium
 
 # 3. Apply database changes
 echo "🗄️ Running database migrations..."

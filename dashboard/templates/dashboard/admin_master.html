@@ -149,7 +149,7 @@
             {% endif %}
         </button>
         <button id="tab-btn-import" onclick="switchTab('import')" class="px-4 py-2 text-amber-100/70 hover:text-amber-100 font-semibold rounded-lg text-sm transition-all duration-300 flex items-center gap-1.5 shrink-0">
-            📋 Import Parishioners
+            🛠️ Admin Tools
         </button>
     </div>
 
@@ -612,22 +612,43 @@
         </div>
     </div>
 
-    <!-- Tab Section: Import Parishioners -->
+    <!-- Tab Section: Admin Tools -->
     <div id="tab-content-import" class="tab-content" style="display:none;flex-direction:column;gap:1.5rem;background:rgba(6,78,59,0.3);border:1px solid rgba(245,158,11,0.15);padding:1.5rem;border-radius:1rem;backdrop-filter:blur(12px);">
         <div>
-            <h3 class="text-lg font-bold text-amber-100 text-left">Import Parishioners Registry</h3>
-            <p class="text-sm text-amber-200/70 text-left">Paste a list of parish member names (one per line) to populate the usher's autocomplete search database.</p>
+            <h3 class="text-lg font-bold text-amber-100 text-left">🛠️ Admin & Communication Tools</h3>
+            <p class="text-sm text-amber-200/70 text-left">Manage internal registry imports and send secure broadcast notifications directly to youth devices.</p>
         </div>
-        <form method="POST" action="{% url 'dashboard:import_parishioners' %}" class="flex flex-col gap-4">
-            {% csrf_token %}
-            <div class="text-left">
-                <label class="block text-amber-400 text-xs font-semibold mb-1.5">Names List (one name per line)</label>
-                <textarea name="names" rows="12" required placeholder="Adeyemi Blessing&#10;Okafor Emmanuel&#10;Martins Jaiyeola" class="w-full bg-emerald-900/40 border border-amber-500/20 rounded-lg px-3 py-2 text-amber-50 text-sm font-mono focus:outline-none focus:border-amber-400 transition resize-y"></textarea>
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <!-- Card 1: Import Parishioners -->
+            <div class="bg-emerald-900/10 border border-amber-500/15 p-5 rounded-xl flex flex-col gap-4">
+                <h4 class="text-sm font-bold text-amber-100 uppercase tracking-wider border-b border-amber-500/10 pb-2 text-left">Import Parishioners Registry</h4>
+                <form method="POST" action="{% url 'dashboard:import_parishioners' %}" class="flex flex-col gap-4">
+                    {% csrf_token %}
+                    <div class="text-left">
+                        <label class="block text-amber-400 text-xs font-semibold mb-1.5">Names List (one name per line)</label>
+                        <textarea name="names" rows="10" required placeholder="Adeyemi Blessing&#10;Okafor Emmanuel&#10;Martins Jaiyeola" class="w-full bg-emerald-900/40 border border-amber-500/20 rounded-lg px-3 py-2 text-amber-50 text-sm font-mono focus:outline-none focus:border-amber-400 transition resize-y"></textarea>
+                    </div>
+                    <button type="submit" class="w-full bg-gradient-to-r from-amber-400 to-amber-600 hover:from-amber-300 hover:to-amber-500 text-emerald-950 font-bold py-2 rounded-lg transition shadow-md text-sm hover:scale-[1.02]">
+                        Import Parishioners
+                    </button>
+                </form>
             </div>
-            <button type="submit" class="w-full sm:w-auto self-start bg-gradient-to-r from-amber-400 to-amber-600 hover:from-amber-300 hover:to-amber-500 text-emerald-950 font-bold px-6 py-2.5 rounded-lg transition shadow-md text-sm hover:scale-[1.02]">
-                Import Parishioners
-            </button>
-        </form>
+
+            <!-- Card 2: Broadcast Announcement -->
+            <div class="bg-emerald-900/10 border border-amber-500/15 p-5 rounded-xl flex flex-col gap-4">
+                <h4 class="text-sm font-bold text-amber-100 uppercase tracking-wider border-b border-amber-500/10 pb-2 text-left">Broadcast PWA Push Announcement</h4>
+                <form method="POST" action="{% url 'dashboard:send_announcement' %}" class="flex flex-col gap-4">
+                    {% csrf_token %}
+                    <div class="text-left">
+                        <label class="block text-amber-400 text-xs font-semibold mb-1.5">Announcement Message</label>
+                        <textarea name="message" rows="10" required placeholder="Write your broadcast message here..." class="w-full bg-emerald-900/40 border border-amber-500/20 rounded-lg px-3 py-2 text-amber-50 text-sm focus:outline-none focus:border-amber-400 transition resize-none"></textarea>
+                    </div>
+                    <button type="submit" class="w-full bg-gradient-to-r from-amber-400 to-amber-600 hover:from-amber-300 hover:to-amber-500 text-emerald-950 font-bold py-2 rounded-lg transition shadow-md text-sm hover:scale-[1.02]">
+                        📢 Broadcast Push Notice
+                    </button>
+                </form>
+            </div>
+        </div>
     </div>
 
 </div> <!-- End outer container -->

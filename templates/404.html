@@ -1,14 +1,151 @@
-{% extends "base.html" %}
-{% block title %}Page Not Found | CYON Harvest{% endblock %}
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Page Not Found — CYON Harvest 2026</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@600;800&family=Great+Vibes&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --harvest-green-900: #14301F;
+            --harvest-green-800: #1B4332;
+            --harvest-gold-500: #C9A227;
+            --harvest-gold-400: #E0C158;
+            --harvest-gold-gradient: linear-gradient(135deg, #E8C547 0%, #B8860B 100%);
+            --harvest-cream: #FAF6EC;
+        }
 
-{% block content %}
-<div class="glass-card" style="text-align: center; max-width: 500px; margin: 4rem auto; padding: 3rem 2rem;">
-    <h1 style="font-size: 4rem; color: #C9A227; margin: 0; line-height: 1;">404</h1>
-    <h2 style="color: #FAF6EC; margin-bottom: 1rem; margin-top: 0.5rem;">Page Not Found</h2>
-    <p style="color: #A0AEC0; margin-bottom: 2rem;">We couldn't find the page you're looking for. It might have been moved or doesn't exist.</p>
-    
-    <div style="display: flex; gap: 1rem; justify-content: center;">
-        <a href="{% url 'contributions:landing' %}" class="btn-secondary" style="padding: 0.75rem 1.5rem; text-decoration: none;">Go Home</a>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--harvest-green-900);
+            color: var(--harvest-cream);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 2rem 1.5rem;
+            text-align: center;
+            overflow: hidden;
+            position: relative;
+        }
+
+        /* Ambient background */
+        body::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: 
+                radial-gradient(circle at 20% 30%, rgba(36, 92, 63, 0.4) 0%, transparent 50%),
+                radial-gradient(circle at 80% 70%, rgba(201, 162, 39, 0.15) 0%, transparent 50%);
+            z-index: 0;
+        }
+
+        .container {
+            position: relative;
+            z-index: 10;
+            max-width: 580px;
+            width: 100%;
+            animation: fadeInUp 0.8s ease both;
+        }
+
+        .logo-row {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+        .logo-row img {
+            height: 60px;
+            width: auto;
+            filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.3));
+        }
+
+        .error-code {
+            font-family: 'Poppins', sans-serif;
+            font-weight: 800;
+            font-size: clamp(6rem, 15vw, 9rem);
+            line-height: 1;
+            background: var(--harvest-gold-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 1rem;
+            letter-spacing: -2px;
+        }
+
+        .script-text {
+            font-family: 'Great Vibes', cursive;
+            font-size: clamp(2rem, 5vw, 3rem);
+            color: var(--harvest-gold-400);
+            margin-bottom: 0.5rem;
+        }
+
+        h1 {
+            font-family: 'Poppins', sans-serif;
+            font-weight: 800;
+            font-size: clamp(1.5rem, 4vw, 2.2rem);
+            margin-bottom: 1.5rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--harvest-cream);
+        }
+
+        p {
+            font-size: 1.05rem;
+            color: rgba(250, 246, 236, 0.75);
+            line-height: 1.7;
+            margin-bottom: 2.5rem;
+        }
+
+        .btn-gold {
+            display: inline-block;
+            padding: 1.1rem 2.5rem;
+            background: var(--harvest-gold-gradient);
+            color: var(--harvest-green-900);
+            font-family: 'Poppins', sans-serif;
+            font-weight: 800;
+            font-size: 1.1rem;
+            border-radius: 100px;
+            text-decoration: none;
+            box-shadow: 0 10px 25px rgba(201, 162, 39, 0.3);
+            transition: opacity 0.2s, transform 0.15s, box-shadow 0.2s;
+        }
+        .btn-gold:hover {
+            opacity: 0.95;
+            transform: translateY(-2px);
+            box-shadow: 0 12px 30px rgba(201, 162, 39, 0.45);
+        }
+
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="logo-row">
+        <img src="{% static 'images/brand/church-seal.png' %}" alt="Church Seal">
+        <img src="{% static 'images/brand/cyon-logo.png' %}" alt="CYON Logo">
     </div>
+
+    <div class="error-code">404</div>
+    <div class="script-text">Sowing in the wrong soil?</div>
+    <h1>Page Not Found</h1>
+    <p>
+        We couldn't find the page you were looking for. If you followed a referral link, it might have been typed incorrectly or the member's profile is not active.
+    </p>
+
+    <a href="{% url 'contributions:landing' %}" class="btn-gold">Return to Harvest Landing Page</a>
 </div>
-{% endblock %}
+
+</body>
+</html>

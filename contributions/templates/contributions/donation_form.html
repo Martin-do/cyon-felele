@@ -197,14 +197,6 @@ function selectMethod(btn) {
     document.getElementById('method-hidden').value = btn.getAttribute('data-method');
 }
 
-window.addEventListener('pageshow', function(e) {
-    const btn = document.getElementById('submit-btn');
-    if (btn && btn.disabled) {
-        btn.disabled = false;
-        btn.innerText = 'Record My Contribution';
-    }
-});
-
 function formatAmount(input) {
     let value = input.value.replace(/\D/g, '');
     document.getElementById('amount').value = value;
@@ -215,8 +207,7 @@ async function submitForm(e) {
     e.preventDefault();
     const btn = document.getElementById('submit-btn');
     const err = document.getElementById('error-alert');
-    btn.disabled = true;
-    btn.innerText = 'Recording…';
+    setButtonLoading(btn, 'Recording...');
     err.style.display = 'none';
 
     const formData = new FormData();
@@ -249,8 +240,7 @@ async function submitForm(e) {
     } catch(ex) {
         err.innerText = ex.message;
         err.style.display = 'block';
-        btn.disabled = false;
-        btn.innerText = 'Record My Contribution';
+        resetButtonLoading(btn);
     }
 }
 </script>

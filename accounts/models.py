@@ -157,3 +157,16 @@ class PinResetRequest(models.Model):
     def __str__(self):
         return f"Reset request for {self.member.name} ({'Resolved' if self.is_resolved else 'Pending'})"
 
+
+class WebPushSubscription(models.Model):
+    user = models.ForeignKey(Member, on_delete=models.CASCADE, null=True, blank=True, related_name='webpush_subscriptions')
+    endpoint = models.URLField(max_length=500, unique=True)
+    p256dh = models.CharField(max_length=255)
+    auth = models.CharField(max_length=255)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        username = self.user.name if self.user else "Anonymous Guest"
+        return f"Push subscription for {username} ({self.endpoint[:40]}...)"
+
+

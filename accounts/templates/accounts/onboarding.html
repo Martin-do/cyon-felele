@@ -296,9 +296,7 @@
 
         e.preventDefault(); // Stop normal submission
         var submitBtn = document.querySelector('button[type="submit"]');
-        var originalText = submitBtn.innerText;
-        submitBtn.innerText = 'Processing Image...';
-        submitBtn.disabled = true;
+        setButtonLoading(submitBtn, 'Processing Image...');
 
         var reader = new FileReader();
         reader.onload = function(event) {
@@ -342,7 +340,7 @@
                     fileInput.files = dataTransfer.files;
 
                     // Now submit the form manually
-                    submitBtn.innerText = 'Uploading...';
+                    setButtonLoading(submitBtn, 'Uploading...');
                     document.getElementById('onboardingForm').submit();
                 }, 'image/jpeg', 0.75); // 75% quality
             };

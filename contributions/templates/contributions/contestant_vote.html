@@ -395,8 +395,7 @@ async function submitForm(e) {
     const err = document.getElementById('error-alert');
     const route = document.getElementById('payment-route').value;
     
-    btn.disabled = true;
-    btn.innerText = route === 'paystack' ? 'Initializing Secure Checkout...' : 'Uploading Receipt...';
+    setButtonLoading(btn, route === 'paystack' ? 'Initializing Secure Checkout...' : 'Uploading Receipt...');
     err.style.display = 'none';
 
     const name = document.getElementById('name').value;
@@ -411,8 +410,7 @@ async function submitForm(e) {
     if (isNaN(votes) || votes < 1) {
         err.innerText = "Please enter a valid number of votes.";
         err.style.display = 'block';
-        btn.disabled = false;
-        btn.innerText = route === 'paystack' ? 'Proceed to Online Payment' : 'Upload Receipt & Vote';
+        resetButtonLoading(btn);
         return;
     }
     
@@ -434,7 +432,7 @@ async function submitForm(e) {
                 ]
             },
             callback: function(response){
-                btn.innerText = 'Verifying Payment...';
+                setButtonLoading(btn, 'Verifying Payment...');
                 fetch('/api/verify-paystack/', {
                     method: 'POST',
                     headers: {
@@ -467,16 +465,14 @@ async function submitForm(e) {
                     document.getElementById('idempotency_key').value = crypto.randomUUID();
                     err.innerText = "Error: " + ex.message;
                     err.style.display = 'block';
-                    btn.disabled = false;
-                    btn.innerText = 'Submit Vote & Pay with Paystack';
+                    resetButtonLoading(btn);
                 });
             },
             onClose: function(){
                 document.getElementById('idempotency_key').value = crypto.randomUUID();
                 err.innerText = "Transaction was not completed, window closed.";
                 err.style.display = 'block';
-                btn.disabled = false;
-                btn.innerText = 'Submit Vote & Pay with Paystack';
+                resetButtonLoading(btn);
             }
         });
 
@@ -488,8 +484,7 @@ async function submitForm(e) {
         if (!receipt) {
             err.innerText = "Please upload your transfer receipt before submitting.";
             err.style.display = 'block';
-            btn.disabled = false;
-            btn.innerText = 'Upload Receipt & Vote';
+            resetButtonLoading(btn);
             return;
         }
 
@@ -519,8 +514,7 @@ async function submitForm(e) {
         } catch(ex) {
             err.innerText = ex.message;
             err.style.display = 'block';
-            btn.disabled = false;
-            btn.innerText = 'Upload Receipt & Vote';
+            resetButtonLoading(btn);
         }
     }
 }

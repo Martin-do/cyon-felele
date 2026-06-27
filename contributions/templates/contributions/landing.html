@@ -637,7 +637,6 @@
 
         <div class="hero-cta">
             <a href="{% url 'contributions:generic_donation' %}" class="btn-gold btn-gold-pulse" style="animation-delay:0.4s;">🙏 Donate / Pledge Now</a>
-            <a href="{% url 'live:board' %}" class="btn-outline">📺 View Live Board</a>
         </div>
     </div>
 </section>
@@ -738,7 +737,6 @@
         <p>Christ the Good Shepherd Catholic Church, Felele, Ibadan</p>
         <span class="script-line">Let your light shine!</span>
         <div class="footer-links">
-            <a href="{% url 'live:board' %}">Live Board</a>
             <a href="{% url 'dashboard:leaderboard' %}">Leaderboard</a>
             {% if not user.is_authenticated %}
             <a href="{% url 'accounts:login' %}">Member Login</a>

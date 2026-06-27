@@ -420,6 +420,9 @@ def approve_contribution_view(request, pk):
         contribution.status = 'approved'
         contribution.save()
         
+        # Trigger Web Push notification
+        send_approval_push_notification(contribution)
+        
         # Trigger WhatsApp notification notice
         send_whatsapp_approval_notice(request, contribution)
         
@@ -603,6 +606,9 @@ class ContributionActionAPIView(APIView):
         if action in ['approve', 'verify']:
             contribution.status = 'approved'
             contribution.save()
+
+            # Trigger Web Push notification
+            send_approval_push_notification(contribution)
 
             # Trigger WhatsApp notification notice
             send_whatsapp_approval_notice(request, contribution)
@@ -794,11 +800,24 @@ def approve_pin_reset_view(request, pk):
 @admin_required
 def send_announcement_view(request):
     if request.method == 'POST':
-        message = request.POST.get('message')
-        # Placeholder for Web Push logic once pywebpush is installed
-        # from webpush import send_group_notification
-        # send_group_notification(group_name="all", payload={"head": "CYON Harvest", "body": message}, ttl=1000)
-        messages.success(request, f'Announcement sent successfully: "{message}"')
+        message = request.POST.get('message', '').strip()
+        if message:
+            subscriptions = WebPushSubscription.objects.all()
+            sent_count = 0
+            
+            payload = {
+                'title': 'CYON Harvest Broadcast',
+                'body': message,
+                'url': '/'
+            }
+            
+            for sub in subscriptions:
+                if send_web_push(sub, payload):
+                    sent_count += 1
+                    
+            messages.success(request, f'Announcement sent successfully to {sent_count} active devices: "{message}"')
+        else:
+            messages.error(request, 'Announcement message cannot be empty.')
         return redirect('dashboard:master_dashboard')
     return redirect('dashboard:master_dashboard')
 
@@ -845,6 +864,92 @@ def import_parishioners_view(request):
                 skipped += 1
         messages.success(request, f"Import complete: {created} added, {skipped} already existed.")
     return redirect('dashboard:master_dashboard')
+
+from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_exempt
+from accounts.models import WebPushSubscription
+from pywebpush import webpush, WebPushException
+import json
+
+@csrf_exempt
+def save_push_subscription_view(request):
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            endpoint = data.get('endpoint')
+            keys = data.get('keys', {})
+            p256dh = keys.get('p256dh')
+            auth = keys.get('auth')
+            
+            if not endpoint or not p256dh or not auth:
+                return JsonResponse({'error': 'Missing subscription parameters'}, status=400)
+            
+            user = request.user if request.user.is_authenticated else None
+            
+            subscription, created = WebPushSubscription.objects.update_or_create(
+                endpoint=endpoint,
+                defaults={
+                    'user': user,
+                    'p256dh': p256dh,
+                    'auth': auth
+                }
+            )
+            return JsonResponse({'status': 'success', 'created': created})
+        except Exception as e:
+            return JsonResponse({'error': str(e)}, status=400)
+    return JsonResponse({'error': 'Method not allowed'}, status=405)
+
+def send_web_push(subscription, payload_data):
+    """
+    Sends a Web Push notification to a given WebPushSubscription.
+    payload_data: dict with 'title', 'body', 'url', etc.
+    """
+    try:
+        vapid_private_key = settings.WEBPUSH_VAPID_PRIVATE_KEY
+        vapid_public_key = settings.WEBPUSH_VAPID_PUBLIC_KEY
+        vapid_claims = {"sub": settings.WEBPUSH_VAPID_CLAIMS}
+
+        if not vapid_private_key or not vapid_public_key:
+            print("VAPID keys not configured.")
+            return False
+
+        subscription_info = {
+            "endpoint": subscription.endpoint,
+            "keys": {
+                "p256dh": subscription.p256dh,
+                "auth": subscription.auth
+            }
+        }
+
+        webpush(
+            subscription_info=subscription_info,
+            data=json.dumps(payload_data),
+            vapid_private_key=vapid_private_key,
+            vapid_claims=vapid_claims,
+            ttl=86400  # 1 day
+        )
+        return True
+    except WebPushException as ex:
+        print(f"WebPushException: {ex}")
+        if ex.response is not None and ex.response.status_code in [404, 410]:
+            subscription.delete()
+        return False
+    except Exception as e:
+        print(f"Error sending web push: {e}")
+        return False
+
+def send_approval_push_notification(contribution):
+    if contribution.referred_by:
+        subscriptions = WebPushSubscription.objects.filter(user=contribution.referred_by)
+        payload = {
+            'title': 'Contribution Approved! 🎉',
+            'body': f'Approved contribution of ₦{contribution.amount:,.2f} from {contribution.name} was added to your profile.',
+            'url': '/dashboard/hub/'
+        }
+        for sub in subscriptions:
+            send_web_push(sub, payload)
+
+
 
 
 

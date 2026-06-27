@@ -61,6 +61,7 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'contributions.context_processors.vapid_settings',
             ],
         },
     },
@@ -144,3 +145,9 @@ PAYSTACK_SECRET_KEY = os.getenv('PAYSTACK_SECRET_KEY', 'sk_test_placeholder')
 # Session settings for PWA app-like experience
 SESSION_COOKIE_AGE = 2592000  # 30 days
 SESSION_EXPIRE_AT_BROWSER_CLOSE = False
+
+# Web Push VAPID Configurations
+WEBPUSH_VAPID_PUBLIC_KEY = os.getenv('WEBPUSH_VAPID_PUBLIC_KEY', '')
+WEBPUSH_VAPID_PRIVATE_KEY = os.getenv('WEBPUSH_VAPID_PRIVATE_KEY', '')
+WEBPUSH_VAPID_CLAIMS = os.getenv('WEBPUSH_VAPID_CLAIMS', 'mailto:admin@cyon.local')
+

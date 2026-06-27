@@ -145,8 +145,10 @@
         select option { background: #1B4332; color: var(--harvest-cream); }
 
         /* ── BUTTONS ──────────────────────────────────────────────── */
-        button.submit-btn, a.submit-btn {
-            display: block;
+        button.submit-btn, a.submit-btn, .btn-submit {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
             width: 100%;
             padding: 1rem;
             border: none;
@@ -162,10 +164,28 @@
             text-align: center;
             text-decoration: none;
             letter-spacing: 0.3px;
+            box-sizing: border-box;
         }
-        button.submit-btn:hover, a.submit-btn:hover { opacity: 0.9; }
-        button.submit-btn:active, a.submit-btn:active { transform: scale(0.98); }
-        button.submit-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+        button.submit-btn:hover, a.submit-btn:hover, .btn-submit:hover { opacity: 0.9; }
+        button.submit-btn:active, a.submit-btn:active, .btn-submit:active { transform: scale(0.98); }
+        button.submit-btn:disabled, .btn-submit:disabled { opacity: 0.6; cursor: not-allowed; }
+
+        /* Spinner loading animation */
+        .harvest-btn-spinner {
+            display: inline-block;
+            width: 1.15rem;
+            height: 1.15rem;
+            vertical-align: middle;
+            border: 2.5px solid currentColor;
+            border-right-color: transparent;
+            border-radius: 50%;
+            animation: harvest-spinner-spin .75s linear infinite;
+            margin-right: 0.6rem;
+            flex-shrink: 0;
+        }
+        @keyframes harvest-spinner-spin {
+            to { transform: rotate(360deg); }
+        }
 
         /* ── ALERTS ───────────────────────────────────────────────── */
         .alert {
@@ -313,17 +333,151 @@
         <span class="script-line">Let your light shine!</span>
     </footer>
 
+    <script>
+        // Global Submit Button Loading Helpers
+        function setButtonLoading(btn, text) {
+            if (!btn) return;
+            
+            if (!btn.hasAttribute('data-original-html')) {
+                btn.setAttribute('data-original-html', btn.innerHTML);
+            }
+            
+            btn.disabled = true;
+            btn.classList.add('is-loading');
+            
+            const displayText = text || btn.innerText || btn.textContent || 'Processing...';
+            
+            btn.innerHTML = `<span class="harvest-btn-spinner"></span> <span>${displayText}</span>`;
+            btn.style.opacity = '0.6';
+            btn.style.cursor = 'not-allowed';
+        }
+
+        function resetButtonLoading(btn) {
+            if (!btn) return;
+            btn.classList.remove('is-loading');
+            btn.disabled = false;
+            
+            const originalHtml = btn.getAttribute('data-original-html');
+            if (originalHtml) {
+                btn.innerHTML = originalHtml;
+            }
+            
+            btn.style.opacity = '';
+            btn.style.cursor = '';
+        }
+
+        // Auto-hook standard form submissions
+        document.addEventListener('submit', function(e) {
+            const form = e.target;
+            
+            // Don't spin for search/filter forms
+            if (form.id === 'filter-form') return;
+            
+            setTimeout(function() {
+                if (e.defaultPrevented) return;
+                
+                // Prevent double submit at form level
+                if (form.getAttribute('data-submitting') === 'true') {
+                    e.preventDefault();
+                    return;
+                }
+                form.setAttribute('data-submitting', 'true');
+                
+                // Find submit button
+                const btn = e.submitter || form.querySelector('button[type="submit"], input[type="submit"]');
+                if (btn) {
+                    setButtonLoading(btn);
+                }
+            }, 0);
+        });
+
+        // Handle page show (back-forward cache) to reset buttons
+        window.addEventListener('pageshow', function(e) {
+            document.querySelectorAll('form').forEach(function(form) {
+                form.removeAttribute('data-submitting');
+            });
+            document.querySelectorAll('button[type="submit"], input[type="submit"], .submit-btn, .btn-submit').forEach(function(btn) {
+                resetButtonLoading(btn);
+            });
+        });
+    </script>
+
     {% block scripts %}{% endblock %}
 
     <script>
-        if ('serviceWorker' in navigator) {
+        if ('serviceWorker' in navigator && 'PushManager' in window) {
             window.addEventListener('load', function() {
                 navigator.serviceWorker.register('/sw.js').then(function(registration) {
                     console.log('ServiceWorker registration successful with scope: ', registration.scope);
+                    
+                    const vapidPublicKey = '{{ WEBPUSH_VAPID_PUBLIC_KEY }}';
+                    if (vapidPublicKey) {
+                        subscribeUserToPush(registration, vapidPublicKey);
+                    }
                 }, function(err) {
                     console.log('ServiceWorker registration failed: ', err);
                 });
             });
+        }
+
+        function urlBase64ToUint8Array(base64String) {
+            const padding = '='.repeat((4 - base64String.length % 4) % 4);
+            const base64 = (base64String + padding)
+                .replace(/\-/g, '+')
+                .replace(/_/g, '/');
+            const rawData = window.atob(base64);
+            const outputArray = new Uint8Array(rawData.length);
+            for (let i = 0; i < rawData.length; ++i) {
+                outputArray[i] = rawData.charCodeAt(i);
+            }
+            return outputArray;
+        }
+
+        function subscribeUserToPush(registration, publicKey) {
+            if (Notification.permission === 'denied') {
+                console.log('User blocked push notifications.');
+                return;
+            }
+
+            // Ask for permission if default, then subscribe
+            Notification.requestPermission().then(permission => {
+                if (permission === 'granted') {
+                    const subscribeOptions = {
+                        userVisibleOnly: true,
+                        applicationServerKey: urlBase64ToUint8Array(publicKey)
+                    };
+
+                    registration.pushManager.subscribe(subscribeOptions)
+                        .then(pushSubscription => {
+                            sendSubscriptionToServer(pushSubscription);
+                        })
+                        .catch(err => {
+                            console.error('Failed to subscribe user to push: ', err);
+                        });
+                }
+            });
+        }
+
+        function sendSubscriptionToServer(subscription) {
+            const subscriptionData = subscription.toJSON();
+            const payload = {
+                endpoint: subscriptionData.endpoint,
+                keys: {
+                    p256dh: subscriptionData.keys.p256dh,
+                    auth: subscriptionData.keys.auth
+                }
+            };
+
+            fetch('{% url "dashboard:save_push_subscription" %}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(payload)
+            })
+            .then(res => res.json())
+            .then(data => console.log('Subscription saved on server:', data))
+            .catch(err => console.error('Error saving subscription:', err));
         }
     </script>
 

@@ -187,8 +187,7 @@
 
         e.preventDefault();
         var submitBtn = document.querySelector('button[name="update_profile"]');
-        submitBtn.innerText = 'Processing...';
-        submitBtn.disabled = true;
+        setButtonLoading(submitBtn, 'Processing...');
 
         var processCount = 0;
         var totalToProcess = (hasProfile ? 1 : 0) + (hasFlyer ? 1 : 0);
@@ -196,7 +195,7 @@
         function checkDone() {
             processCount++;
             if (processCount >= totalToProcess) {
-                submitBtn.innerText = 'Uploading...';
+                setButtonLoading(submitBtn, 'Uploading...');
                 document.getElementById('profileUpdateForm').submit();
             }
         }

@@ -25,4 +25,5 @@ urlpatterns = [
     path('master/categories/<int:pk>/edit/', views.edit_inflow_category_view, name='edit_inflow_category'),
     path('master/categories/<int:pk>/toggle/', views.toggle_inflow_category_view, name='toggle_inflow_category'),
     path('master/parishioners/import/', views.import_parishioners_view, name='import_parishioners'),
+    path('api/webpush/save/', views.save_push_subscription_view, name='save_push_subscription'),
 ]
