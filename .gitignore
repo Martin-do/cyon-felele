@@ -13,3 +13,6 @@ db.sqlite3
 test_api.py
 test_view.py
 progress.md
+media/u2net/
+*.onnx
+
