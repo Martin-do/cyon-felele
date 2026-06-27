@@ -148,6 +148,9 @@
             </span>
             {% endif %}
         </button>
+        <button id="tab-btn-import" onclick="switchTab('import')" class="px-4 py-2 text-amber-100/70 hover:text-amber-100 font-semibold rounded-lg text-sm transition-all duration-300 flex items-center gap-1.5 shrink-0">
+            📋 Import Parishioners
+        </button>
     </div>
 
     <!-- Tab Contents -->
@@ -484,6 +487,18 @@
                             {{ cat.description|default:"No description provided." }}
                         </p>
                         <span class="text-[9px] text-amber-400/50 mt-1 text-left">Created on {{ cat.created_at|date:"M d, Y" }}</span>
+                        
+                        <div class="flex items-center gap-2 mt-2 pt-2 border-t border-amber-500/10">
+                            <button onclick="editCategory('{{ cat.id }}', '{{ cat.name|escapejs }}', '{{ cat.description|escapejs }}')" class="px-2 py-1 bg-amber-500/10 hover:bg-amber-500/20 text-amber-300 rounded text-[10px] font-bold uppercase transition">
+                                Edit
+                            </button>
+                            <form method="POST" action="{% url 'dashboard:toggle_inflow_category' cat.pk %}" class="inline">
+                                {% csrf_token %}
+                                <button type="submit" class="px-2 py-1 {% if cat.is_active %}bg-rose-500/10 hover:bg-rose-500/20 text-rose-300{% else %}bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-300{% endif %} rounded text-[10px] font-bold uppercase transition">
+                                    {% if cat.is_active %}Deactivate{% else %}Activate{% endif %}
+                                </button>
+                            </form>
+                        </div>
                     </div>
                     {% empty %}
                     <div class="col-span-full py-8 text-center text-amber-200/50 text-sm bg-emerald-950/20 rounded-xl border border-amber-500/10">
@@ -491,6 +506,30 @@
                     </div>
                     {% endfor %}
                 </div>
+            </div>
+        </div>
+        
+        <!-- Category Edit Modal -->
+        <div id="edit-category-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4" onclick="if(event.target === this) this.classList.add('hidden')">
+            <div class="bg-emerald-950 border border-amber-500/20 rounded-2xl p-6 max-w-md w-full shadow-2xl relative text-left">
+                <button onclick="document.getElementById('edit-category-modal').classList.add('hidden')" class="absolute top-4 right-4 text-amber-200/60 hover:text-amber-100 transition">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                </button>
+                <h3 class="text-base font-bold text-amber-100 uppercase tracking-wider mb-4">Edit Category</h3>
+                <form method="POST" id="edit-category-form" action="">
+                    {% csrf_token %}
+                    <div class="mb-4">
+                        <label class="block text-amber-400 text-xs font-semibold mb-1.5">Category Name</label>
+                        <input type="text" name="name" id="edit-category-name" required class="w-full bg-emerald-900/40 border border-amber-500/20 rounded-lg px-3 py-2 text-amber-50 text-sm focus:outline-none focus:border-amber-400 transition">
+                    </div>
+                    <div class="mb-4">
+                        <label class="block text-amber-400 text-xs font-semibold mb-1.5">Description</label>
+                        <textarea name="description" id="edit-category-description" class="w-full h-24 bg-emerald-900/40 border border-amber-500/20 rounded-lg px-3 py-2 text-amber-50 text-sm focus:outline-none focus:border-amber-400 transition resize-none"></textarea>
+                    </div>
+                    <button type="submit" class="w-full bg-gradient-to-r from-amber-400 to-amber-600 hover:from-amber-300 hover:to-amber-500 text-emerald-950 font-bold py-2 rounded-lg transition shadow-md text-sm">
+                        Save Changes
+                    </button>
+                </form>
             </div>
         </div>
     </div>
@@ -571,6 +610,24 @@
             <p class="text-xs text-amber-200/40 text-left">No PINs reset recently.</p>
             {% endif %}
         </div>
+    </div>
+
+    <!-- Tab Section: Import Parishioners -->
+    <div id="tab-content-import" class="tab-content" style="display:none;flex-direction:column;gap:1.5rem;background:rgba(6,78,59,0.3);border:1px solid rgba(245,158,11,0.15);padding:1.5rem;border-radius:1rem;backdrop-filter:blur(12px);">
+        <div>
+            <h3 class="text-lg font-bold text-amber-100 text-left">Import Parishioners Registry</h3>
+            <p class="text-sm text-amber-200/70 text-left">Paste a list of parish member names (one per line) to populate the usher's autocomplete search database.</p>
+        </div>
+        <form method="POST" action="{% url 'dashboard:import_parishioners' %}" class="flex flex-col gap-4">
+            {% csrf_token %}
+            <div class="text-left">
+                <label class="block text-amber-400 text-xs font-semibold mb-1.5">Names List (one name per line)</label>
+                <textarea name="names" rows="12" required placeholder="Adeyemi Blessing&#10;Okafor Emmanuel&#10;Martins Jaiyeola" class="w-full bg-emerald-900/40 border border-amber-500/20 rounded-lg px-3 py-2 text-amber-50 text-sm font-mono focus:outline-none focus:border-amber-400 transition resize-y"></textarea>
+            </div>
+            <button type="submit" class="w-full sm:w-auto self-start bg-gradient-to-r from-amber-400 to-amber-600 hover:from-amber-300 hover:to-amber-500 text-emerald-950 font-bold px-6 py-2.5 rounded-lg transition shadow-md text-sm hover:scale-[1.02]">
+                Import Parishioners
+            </button>
+        </form>
     </div>
 
 </div> <!-- End outer container -->
@@ -1069,7 +1126,7 @@
     // Tabs switching — PURE inline styles, zero CSS class dependencies
     function switchTab(tabId) {
         // Get all tab content divs by their IDs directly
-        var ids = ['tab-content-ledger', 'tab-content-roles', 'tab-content-categories', 'tab-content-resets'];
+        var ids = ['tab-content-ledger', 'tab-content-roles', 'tab-content-categories', 'tab-content-resets', 'tab-content-import'];
         for (var i = 0; i < ids.length; i++) {
             var el = document.getElementById(ids[i]);
             if (el) {
@@ -1090,7 +1147,7 @@
         }
 
         // Update button styles
-        var btnIds = ['ledger', 'roles', 'categories', 'resets'];
+        var btnIds = ['ledger', 'roles', 'categories', 'resets', 'import'];
         for (var j = 0; j < btnIds.length; j++) {
             var btn = document.getElementById('tab-btn-' + btnIds[j]);
             if (btn) {
@@ -1290,6 +1347,15 @@
         initFiltersFromUrl();
         fetchTransactions(currentFetchUrl);
     });
+
+    // Edit category modal helper
+    function editCategory(id, name, description) {
+        var form = document.getElementById('edit-category-form');
+        form.action = '/dashboard/master/categories/' + id + '/edit/';
+        document.getElementById('edit-category-name').value = name;
+        document.getElementById('edit-category-description').value = description;
+        document.getElementById('edit-category-modal').classList.remove('hidden');
+    }
 
     // Load initial data
     window.addEventListener('DOMContentLoaded', () => {

@@ -7,7 +7,7 @@ from .serializers import ContributionSerializer
 
 from asgiref.sync import async_to_sync
 from channels.layers import get_channel_layer
-from django.db.models import Sum
+from django.db.models import Sum, Q
 
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -86,49 +86,61 @@ def donation_form_view(request, referral_slug=None):
         
         # Calculate leaderboard position
         # Get all members with the same contestant title
+        top_3 = []
         if referrer.contestant_title and referrer.contestant_title != 'None':
-            competitors = Member.objects.filter(is_active=True, is_staff=False, contestant_title=referrer.contestant_title)
-            
-            leaderboard = []
-            for comp in competitors:
-                comp_total = Contribution.objects.filter(referred_by=comp, is_voided=False, status='approved').aggregate(Sum('amount'))['amount__sum'] or 0.00
-                leaderboard.append({'id': comp.id, 'total': comp_total})
-                
-                if comp.id == referrer.id:
-                    total_amount = comp_total
-                    
-            leaderboard = sorted(leaderboard, key=lambda x: x['total'], reverse=True)
-            
-            top_3 = []
-            for index, item in enumerate(leaderboard):
+            competitors = (
+                Member.objects
+                .filter(is_active=True, is_staff=False, contestant_title=referrer.contestant_title)
+                .annotate(
+                    total_raised=Sum(
+                        'referrals__amount',
+                        filter=Q(referrals__is_voided=False, referrals__status='approved')
+                    )
+                )
+                .order_by('-total_raised')
+            )
+
+            for index, comp in enumerate(competitors):
+                comp_total = comp.total_raised or 0.00
+                rank = index + 1
+
                 if index < 3:
-                    comp_member = Member.objects.get(id=item['id'])
                     top_3.append({
-                        'rank': index + 1,
-                        'name': comp_member.name,
-                        'total': item['total'],
-                        'votes': int(item['total'] // 500),
-                        'picture_url': comp_member.profile_picture.url if comp_member.profile_picture else None,
-                        'initial': comp_member.name[0].upper()
+                        'rank': rank,
+                        'name': comp.name,
+                        'total': comp_total,
+                        'votes': int(comp_total // 500),
+                        'picture_url': comp.profile_picture.url if comp.profile_picture else None,
+                        'initial': comp.name[0].upper(),
                     })
 
-                if item['id'] == referrer.id:
-                    leaderboard_position = index + 1
-                    
+                if comp.id == referrer.id:
+                    leaderboard_position = rank
+                    total_amount = comp_total
+
         # Set a target amount for progress bars
         target_amount = 5000000 
         progress_percentage = min(int((total_amount / target_amount) * 100), 100)
 
-        import os
-        flyer_path = os.path.join(settings.MEDIA_ROOT, 'flyers', f"{referrer.id}.png")
-        og_image_url = f"{settings.MEDIA_URL}flyers/{referrer.id}.png" if os.path.exists(flyer_path) else None
+        og_image_url = None
+        if referrer.custom_flyer:
+            # User uploaded a custom flyer — use it first
+            og_image_url = request.build_absolute_uri(referrer.custom_flyer.url)
+        else:
+            # Fall back to Playwright-generated flyer
+            import os
+            flyer_path = os.path.join(settings.MEDIA_ROOT, 'flyers', f"{referrer.id}.png")
+            if os.path.exists(flyer_path):
+                og_image_url = request.build_absolute_uri(
+                    f"{settings.MEDIA_URL}flyers/{referrer.id}.png"
+                )
 
         context = {
             'referrer': referrer,
             'idempotency_key': str(uuid.uuid4()),
             'leaderboard_position': leaderboard_position,
             'total_amount': total_amount,
-            'top_3': top_3 if 'top_3' in locals() else [],
+            'top_3': top_3,
             'progress_percentage': progress_percentage,
             'target_amount': target_amount,
             'paystack_public_key': settings.PAYSTACK_PUBLIC_KEY,

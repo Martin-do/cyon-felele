@@ -409,6 +409,40 @@ def approval_center_view(request):
     }
     return render(request, 'dashboard/approval_center.html', context)
 
+def send_whatsapp_approval_notice(request, contribution):
+    import requests as http_requests
+    from django.urls import reverse
+    
+    receipt_url = request.build_absolute_uri(
+        reverse('contributions:receipt', args=[str(contribution.id)])
+    )
+    try:
+        phone = contribution.phone
+        if phone:
+            phone = phone.strip()
+            # If phone starts with + or is just numbers, format it
+            if not phone.startswith('+'):
+                # Normalise Nigerian numbers
+                phone = '234' + phone.lstrip('0')
+            # Strip out any non-numeric characters just in case
+            phone = ''.join(c for c in phone if c.isdigit() or c == '+')
+            
+            http_requests.post(
+                'http://localhost:3000/send',   # Baileys service port
+                json={
+                    'phone': phone,
+                    'message': (
+                        f"✅ Hello {contribution.name}, your contribution of "
+                        f"₦{contribution.amount:,.0f} to the CYON Harvest has been confirmed!\n\n"
+                        f"View your receipt here: {receipt_url}\n\n"
+                        "Thank you for supporting our youth. 🙏"
+                    )
+                },
+                timeout=5
+            )
+    except Exception as e:
+        print(f"Failed to send WhatsApp notification: {e}")
+
 @approver_required
 def approve_contribution_view(request, pk):
     if request.method == 'POST':
@@ -416,8 +450,8 @@ def approve_contribution_view(request, pk):
         contribution.status = 'approved'
         contribution.save()
         
-        # Trigger notification (Email/SMS) here
-        print(f"NOTIFICATION: Sending approval notice to {contribution.name} at {contribution.phone}.")
+        # Trigger WhatsApp notification notice
+        send_whatsapp_approval_notice(request, contribution)
         
         messages.success(request, f"Approved contribution from {contribution.name}.")
     return redirect('dashboard:approval_center')
@@ -455,17 +489,31 @@ def live_entry_view(request):
             except InflowCategory.DoesNotExist:
                 pass
                 
-        Contribution.objects.create(
-            name=name,
-            amount=amount,
-            method=method,
-            phone=phone,
-            referred_by=referrer,
-            inflow_category=category,
-            source='live_log',
-            status='approved',
-            recorder_id=request.user.name if request.user.name else request.user.identifier
+        import uuid as uuid_module
+        idempotency_key = request.POST.get('idempotency_key', '').strip()
+        try:
+            key = uuid_module.UUID(idempotency_key)
+        except (ValueError, AttributeError):
+            key = uuid_module.uuid4()  # fallback if JS didn't fire
+            
+        contribution, created = Contribution.objects.get_or_create(
+            idempotency_key=key,
+            defaults={
+                'name': name,
+                'amount': amount,
+                'method': method,
+                'phone': phone,
+                'referred_by': referrer,
+                'inflow_category': category,
+                'source': 'live_log',
+                'status': 'approved',
+                'recorder_id': request.user.identifier,
+            }
         )
+        if not created:
+            messages.warning(request, "Duplicate submission detected — entry already recorded.")
+            return redirect('dashboard:live_entry')
+            
         messages.success(request, f"Successfully recorded {method} payment from {name}.")
         return redirect('dashboard:live_entry')
         
@@ -586,7 +634,8 @@ class ContributionActionAPIView(APIView):
             contribution.status = 'approved'
             contribution.save()
 
-            print(f"NOTIFICATION: Sending approval notice to {contribution.name} at {contribution.phone}.")
+            # Trigger WhatsApp notification notice
+            send_whatsapp_approval_notice(request, contribution)
 
             # Trigger WebSocket push for Live Board
             channel_layer = get_channel_layer()
@@ -783,23 +832,49 @@ def send_announcement_view(request):
         return redirect('dashboard:master_dashboard')
     return redirect('dashboard:master_dashboard')
 
-
-from django.http import JsonResponse
+@admin_required
+def edit_inflow_category_view(request, pk):
+    category = get_object_or_404(InflowCategory, pk=pk)
+    if request.method == 'POST':
+        name = request.POST.get('name', '').strip()
+        description = request.POST.get('description', '').strip()
+        if name:
+            category.name = name
+            category.description = description
+            category.save()
+            messages.success(request, f"Category updated to '{name}'.")
+        else:
+            messages.error(request, "Category name is required.")
+    return redirect('dashboard:master_dashboard')
 
 @admin_required
-def debug_members_view(request):
-    """Temporary debug endpoint to diagnose member visibility issues."""
-    all_members = Member.objects.all().order_by('name').values(
-        'id', 'name', 'identifier', 'role', 'is_superuser', 'is_staff',
-        'is_active', 'has_completed_onboarding'
-    )
-    youth_members = Member.objects.filter(is_active=True).order_by('name').values(
-        'id', 'name', 'identifier', 'role', 'is_superuser', 'is_staff',
-        'is_active', 'has_completed_onboarding'
-    )
-    return JsonResponse({
-        'total_all': Member.objects.count(),
-        'total_youth_visible': Member.objects.filter(is_active=True).count(),
-        'all_members': list(all_members),
-        'youth_members_shown_in_roles_tab': list(youth_members),
-    }, json_dumps_params={'indent': 2})
+def toggle_inflow_category_view(request, pk):
+    category = get_object_or_404(InflowCategory, pk=pk)
+    if request.method == 'POST':
+        category.is_active = not category.is_active
+        category.save()
+        state = "activated" if category.is_active else "deactivated"
+        messages.success(request, f"Category '{category.name}' {state}.")
+    return redirect('dashboard:master_dashboard')
+
+@admin_required
+def import_parishioners_view(request):
+    from contributions.models import Parishioner
+    if request.method == 'POST':
+        raw = request.POST.get('names', '')
+        lines = [line.strip() for line in raw.splitlines() if line.strip()]
+        created, skipped = 0, 0
+        for name in lines:
+            _, was_created = Parishioner.objects.get_or_create(
+                name__iexact=name,
+                defaults={'name': name, 'source': 'registry'}
+            )
+            if was_created:
+                created += 1
+            else:
+                skipped += 1
+        messages.success(request, f"Import complete: {created} added, {skipped} already existed.")
+    return redirect('dashboard:master_dashboard')
+
+
+

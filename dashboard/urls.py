@@ -22,5 +22,7 @@ urlpatterns = [
     path('api/transactions/<uuid:pk>/action/', views.ContributionActionAPIView.as_view(), name='contribution_action'),
     path('api/transactions/<uuid:pk>/requery/', views.RequeryPaystackTransactionView.as_view(), name='requery_paystack'),
     path('master/send-announcement/', views.send_announcement_view, name='send_announcement'),
-    path('master/debug-members/', views.debug_members_view, name='debug_members'),
+    path('master/categories/<int:pk>/edit/', views.edit_inflow_category_view, name='edit_inflow_category'),
+    path('master/categories/<int:pk>/toggle/', views.toggle_inflow_category_view, name='toggle_inflow_category'),
+    path('master/parishioners/import/', views.import_parishioners_view, name='import_parishioners'),
 ]

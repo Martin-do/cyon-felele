@@ -60,6 +60,7 @@
 
     <form method="POST" action="{% url 'dashboard:live_entry' %}" id="live-entry-form">
         {% csrf_token %}
+        <input type="hidden" name="idempotency_key" id="idempotency_key_field">
         <div class="form-group">
             <label class="form-label" for="name">Donor Name *</label>
             <input type="text" id="name" name="name" class="form-control" required placeholder="Full Name">
@@ -198,6 +199,29 @@
                 opt.classList.remove('open');
             });
         });
+
+        // Idempotency Key logic
+        function generateUUID() {
+            return ([1e7]+-1e3+-4e3+-8e3+-1e11).replace(/[018]/g, c =>
+                (c ^ crypto.getRandomValues(new Uint8Array(1))[0] & 15 >> c / 4).toString(16)
+            );
+        }
+
+        const idKeyField = document.getElementById('idempotency_key_field');
+        if (idKeyField) {
+            idKeyField.value = generateUUID();
+        }
+
+        const form = document.getElementById('live-entry-form');
+        if (form) {
+            form.addEventListener('submit', function() {
+                setTimeout(function() {
+                    if (idKeyField) {
+                        idKeyField.value = generateUUID();
+                    }
+                }, 500);
+            });
+        }
     });
 </script>
 {% endblock %}
