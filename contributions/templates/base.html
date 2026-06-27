@@ -140,6 +140,88 @@
             box-shadow: 0 0 0 3px rgba(201, 162, 39, 0.2);
         }
 
+        /* ── CUSTOM SELECT DROPDOWN SYSTEM ───────────────────────── */
+        .custom-select-wrapper {
+            position: relative;
+            width: 100%;
+        }
+        .custom-select-trigger {
+            width: 100%;
+            padding: 0.85rem 1rem;
+            background: rgba(20, 48, 31, 0.8);
+            border: 1.5px solid rgba(201, 162, 39, 0.25);
+            border-radius: 10px;
+            color: var(--harvest-cream);
+            font-family: 'Inter', sans-serif;
+            font-size: 1rem;
+            text-align: left;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: border-color 0.25s, box-shadow 0.25s;
+            user-select: none;
+            box-sizing: border-box;
+        }
+        .custom-select-trigger:focus, .custom-select-trigger.active {
+            outline: none;
+            border-color: var(--harvest-gold-500);
+            box-shadow: 0 0 0 3px rgba(201, 162, 39, 0.2);
+        }
+        .custom-select-trigger::after {
+            content: '▼';
+            font-size: 0.7rem;
+            color: var(--harvest-gold-400);
+            transition: transform 0.2s ease;
+            margin-left: 0.5rem;
+        }
+        .custom-select-trigger.active::after {
+            transform: rotate(180deg);
+        }
+        .custom-select-options {
+            position: absolute;
+            top: calc(100% + 5px);
+            left: 0;
+            right: 0;
+            background: rgba(15, 37, 24, 0.98);
+            border: 1.5px solid rgba(201, 162, 39, 0.3);
+            border-radius: 10px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            z-index: 9999;
+            max-height: 250px;
+            overflow-y: auto;
+            display: none;
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            box-sizing: border-box;
+        }
+        .custom-select-options.open {
+            display: block;
+            animation: fadeInOptions 0.2s ease both;
+        }
+        .custom-select-option {
+            padding: 0.75rem 1rem;
+            color: var(--harvest-cream);
+            cursor: pointer;
+            font-size: 0.95rem;
+            transition: background 0.15s, color 0.15s;
+            text-align: left;
+        }
+        .custom-select-option:hover {
+            background: rgba(201, 162, 39, 0.2);
+            color: var(--harvest-gold-400);
+        }
+        .custom-select-option.selected {
+            background: rgba(201, 162, 39, 0.35);
+            color: var(--harvest-gold-400);
+            font-weight: 700;
+        }
+        
+        @keyframes fadeInOptions {
+            from { opacity: 0; transform: translateY(-5px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
         input::placeholder { color: rgba(168, 197, 181, 0.5); }
 
         select option { background: #1B4332; color: var(--harvest-cream); }
@@ -427,6 +509,101 @@
                 resetButtonLoading(btn);
             });
         });
+
+        // Custom Select Dropdown system
+        function initializeCustomSelects() {
+            document.querySelectorAll('select').forEach(function(select) {
+                if (select.parentNode.classList.contains('custom-select-wrapper')) return;
+                
+                const wrapper = document.createElement('div');
+                wrapper.className = 'custom-select-wrapper';
+                select.parentNode.insertBefore(wrapper, select);
+                wrapper.appendChild(select);
+                
+                select.style.display = 'none';
+                
+                const trigger = document.createElement('div');
+                trigger.className = 'custom-select-trigger';
+                trigger.tabIndex = 0;
+                
+                const optionsContainer = document.createElement('div');
+                optionsContainer.className = 'custom-select-options';
+                
+                function populateOptions() {
+                    optionsContainer.innerHTML = '';
+                    let activeText = '';
+                    
+                    Array.from(select.options).forEach(function(option, index) {
+                        const optDiv = document.createElement('div');
+                        optDiv.className = 'custom-select-option';
+                        optDiv.innerText = option.innerText;
+                        optDiv.dataset.value = option.value;
+                        optDiv.dataset.index = index;
+                        
+                        if (option.selected) {
+                            optDiv.classList.add('selected');
+                            activeText = option.innerText;
+                        }
+                        
+                        optDiv.addEventListener('click', function(e) {
+                            e.stopPropagation();
+                            select.selectedIndex = index;
+                            
+                            const event = new Event('change', { bubbles: true });
+                            select.dispatchEvent(event);
+                            
+                            populateOptions();
+                            
+                            optionsContainer.classList.remove('open');
+                            trigger.classList.remove('active');
+                        });
+                        
+                        optionsContainer.appendChild(optDiv);
+                    });
+                    
+                    trigger.innerText = activeText || select.options[0]?.innerText || 'Select Option';
+                }
+                
+                populateOptions();
+                
+                const observer = new MutationObserver(populateOptions);
+                observer.observe(select, { childList: true });
+                
+                trigger.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    const isOpen = optionsContainer.classList.contains('open');
+                    
+                    document.querySelectorAll('.custom-select-options.open').forEach(function(el) {
+                        el.classList.remove('open');
+                        el.previousSibling.classList.remove('active');
+                    });
+                    
+                    if (!isOpen) {
+                        optionsContainer.classList.add('open');
+                        trigger.classList.add('active');
+                    }
+                });
+                
+                trigger.addEventListener('keydown', function(e) {
+                    if (e.key === ' ' || e.key === 'Enter') {
+                        e.preventDefault();
+                        trigger.click();
+                    }
+                });
+                
+                wrapper.appendChild(trigger);
+                wrapper.appendChild(optionsContainer);
+            });
+            
+            document.addEventListener('click', function() {
+                document.querySelectorAll('.custom-select-options.open').forEach(function(el) {
+                    el.classList.remove('open');
+                    el.previousSibling.classList.remove('active');
+                });
+            });
+        }
+
+        window.addEventListener('DOMContentLoaded', initializeCustomSelects);
     </script>
 
     {% block scripts %}{% endblock %}
