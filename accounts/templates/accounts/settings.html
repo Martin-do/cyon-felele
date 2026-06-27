@@ -133,6 +133,12 @@
         <button type="submit" name="update_profile" class="btn-submit">Update Profile</button>
     </form>
 
+    <div style="margin-top: 1rem;">
+        <a href="{% url 'dashboard:flyer' %}?force=true" class="btn-submit" style="display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem; text-decoration: none; background: #C9A227; color: #1B3B2B; font-weight: 700; border-radius: 8px; width: 100%; box-sizing: border-box; text-align: center;" onclick="this.style.opacity='0.6'; this.style.pointerEvents='none'; this.innerHTML='<span class=\'harvest-btn-spinner\' style=\'border-color:#1B3B2B;border-top-color:transparent;\'></span> Regenerating Flyer...';">
+            🔄 Force Regenerate My Flyer
+        </a>
+    </div>
+
     <!-- Security Preferences Form -->
     <h3 class="section-title">Security Preferences</h3>
     <form method="POST" action="{% url 'accounts:settings' %}">
