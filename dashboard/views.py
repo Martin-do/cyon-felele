@@ -90,6 +90,42 @@ def member_hub_view(request):
     return render(request, 'dashboard/member_hub.html', context)
 
 @login_required(login_url='/accounts/login/')
+def redeem_pledge_view(request):
+    from contributions.models import Pledge, Contribution
+    
+    if request.method == 'POST':
+        pledge_id = request.POST.get('pledge_id')
+        amount = request.POST.get('amount')
+        method = request.POST.get('method') # 'Transfer' or 'Online'
+        
+        pledge = get_object_or_404(Pledge, pk=pledge_id, member=request.user)
+        
+        # Create a pending contribution
+        import uuid as uuid_module
+        contribution = Contribution.objects.create(
+            idempotency_key=uuid_module.uuid4(),
+            name=request.user.name,
+            phone=request.user.identifier,
+            amount=amount,
+            method=method,
+            source='member_hub',
+            status='pending',
+            referred_by=request.user,
+            inflow_category=pledge.inflow_category,
+            pledge=pledge
+        )
+        
+        if method == 'Online':
+            # Redirect to Paystack or handle online payment later
+            messages.info(request, "Online payment for pledge redemption will be processed. (Paystack Integration Pending)")
+            return redirect('dashboard:my_pledges')
+        else:
+            messages.success(request, f"Your manual transfer of ₦{amount} towards your pledge has been logged. It is now pending approval by an admin.")
+            return redirect('dashboard:my_pledges')
+
+    return redirect('dashboard:my_pledges')
+
+@login_required(login_url='/accounts/login/')
 def generate_flyer_view(request):
     user = request.user
     
@@ -257,6 +293,49 @@ def leaderboard_view(request):
     }
     return render(request, 'dashboard/leaderboard.html', context)
 
+@login_required(login_url='/accounts/login/')
+def my_pledges_view(request):
+    from contributions.models import Pledge, InflowCategory
+    
+    user = request.user
+    my_pledges = Pledge.objects.filter(member=user).exclude(status='voided').order_by('-timestamp')
+    categories = InflowCategory.objects.all()
+    
+    # Calculate balances
+    for pledge in my_pledges:
+        pledge.balance = pledge.amount_pledged - pledge.amount_fulfilled
+        
+    context = {
+        'my_pledges': my_pledges,
+        'categories': categories,
+    }
+    return render(request, 'dashboard/my_pledges.html', context)
+
+@login_required(login_url='/accounts/login/')
+def create_self_pledge_view(request):
+    from contributions.models import Pledge, InflowCategory
+    
+    if request.method == 'POST':
+        amount = request.POST.get('amount')
+        category_id = request.POST.get('category_id')
+        note = request.POST.get('note')
+        
+        category = InflowCategory.objects.get(id=category_id) if category_id else None
+        
+        Pledge.objects.create(
+            member=request.user,
+            name=request.user.name,
+            phone=request.user.identifier,
+            amount_pledged=amount,
+            inflow_category=category,
+            note=note,
+            status='pending' # Needs admin approval
+        )
+        
+        messages.success(request, "Your pledge has been submitted and is pending admin approval. Thank you!")
+        
+    return redirect('dashboard:my_pledges')
+
 import csv
 from django.http import HttpResponse
 from functools import wraps
@@ -336,6 +415,10 @@ def master_dashboard_view(request):
     pin_requests = PinResetRequest.objects.filter(is_resolved=False).order_by('-created_at')
     resolved_resets = PinResetRequest.objects.filter(is_resolved=True).order_by('-resolved_at')[:10]
 
+    from contributions.models import Pledge
+    pending_pledges = Pledge.objects.filter(status='pending').order_by('-timestamp')
+    approved_pledges = Pledge.objects.filter(status='approved').order_by('-timestamp')
+
     context = {
         'contributions': contributions,
         'total_amount': total_amount,
@@ -352,6 +435,8 @@ def master_dashboard_view(request):
         'pin_requests': pin_requests,
         'resolved_resets': resolved_resets,
         'query_string': request.GET.urlencode(),
+        'pending_pledges': pending_pledges,
+        'approved_pledges': approved_pledges,
     }
     return render(request, 'dashboard/admin_master.html', context)
 
@@ -419,6 +504,11 @@ def approve_contribution_view(request, pk):
         contribution = get_object_or_404(Contribution, pk=pk)
         contribution.status = 'approved'
         contribution.save()
+        
+        # If this contribution is tied to a pledge, update the fulfilled amount
+        if contribution.pledge:
+            contribution.pledge.amount_fulfilled += contribution.amount
+            contribution.pledge.save()
         
         # Trigger Web Push notification
         send_approval_push_notification(contribution)
@@ -819,6 +909,111 @@ def send_announcement_view(request):
         else:
             messages.error(request, 'Announcement message cannot be empty.')
         return redirect('dashboard:master_dashboard')
+    return redirect('dashboard:master_dashboard')
+
+@admin_required
+def generate_admin_token_view(request):
+    if request.method == 'POST':
+        import random
+        from django.utils import timezone
+        from datetime import timedelta
+        from accounts.models import AdminToken
+        
+        # Generate a 6-digit token
+        token_str = f"{random.randint(100000, 999999)}"
+        # Valid for 10 minutes
+        expires = timezone.now() + timedelta(minutes=10)
+        
+        AdminToken.objects.create(
+            admin=request.user,
+            token=token_str,
+            expires_at=expires
+        )
+        
+        messages.success(request, f"Generated Override Token: {token_str}. It is valid for 10 minutes.")
+        return redirect('dashboard:master_dashboard')
+    return redirect('dashboard:master_dashboard')
+
+@admin_required
+def record_pledge_view(request):
+    if request.method == 'POST':
+        member_id = request.POST.get('member_id')
+        name = request.POST.get('name')
+        phone = request.POST.get('phone')
+        amount = request.POST.get('amount')
+        category_id = request.POST.get('category_id')
+        note = request.POST.get('note')
+        
+        from contributions.models import Pledge
+        from accounts.models import Member
+        
+        member = Member.objects.get(id=member_id) if member_id else None
+        
+        # Determine name/phone based on member or external
+        if member:
+            pledge_name = member.name
+            pledge_phone = member.identifier
+        else:
+            pledge_name = name
+            pledge_phone = phone
+
+        category = None
+        if category_id:
+            category = InflowCategory.objects.get(id=category_id)
+
+        Pledge.objects.create(
+            member=member,
+            name=pledge_name,
+            phone=pledge_phone,
+            amount_pledged=amount,
+            inflow_category=category,
+            note=note,
+            status='approved' # Admin created, so instantly approved
+        )
+        messages.success(request, f"Pledge successfully recorded for {pledge_name}.")
+    return redirect('dashboard:master_dashboard')
+
+@admin_required
+def approve_pledge_view(request, pk):
+    from contributions.models import Pledge
+    pledge = get_object_or_404(Pledge, pk=pk)
+    if request.method == 'POST':
+        pledge.status = 'approved'
+        pledge.save()
+        messages.success(request, f"Pledge for {pledge.name} approved.")
+    return redirect('dashboard:master_dashboard')
+
+@admin_required
+def revoke_pledge_view(request, pk):
+    from contributions.models import Pledge
+    from accounts.models import AdminToken
+    pledge = get_object_or_404(Pledge, pk=pk)
+    if request.method == 'POST':
+        token_str = request.POST.get('override_token')
+        
+        # Token must be valid, not used, and NOT generated by the current admin
+        try:
+            token_obj = AdminToken.objects.get(token=token_str, is_used=False)
+            if not token_obj.is_valid():
+                messages.error(request, "Override Token has expired.")
+                return redirect('dashboard:master_dashboard')
+            
+            if token_obj.admin == request.user:
+                messages.error(request, "You cannot use your own Override Token. Another admin must authorize this.")
+                return redirect('dashboard:master_dashboard')
+            
+            # Token is valid and from a different admin!
+            token_obj.is_used = True
+            token_obj.save()
+            
+            pledge.status = 'voided'
+            pledge.save()
+            
+            messages.success(request, f"Pledge for {pledge.name} has been successfully revoked (Authorized by {token_obj.admin.name}).")
+            
+        except AdminToken.DoesNotExist:
+            messages.error(request, "Invalid Override Token.")
+            
     return redirect('dashboard:master_dashboard')
 
 @admin_required

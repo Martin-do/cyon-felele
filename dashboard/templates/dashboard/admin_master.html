@@ -148,6 +148,14 @@
             </span>
             {% endif %}
         </button>
+        <button id="tab-btn-pledges" onclick="switchTab('pledges')" class="px-4 py-2 text-amber-100/70 hover:text-amber-100 font-semibold rounded-lg text-sm transition-all duration-300 flex items-center gap-1.5 shrink-0">
+            📜 Pledges & Bills
+            {% if pending_pledges.count > 0 %}
+            <span class="bg-rose-500 text-white font-bold text-[10px] w-5 h-5 rounded-full flex items-center justify-center animate-pulse">
+                {{ pending_pledges.count }}
+            </span>
+            {% endif %}
+        </button>
         <button id="tab-btn-import" onclick="switchTab('import')" class="px-4 py-2 text-amber-100/70 hover:text-amber-100 font-semibold rounded-lg text-sm transition-all duration-300 flex items-center gap-1.5 shrink-0">
             🛠️ Admin Tools
         </button>
@@ -612,42 +620,225 @@
         </div>
     </div>
 
-    <!-- Tab Section: Admin Tools -->
-    <div id="tab-content-import" class="tab-content" style="display:none;flex-direction:column;gap:1.5rem;background:rgba(6,78,59,0.3);border:1px solid rgba(245,158,11,0.15);padding:1.5rem;border-radius:1rem;backdrop-filter:blur(12px);">
-        <div>
-            <h3 class="text-lg font-bold text-amber-100 text-left">🛠️ Admin & Communication Tools</h3>
-            <p class="text-sm text-amber-200/70 text-left">Manage internal registry imports and send secure broadcast notifications directly to youth devices.</p>
+    </div>
+
+    <!-- Tab Section: Pledges -->
+    <div id="tab-content-pledges" class="tab-content" style="display:none;flex-direction:column;gap:1.5rem;">
+        <div class="bg-emerald-950/40 border border-amber-500/15 p-5 rounded-2xl backdrop-blur-md animate-fade-in-up stagger-1 shadow-lg">
+            <div class="flex justify-between items-center mb-4">
+                <div class="text-left">
+                    <h3 class="text-lg font-bold text-amber-100 flex items-center gap-2">
+                        📜 Pending Pledge Proposals
+                        {% if pending_pledges.count > 0 %}
+                        <span class="bg-rose-500 text-white text-[10px] px-2 py-0.5 rounded-full font-bold">{{ pending_pledges.count }}</span>
+                        {% endif %}
+                    </h3>
+                    <p class="text-xs text-amber-200/70">Pledges proposed by youths that require approval to become official bills.</p>
+                </div>
+            </div>
+            
+            <div class="overflow-x-auto w-full border border-amber-500/20 rounded-xl bg-emerald-900/20">
+                <table class="w-full text-left border-collapse min-w-[700px]">
+                    <thead>
+                        <tr class="bg-emerald-900/60 text-amber-200 border-b border-amber-500/20 text-xs sm:text-sm">
+                            <th class="p-3 font-semibold whitespace-nowrap">Date</th>
+                            <th class="p-3 font-semibold whitespace-nowrap">Member / Name</th>
+                            <th class="p-3 font-semibold whitespace-nowrap">Category</th>
+                            <th class="p-3 font-semibold text-right whitespace-nowrap">Amount (₦)</th>
+                            <th class="p-3 font-semibold text-center whitespace-nowrap">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for pledge in pending_pledges %}
+                        <tr class="border-b border-amber-500/10 hover:bg-emerald-800/30 transition text-sm text-amber-50">
+                            <td class="p-3 whitespace-nowrap">{{ pledge.timestamp|date:"M d, Y" }}</td>
+                            <td class="p-3 whitespace-nowrap font-medium">{{ pledge.name }} {% if pledge.member %}<span class="text-[10px] text-emerald-400 border border-emerald-500/30 px-1.5 py-0.5 rounded ml-1">Youth</span>{% endif %}</td>
+                            <td class="p-3 whitespace-nowrap text-amber-200/80">{{ pledge.inflow_category.name|default:"General" }}</td>
+                            <td class="p-3 whitespace-nowrap text-right font-mono font-bold text-amber-300">{{ pledge.amount_pledged }}</td>
+                            <td class="p-3 whitespace-nowrap text-center">
+                                <form method="POST" action="{% url 'dashboard:approve_pledge' pledge.id %}" class="inline-block" onsubmit="setButtonLoading(this.querySelector('button'))">
+                                    {% csrf_token %}
+                                    <button type="submit" class="bg-emerald-600 hover:bg-emerald-500 text-white px-3 py-1 rounded text-xs font-bold transition shadow-sm border border-emerald-500/50">
+                                        Approve
+                                    </button>
+                                </form>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="5" class="p-6 text-center text-amber-200/50 text-sm italic bg-emerald-950/20">
+                                No pending pledges to review.
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
         </div>
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <!-- Card 1: Import Parishioners -->
-            <div class="bg-emerald-900/10 border border-amber-500/15 p-5 rounded-xl flex flex-col gap-4">
-                <h4 class="text-sm font-bold text-amber-100 uppercase tracking-wider border-b border-amber-500/10 pb-2 text-left">Import Parishioners Registry</h4>
-                <form method="POST" action="{% url 'dashboard:import_parishioners' %}" class="flex flex-col gap-4">
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-2">
+            <!-- Record New Pledge (Admin Created) -->
+            <div class="bg-emerald-900/30 border border-amber-500/20 p-5 rounded-xl shadow-lg">
+                <h4 class="text-sm font-bold text-amber-100 border-b border-amber-500/10 pb-2 mb-4 text-left">✍️ Record New Official Pledge/Bill</h4>
+                <form method="POST" action="{% url 'dashboard:record_pledge' %}" class="flex flex-col gap-4 text-left" onsubmit="setButtonLoading(this.querySelector('button[type=submit]'))">
                     {% csrf_token %}
-                    <div class="text-left">
-                        <label class="block text-amber-400 text-xs font-semibold mb-1.5">Names List (one name per line)</label>
-                        <textarea name="names" rows="10" required placeholder="Adeyemi Blessing&#10;Okafor Emmanuel&#10;Martins Jaiyeola" class="w-full bg-emerald-900/40 border border-amber-500/20 rounded-lg px-3 py-2 text-amber-50 text-sm font-mono focus:outline-none focus:border-amber-400 transition resize-y"></textarea>
+                    <div>
+                        <label class="block text-amber-400 text-xs font-semibold mb-1">Assign to Youth (Optional)</label>
+                        <select name="member_id" class="w-full bg-emerald-950 border border-amber-500/30 rounded-lg px-3 py-2 text-amber-50 text-sm focus:outline-none focus:border-amber-400 transition" onchange="if(this.value){document.getElementById('pledge_ext_name').disabled=true;document.getElementById('pledge_ext_phone').disabled=true;}else{document.getElementById('pledge_ext_name').disabled=false;document.getElementById('pledge_ext_phone').disabled=false;}">
+                            <option value="">-- Select Member --</option>
+                            {% for m in members %}
+                            <option value="{{ m.id }}">{{ m.name }}</option>
+                            {% endfor %}
+                        </select>
                     </div>
-                    <button type="submit" class="w-full bg-gradient-to-r from-amber-400 to-amber-600 hover:from-amber-300 hover:to-amber-500 text-emerald-950 font-bold py-2 rounded-lg transition shadow-md text-sm hover:scale-[1.02]">
-                        Import Parishioners
+                    <div class="grid grid-cols-2 gap-3">
+                        <div>
+                            <label class="block text-amber-400 text-xs font-semibold mb-1">External Name</label>
+                            <input type="text" id="pledge_ext_name" name="name" class="w-full bg-emerald-950 border border-amber-500/30 rounded-lg px-3 py-2 text-amber-50 text-sm focus:outline-none focus:border-amber-400 transition" placeholder="Required if no youth">
+                        </div>
+                        <div>
+                            <label class="block text-amber-400 text-xs font-semibold mb-1">Phone</label>
+                            <input type="text" id="pledge_ext_phone" name="phone" class="w-full bg-emerald-950 border border-amber-500/30 rounded-lg px-3 py-2 text-amber-50 text-sm focus:outline-none focus:border-amber-400 transition" placeholder="Optional">
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-2 gap-3">
+                        <div>
+                            <label class="block text-amber-400 text-xs font-semibold mb-1">Amount Billed</label>
+                            <input type="number" name="amount" required step="0.01" class="w-full bg-emerald-950 border border-amber-500/30 rounded-lg px-3 py-2 text-amber-50 font-mono font-bold text-sm focus:outline-none focus:border-amber-400 transition" placeholder="e.g. 5000">
+                        </div>
+                        <div>
+                            <label class="block text-amber-400 text-xs font-semibold mb-1">Category</label>
+                            <select name="category_id" class="w-full bg-emerald-950 border border-amber-500/30 rounded-lg px-3 py-2 text-amber-50 text-sm focus:outline-none focus:border-amber-400 transition">
+                                <option value="">-- General --</option>
+                                {% for c in categories %}
+                                <option value="{{ c.id }}">{{ c.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+                    <button type="submit" class="w-full bg-amber-500 hover:bg-amber-400 text-emerald-950 font-bold py-2.5 rounded-lg transition shadow-md mt-2 text-sm">
+                        Record & Approve Bill
                     </button>
                 </form>
             </div>
 
-            <!-- Card 2: Broadcast Announcement -->
-            <div class="bg-emerald-900/10 border border-amber-500/15 p-5 rounded-xl flex flex-col gap-4">
-                <h4 class="text-sm font-bold text-amber-100 uppercase tracking-wider border-b border-amber-500/10 pb-2 text-left">Broadcast PWA Push Announcement</h4>
-                <form method="POST" action="{% url 'dashboard:send_announcement' %}" class="flex flex-col gap-4">
+            <!-- Revoke a Pledge -->
+            <div class="bg-rose-900/10 border border-rose-500/30 p-5 rounded-xl shadow-lg">
+                <h4 class="text-sm font-bold text-rose-200 border-b border-rose-500/20 pb-2 mb-4 text-left flex items-center gap-2">
+                    <svg class="w-4 h-4 text-rose-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                    Revoke an Approved Pledge
+                </h4>
+                <p class="text-xs text-rose-200/70 text-left mb-4">You cannot revoke a pledge unilaterally. You must obtain a dynamic 6-digit Override Token from another Admin to authorize this action.</p>
+                <form id="revoke-pledge-form" method="POST" action="#" class="flex flex-col gap-4 text-left" onsubmit="setButtonLoading(this.querySelector('button[type=submit]'))">
                     {% csrf_token %}
-                    <div class="text-left">
-                        <label class="block text-amber-400 text-xs font-semibold mb-1.5">Announcement Message</label>
-                        <textarea name="message" rows="10" required placeholder="Write your broadcast message here..." class="w-full bg-emerald-900/40 border border-amber-500/20 rounded-lg px-3 py-2 text-amber-50 text-sm focus:outline-none focus:border-amber-400 transition resize-none"></textarea>
+                    <div>
+                        <label class="block text-rose-300 text-xs font-semibold mb-1">Select Approved Pledge</label>
+                        <select name="pledge_id" id="revoke_pledge_select" required class="w-full bg-emerald-950 border border-rose-500/30 rounded-lg px-3 py-2 text-amber-50 text-sm focus:outline-none focus:border-rose-400 transition" onchange="document.getElementById('revoke-pledge-form').action = '/dashboard/master/pledges/' + this.value + '/revoke/'">
+                            <option value="">-- Choose Pledge --</option>
+                            {% for pledge in approved_pledges %}
+                            <option value="{{ pledge.id }}">{{ pledge.name }} - ₦{{ pledge.amount_pledged }}</option>
+                            {% endfor %}
+                        </select>
                     </div>
-                    <button type="submit" class="w-full bg-gradient-to-r from-amber-400 to-amber-600 hover:from-amber-300 hover:to-amber-500 text-emerald-950 font-bold py-2 rounded-lg transition shadow-md text-sm hover:scale-[1.02]">
-                        📢 Broadcast Push Notice
+                    <div>
+                        <label class="block text-rose-300 text-xs font-semibold mb-1 flex items-center gap-1.5">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
+                            Override Token (From Another Admin)
+                        </label>
+                        <input type="text" name="override_token" required pattern="[0-9]{6}" maxlength="6" class="w-full bg-emerald-950 border border-rose-500/50 rounded-lg px-3 py-2 text-rose-100 font-mono text-center tracking-widest focus:outline-none focus:ring-1 focus:ring-rose-500 transition" placeholder="123456">
+                    </div>
+                    <button type="submit" class="w-full bg-rose-600/80 hover:bg-rose-500 text-white font-bold py-2.5 rounded-lg transition shadow-md mt-2 text-sm border border-rose-500/50">
+                        Verify Token & Revoke
                     </button>
                 </form>
             </div>
+        </div>
+    </div>
+
+    <!-- Tab Section: Admin Tools -->
+    <div id="tab-content-import" class="tab-content" style="display:none;flex-direction:column;gap:1.25rem;">
+        <div class="text-left mb-1">
+            <h3 class="text-lg font-bold text-amber-100 flex items-center gap-2">🛠️ Admin & Communication Panel</h3>
+            <p class="text-xs text-amber-200/70">Secure utilities to manage database registries, configure authorization overrides, and send push notifications.</p>
+        </div>
+
+        <div class="flex flex-col gap-4">
+            
+            <!-- Tool 1: Broadcast PWA Push Announcement -->
+            <div class="bg-emerald-950/40 border border-amber-500/15 rounded-xl overflow-hidden shadow-lg transition-all duration-300">
+                <button type="button" class="w-full flex justify-between items-center p-4 bg-emerald-900/30 hover:bg-emerald-900/50 transition text-left focus:outline-none" onclick="toggleAdminPanel('panel-broadcast')">
+                    <div class="flex items-center gap-3">
+                        <span class="text-2xl">📢</span>
+                        <div>
+                            <h4 class="text-sm font-bold text-amber-100">Broadcast PWA Push Announcement</h4>
+                            <p class="text-xs text-amber-200/60">Send free, secure push messages directly to youth mobile devices and desktops.</p>
+                        </div>
+                    </div>
+                    <span id="chevron-panel-broadcast" class="text-amber-400 font-bold transition-transform duration-300 transform rotate-0">▼</span>
+                </button>
+                <div id="panel-broadcast" class="p-5 border-t border-amber-500/10 hidden text-left bg-emerald-950/20">
+                    <form method="POST" action="{% url 'dashboard:send_announcement' %}" class="flex flex-col gap-4">
+                        {% csrf_token %}
+                        <div>
+                            <label class="block text-amber-400 text-xs font-semibold mb-1.5">Announcement Message</label>
+                            <textarea name="message" rows="4" required placeholder="Write your broadcast message here..." class="w-full bg-emerald-950/50 border border-amber-500/20 rounded-lg px-3 py-2 text-amber-50 text-sm focus:outline-none focus:border-amber-400 transition resize-none"></textarea>
+                        </div>
+                        <button type="submit" class="w-full sm:w-auto self-start bg-gradient-to-r from-amber-400 to-amber-600 hover:from-amber-300 hover:to-amber-500 text-emerald-950 font-bold px-6 py-2.5 rounded-lg transition shadow-md text-sm hover:scale-[1.02]">
+                            📢 Broadcast Push Notice
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Tool 2: Import Parishioners Registry -->
+            <div class="bg-emerald-950/40 border border-amber-500/15 rounded-xl overflow-hidden shadow-lg transition-all duration-300">
+                <button type="button" class="w-full flex justify-between items-center p-4 bg-emerald-900/30 hover:bg-emerald-900/50 transition text-left focus:outline-none" onclick="toggleAdminPanel('panel-import')">
+                    <div class="flex items-center gap-3">
+                        <span class="text-2xl">📋</span>
+                        <div>
+                            <h4 class="text-sm font-bold text-amber-100">Import Parishioners Registry</h4>
+                            <p class="text-xs text-amber-200/60">Populate the usher's autocomplete search database with a raw list of names.</p>
+                        </div>
+                    </div>
+                    <span id="chevron-panel-import" class="text-amber-400 font-bold transition-transform duration-300 transform rotate-0">▼</span>
+                </button>
+                <div id="panel-import" class="p-5 border-t border-amber-500/10 hidden text-left bg-emerald-950/20">
+                    <form method="POST" action="{% url 'dashboard:import_parishioners' %}" class="flex flex-col gap-4">
+                        {% csrf_token %}
+                        <div>
+                            <label class="block text-amber-400 text-xs font-semibold mb-1.5">Names List (one name per line)</label>
+                            <textarea name="names" rows="6" required placeholder="Adeyemi Blessing&#10;Okafor Emmanuel&#10;Martins Jaiyeola" class="w-full bg-emerald-950/50 border border-amber-500/20 rounded-lg px-3 py-2 text-amber-50 text-sm font-mono focus:outline-none focus:border-amber-400 transition resize-y"></textarea>
+                        </div>
+                        <button type="submit" class="w-full sm:w-auto self-start bg-gradient-to-r from-amber-400 to-amber-600 hover:from-amber-300 hover:to-amber-500 text-emerald-950 font-bold px-6 py-2.5 rounded-lg transition shadow-md text-sm hover:scale-[1.02]">
+                            Import Parishioners
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Tool 3: Generate Override Token -->
+            <div class="bg-emerald-950/40 border border-rose-500/20 rounded-xl overflow-hidden shadow-lg transition-all duration-300">
+                <button type="button" class="w-full flex justify-between items-center p-4 bg-emerald-900/30 hover:bg-emerald-900/50 transition text-left focus:outline-none" onclick="toggleAdminPanel('panel-token')">
+                    <div class="flex items-center gap-3">
+                        <span class="text-2xl">🔑</span>
+                        <div>
+                            <h4 class="text-sm font-bold text-rose-200">Two-Key Authorization (Generate Override Token)</h4>
+                            <p class="text-xs text-rose-200/60">Generate temporary 6-digit tokens to authorize sensitive operations (e.g. revoking a pledge).</p>
+                        </div>
+                    </div>
+                    <span id="chevron-panel-token" class="text-rose-400 font-bold transition-transform duration-300 transform rotate-0">▼</span>
+                </button>
+                <div id="panel-token" class="p-5 border-t border-rose-500/10 hidden text-left bg-emerald-950/20">
+                    <form method="POST" action="{% url 'dashboard:generate_admin_token' %}" class="flex flex-col gap-4">
+                        {% csrf_token %}
+                        <p class="text-xs text-rose-200/70 mb-2">Click below to generate a temporary override token. Give this 6-digit code to another admin to authorize their action. **You cannot use your own token.**</p>
+                        <button type="submit" class="w-full sm:w-auto self-start bg-rose-600/80 hover:bg-rose-500 text-rose-100 font-bold px-6 py-2.5 rounded-lg border border-rose-500/50 transition shadow-md text-sm">
+                            🔑 Generate 6-Digit Override Token
+                        </button>
+                    </form>
+                </div>
+            </div>
+
         </div>
     </div>
 
@@ -1144,10 +1335,41 @@
         }
     }
 
+    // Toggle admin panels accordion
+    function toggleAdminPanel(panelId) {
+        var panel = document.getElementById(panelId);
+        var chevron = document.getElementById('chevron-' + panelId);
+        if (panel) {
+            var isHidden = panel.classList.contains('hidden');
+            
+            // Close all other panels
+            var panels = ['panel-broadcast', 'panel-import', 'panel-token'];
+            panels.forEach(function(pId) {
+                var p = document.getElementById(pId);
+                var c = document.getElementById('chevron-' + pId);
+                if (p && pId !== panelId) p.classList.add('hidden');
+                if (c && pId !== panelId) c.style.transform = 'rotate(0deg)';
+            });
+
+            if (isHidden) {
+                panel.classList.remove('hidden');
+                if (chevron) chevron.style.transform = 'rotate(180deg)';
+                sessionStorage.setItem('admin_open_panel', panelId);
+            } else {
+                panel.classList.add('hidden');
+                if (chevron) chevron.style.transform = 'rotate(0deg)';
+                sessionStorage.removeItem('admin_open_panel');
+            }
+        }
+    }
+
     // Tabs switching — PURE inline styles, zero CSS class dependencies
     function switchTab(tabId) {
+        // Save to session storage
+        sessionStorage.setItem('admin_active_tab', tabId);
+
         // Get all tab content divs by their IDs directly
-        var ids = ['tab-content-ledger', 'tab-content-roles', 'tab-content-categories', 'tab-content-resets', 'tab-content-import'];
+        var ids = ['tab-content-ledger', 'tab-content-roles', 'tab-content-categories', 'tab-content-resets', 'tab-content-import', 'tab-content-pledges'];
         for (var i = 0; i < ids.length; i++) {
             var el = document.getElementById(ids[i]);
             if (el) {
@@ -1168,7 +1390,7 @@
         }
 
         // Update button styles
-        var btnIds = ['ledger', 'roles', 'categories', 'resets', 'import'];
+        var btnIds = ['ledger', 'roles', 'categories', 'resets', 'import', 'pledges'];
         for (var j = 0; j < btnIds.length; j++) {
             var btn = document.getElementById('tab-btn-' + btnIds[j]);
             if (btn) {
@@ -1378,10 +1600,45 @@
         document.getElementById('edit-category-modal').classList.remove('hidden');
     }
 
+    // Handle form submissions to save scroll position
+    document.addEventListener('submit', function(e) {
+        setTimeout(function() {
+            if (!e.defaultPrevented) {
+                sessionStorage.setItem('admin_scroll_pos', window.scrollY);
+            }
+        }, 10);
+    });
+
     // Load initial data
     window.addEventListener('DOMContentLoaded', () => {
         initFiltersFromUrl();
         fetchTransactions(currentFetchUrl);
+
+        // Restore tab
+        var savedTab = sessionStorage.getItem('admin_active_tab');
+        if (savedTab) {
+            switchTab(savedTab);
+        }
+
+        // Restore open panel
+        var savedPanel = sessionStorage.getItem('admin_open_panel');
+        if (savedPanel) {
+            var panel = document.getElementById(savedPanel);
+            var chevron = document.getElementById('chevron-' + savedPanel);
+            if (panel) {
+                panel.classList.remove('hidden');
+                if (chevron) chevron.style.transform = 'rotate(180deg)';
+            }
+        }
+
+        // Restore scroll
+        var savedScroll = sessionStorage.getItem('admin_scroll_pos');
+        if (savedScroll) {
+            setTimeout(function() {
+                window.scrollTo(0, parseInt(savedScroll));
+                sessionStorage.removeItem('admin_scroll_pos');
+            }, 100);
+        }
     });
 </script>
 {% endblock %}

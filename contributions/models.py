@@ -36,16 +36,23 @@ class Parishioner(models.Model):
         return self.name
 
 class Pledge(models.Model):
+    STATUS_CHOICES = (
+        ('pending', 'Pending Approval'),
+        ('approved', 'Approved'),
+        ('voided', 'Voided'),
+    )
+    member = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True, related_name='pledges')
     name = models.CharField(max_length=255)
     phone = models.CharField(max_length=50, blank=True, null=True)
     amount_pledged = models.DecimalField(max_digits=12, decimal_places=2)
     amount_fulfilled = models.DecimalField(max_digits=12, decimal_places=2, default=0.00)
     inflow_category = models.ForeignKey(InflowCategory, on_delete=models.SET_NULL, null=True, blank=True, related_name='pledges')
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='approved')
     note = models.TextField(blank=True, null=True)
     timestamp = models.DateTimeField(auto_now_add=True)
     
     def __str__(self):
-        return f"{self.name} - {self.amount_pledged}"
+        return f"{self.name} - {self.amount_pledged} ({self.status})"
 
 class Contribution(models.Model):
     SOURCE_CHOICES = (
@@ -61,6 +68,7 @@ class Contribution(models.Model):
     method = models.CharField(max_length=100, blank=True, null=True)
     source = models.CharField(max_length=50, choices=SOURCE_CHOICES, default='guest_form')
     inflow_category = models.ForeignKey(InflowCategory, on_delete=models.SET_NULL, null=True, blank=True, related_name='contributions')
+    pledge = models.ForeignKey(Pledge, on_delete=models.SET_NULL, null=True, blank=True, related_name='contributions')
     
     referred_by = models.ForeignKey(
         settings.AUTH_USER_MODEL, 

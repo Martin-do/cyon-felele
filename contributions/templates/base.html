@@ -214,17 +214,44 @@
             justify-content: space-between;
             align-items: center;
             margin-bottom: 1.5rem;
-            padding: 0 0.25rem;
+            padding: 0 0.5rem;
+            gap: 0.75rem;
         }
-        .site-header img { height: 44px; width: auto; }
+        .site-header .logo-link {
+            flex-shrink: 0;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .site-header img {
+            height: 42px;
+            width: 42px;
+            object-fit: contain;
+        }
+        .site-header img.church-seal-logo {
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.08);
+        }
         .site-header .church-name {
             font-family: 'Poppins', sans-serif;
             font-weight: 700;
             font-size: 0.72rem;
             color: var(--harvest-gold-400);
             text-align: center;
-            letter-spacing: 0.3px;
-            line-height: 1.3;
+            letter-spacing: 0.2px;
+            line-height: 1.35;
+            flex-grow: 1;
+            min-width: 0;
+        }
+
+        @media (max-width: 400px) {
+            .site-header .church-name {
+                font-size: 0.64rem;
+            }
+            .site-header img {
+                height: 36px;
+                width: 36px;
+            }
         }
 
         /* ── PROGRESS BAR ─────────────────────────────────────────── */
@@ -286,14 +313,14 @@
     <!-- Site Header -->
     <div class="site-header">
         <a href="{% url 'contributions:landing' %}" class="logo-link">
-            <img src="{% static 'images/brand/church-seal.png' %}" alt="Catholic Archdiocese of Ibadan Seal" style="height:48px;width:48px;object-fit:contain;border-radius:50%;">
+            <img src="{% static 'images/brand/church-seal.png' %}" alt="Catholic Archdiocese of Ibadan Seal" class="church-seal-logo">
         </a>
         <div class="church-name">
             <strong>CHRIST THE GOOD SHEPHERD CATHOLIC CHURCH, FELELE</strong><br>
             <span style="color:#A0AEC0; font-size:0.65rem; font-weight:600;">CATHOLIC YOUTH ORGANIZATION OF NIGERIA (CYON)</span>
         </div>
         <a href="{% url 'contributions:landing' %}" class="logo-link">
-            <img src="{% static 'images/brand/cyon-logo.png' %}" alt="CYON Logo">
+            <img src="{% static 'images/brand/cyon-logo.png' %}" alt="CYON Logo" class="cyon-brand-logo">
         </a>
     </div>
 

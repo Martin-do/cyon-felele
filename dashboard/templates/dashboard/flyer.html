@@ -12,7 +12,7 @@
     body {
       width: 1080px;
       height: 1080px;
-      background: #ffffff;
+      background: #fdfdfd;
       font-family: 'Montserrat', sans-serif;
       position: relative;
       overflow: hidden;
@@ -21,11 +21,12 @@
     /* ── Fingerprint watermark ──────────────────────────────── */
     .fp-watermark {
       position: absolute;
-      top: -60px;
-      right: -100px;
-      width: 520px;
-      height: 580px;
-      opacity: 0.055;
+      top: 50%;
+      left: -150px;
+      transform: translateY(-50%);
+      width: 800px;
+      height: 900px;
+      opacity: 0.04;
       pointer-events: none;
       z-index: 0;
     }
@@ -37,60 +38,63 @@
       display: flex;
       flex-direction: column;
       height: 100%;
-      padding: 34px 46px 0;
+      padding: 0;
     }
 
     /* ── HEADER ─────────────────────────────────────────────── */
     .header {
-      position: relative;
-      margin-bottom: 20px;
-      text-align: center;
-      min-height: 70px;
       display: flex;
-      flex-direction: column;
+      flex-direction: row;
+      align-items: center;
       justify-content: center;
+      gap: 20px;
+      margin-top: 35px;
+      margin-bottom: 25px;
     }
 
     .header-logo {
-      position: absolute;
-      left: 0;
-      top: 50%;
-      transform: translateY(-50%);
-      width: 70px;
-      height: 70px;
+      width: 85px;
+      height: 85px;
       object-fit: contain;
-      flex-shrink: 0;
+    }
+
+    .header-text {
+      text-align: left;
     }
 
     .header-text h1 {
-      font-size: 24px;
+      font-size: 26px;
       font-weight: 800;
       color: #1c2f7c;
-      letter-spacing: 0.6px;
+      letter-spacing: 0.5px;
       line-height: 1.2;
     }
 
     .header-text p {
-      font-size: 11px;
+      font-size: 13px;
       color: #555;
       letter-spacing: 0.5px;
       margin-top: 3px;
       text-transform: uppercase;
+      font-weight: 600;
     }
 
     /* ── CYON BANNER ────────────────────────────────────────── */
     .cyon-banner {
       background: #f6c100;
-      padding: 14px 22px;
+      margin: 0 auto 20px auto;
+      padding: 12px 30px;
       text-align: center;
-      margin-bottom: 18px;
+      border-radius: 4px;
+      display: inline-block;
+      align-self: center;
     }
 
     .cyon-banner h2 {
-      font-size: 28px;
+      font-size: 26px;
       font-weight: 900;
       color: #1c2f7c;
-      letter-spacing: 2.5px;
+      letter-spacing: 1.5px;
       line-height: 1.3;
       text-transform: uppercase;
     }
@@ -98,149 +102,139 @@
     /* ── PRESENT / HARVEST TITLE ────────────────────────────── */
     .present-block {
       text-align: center;
-      margin-bottom: 14px;
+      margin-bottom: 25px;
     }
 
     .present-label {
-      font-size: 11.5px;
-      letter-spacing: 5px;
-      color: #888;
-      margin-bottom: 5px;
+      font-size: 13px;
+      letter-spacing: 8px;
+      color: #666;
+      margin-bottom: 8px;
+      font-weight: 500;
     }
 
     .harvest-title {
       font-size: 28px;
-      font-weight: 900;
+      font-weight: 800;
       color: #1c2f7c;
-      letter-spacing: 2px;
+      letter-spacing: 1px;
       text-transform: uppercase;
     }
 
-    /* ── CARD WRAPPER ───────────────────────────────────────────
-       IMPORTANT: The photo lives here as a sibling of .blue-card,
-       NOT inside it. This is intentional — it lets the photo bleed
-       above the card freely while overflow:hidden on .blue-card
-       still clips the card corners cleanly.
-       The red bar is also a sibling so overflow:hidden can never
-       clip it — guaranteeing full-width coverage.
-    ────────────────────────────────────────────────────────── */
-    .card-wrapper {
+    /* ── MIDDLE SECTION (Card, Photo, Red Bar, Votes) ───────── */
+    .middle-container {
       position: relative;
-      flex-shrink: 0;
-      padding-top: 22px; /* room for photo to bleed above the card */
-    }
-
-    /* Portrait photo — bleeds above card via wrapper padding-top */
-    .contestant-photo {
-      position: absolute;
-      left: -20px;
-      bottom: 0;
-      width: 400px;
-      height: 520px;
-      object-fit: contain;
-      object-position: bottom center;
-      z-index: 2;
+      flex: 1; /* Take up remaining space */
+      width: 100%;
+      margin-top: 20px;
     }
 
     /* ── BLUE MAIN CARD ─────────────────────────────────────── */
     .blue-card {
+      position: absolute;
+      right: 0;
+      top: 40px;
+      width: 90%;
+      height: 420px;
       background: #1c2f7c;
-      border-radius: 6px 6px 0 0; /* flat bottom so red bar butts flush */
-      position: relative;
-      height: 390px;
-      overflow: hidden;            /* safe — photo is outside this element */
+      border-radius: 12px 0 0 12px;
+      z-index: 1;
     }
 
-    /* Theme text — right side of card only */
+    /* Theme text — right side of card */
     .theme-block {
       position: absolute;
-      left: 285px;
-      top: 26px;
-      right: 20px;
+      left: 380px; /* Leave space for photo */
+      top: 40px;
+      right: 30px;
     }
 
     .theme-eyebrow {
-      font-size: 11.5px;
-      letter-spacing: 5px;
-      color: rgba(255, 255, 255, 0.60);
-      margin-bottom: 8px;
+      font-size: 13px;
+      letter-spacing: 6px;
+      color: rgba(255, 255, 255, 0.70);
+      margin-bottom: 12px;
     }
 
     .theme-title {
-      font-size: 60px;
+      font-size: 68px;
       font-weight: 900;
       color: #ffffff;
-      line-height: 0.93;
+      line-height: 0.95;
       text-transform: uppercase;
     }
 
     .theme-title .yellow { color: #f6c100; }
 
     .tagline {
-      margin-top: 18px;
-      font-size: 17px;
+      margin-top: 22px;
+      font-size: 20px;
       color: rgba(255, 255, 255, 0.90);
       font-weight: 500;
-      line-height: 1.45;
+      line-height: 1.4;
     }
 
-    /* ── RED CONTESTANT BAR ─────────────────────────────────────
-       Sibling of .blue-card — block element fills 100% wrapper
-       width automatically. No clipping, no partial coverage.
-    ────────────────────────────────────────────────────────── */
+    /* ── RED CONTESTANT BAR ───────────────────────────────────── */
     .contestant-bar {
-      position: relative;
-      background: #c0161c;
-      border-radius: 0 0 6px 6px;
-      padding: 13px 18px 13px 296px;
+      position: absolute;
+      right: 0;
+      bottom: 0;
+      background: #e21c21;
+      padding: 16px 30px 16px 40px;
+      width: 63%; /* Covers right side */
       z-index: 3;
+      border-radius: 0 0 0 0;
     }
 
     /* Gold arrow pointer */
     .contestant-bar::before {
       content: '';
       position: absolute;
-      left: 275px;
+      left: 0;
       top: 50%;
       transform: translateY(-50%);
       width: 0;
       height: 0;
-      border-top: 12px solid transparent;
-      border-bottom: 12px solid transparent;
-      border-left: 16px solid #f6c100;
+      border-top: 14px solid transparent;
+      border-bottom: 14px solid transparent;
+      border-left: 18px solid #f6c100;
     }
 
     .contestant-name {
-      font-size: 32px;
+      font-size: 34px;
       font-weight: 900;
       color: #ffffff;
       text-transform: uppercase;
-      letter-spacing: 0.8px;
-      line-height: 1.2;
+      letter-spacing: 1px;
+      line-height: 1.1;
     }
 
     .contestant-role {
-      font-size: 15px;
-      color: rgba(255, 255, 255, 0.88);
-      margin-top: 4px;
-      line-height: 1.35;
+      font-size: 16px;
+      color: rgba(255, 255, 255, 0.9);
+      margin-top: 5px;
+      line-height: 1.3;
     }
 
     /* ── VOTE PRICING ROW ───────────────────────────────────── */
     .vote-section {
-      padding: 14px 0 0 282px;
+      position: absolute;
+      top: 480px; /* Below the blue card */
+      right: 40px;
+      width: 58%; /* Align with right side */
+      z-index: 1;
     }
 
     .vote-row {
       display: flex;
-      gap: 8px;
+      gap: 10px;
     }
 
     .vote-btn {
       flex: 1;
-      padding: 11px 6px;
+      padding: 12px 5px;
       text-align: center;
-      border-radius: 3px;
+      border-radius: 4px;
     }
 
     .vote-btn .v-amount {
@@ -253,88 +247,119 @@
       display: block;
       font-size: 14px;
       font-weight: 500;
-      margin-top: 2px;
+      margin-top: 3px;
     }
 
     .vote-btn.gold  { background: #f6c100; color: #1c2f7c; }
     .vote-btn.navy  { background: #1c2f7c; color: #ffffff; }
-    .vote-btn.red   { background: #c0161c; color: #ffffff; }
-    .vote-btn.black { background: #111111; color: #ffffff; }
+    .vote-btn.red   { background: #e21c21; color: #ffffff; }
+    .vote-btn.black { background: #000000; color: #ffffff; }
 
     .vote-note {
-      font-size: 11.5px;
+      font-size: 13px;
       color: #333;
-      padding: 8px 0 0 282px;
+      margin-top: 12px;
+      font-weight: 500;
+    }
+
+    /* ── CONTESTANT PHOTO ─────────────────────────────────────── */
+    .contestant-photo {
+      position: absolute;
+      left: 30px;
+      bottom: 120px; /* Sit right on top of the footer */
+      width: 480px;
+      height: 620px; /* Breaks out of top of blue card */
+      object-fit: contain;
+      object-position: bottom center;
+      z-index: 5; /* Above blue card, but red bar sits to the right so it's fine */
     }
 
     /* ── FOOTER ─────────────────────────────────────────────── */
     .footer {
       background: #1c2f7c;
-      margin: auto -46px 0;
-      padding: 22px 46px;
+      width: 100%;
+      height: 120px;
+      padding: 0 45px;
       display: flex;
       align-items: center;
       justify-content: space-between;
-      gap: 20px;
       flex-shrink: 0;
+      position: absolute;
+      bottom: 0;
+      z-index: 10;
     }
 
-    .footer-contact .f-label {
-      font-size: 12.5px;
-      color: rgba(255, 255, 255, 0.72);
-      margin-bottom: 4px;
-    }
-
-    .footer-contact .f-phone {
-      font-size: 20px;
-      font-weight: 700;
-      color: #ffffff;
+    .footer-contact {
       display: flex;
-      align-items: center;
+      flex-direction: column;
       gap: 8px;
     }
 
-    .footer-contact .f-phone::before {
-      content: '📱';
-      font-size: 18px;
+    .footer-contact .f-label {
+      font-size: 14px;
+      color: rgba(255, 255, 255, 0.85);
+      font-weight: 500;
+    }
+
+    .footer-contact .f-phone {
+      font-size: 26px;
+      font-weight: 800;
+      color: #ffffff;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .f-icon-square {
+      background: #f6c100;
+      width: 22px;
+      height: 22px;
+      display: inline-block;
+      border-radius: 2px;
     }
 
     .footer-message {
       text-align: center;
-      font-size: 13px;
+      font-size: 15px;
       color: #ffffff;
-      line-height: 1.55;
-      flex: 1;
+      line-height: 1.5;
+      font-weight: 500;
     }
 
     .footer-message .vote-link {
       display: block;
-      font-size: 11px;
+      font-size: 14px;
       color: #8faeff;
-      margin-top: 5px;
+      margin-top: 6px;
+      font-weight: 600;
+    }
+
+    .footer-qr {
+      background: #ffffff;
+      padding: 6px;
+      border-radius: 4px;
     }
 
     .footer-qr img {
-      width: 82px;
-      height: 82px;
+      width: 80px;
+      height: 80px;
       display: block;
-      border: 3px solid #fff;
     }
   </style>
 </head>
 <body>
 
-  <!-- Fingerprint watermark (concentric ellipse SVG) -->
+  <!-- Fingerprint watermark -->
   <svg class="fp-watermark" viewBox="0 0 400 450" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <ellipse cx="200" cy="225" rx="18"  ry="20"  stroke="#000" stroke-width="2.5" fill="none"/>
-    <ellipse cx="200" cy="225" rx="34"  ry="38"  stroke="#000" stroke-width="2.5" fill="none"/>
-    <ellipse cx="200" cy="225" rx="52"  ry="58"  stroke="#000" stroke-width="2.5" fill="none"/>
-    <ellipse cx="200" cy="225" rx="72"  ry="80"  stroke="#000" stroke-width="2.5" fill="none"/>
-    <ellipse cx="200" cy="225" rx="93"  ry="104" stroke="#000" stroke-width="2.5" fill="none"/>
-    <ellipse cx="200" cy="225" rx="116" ry="130" stroke="#000" stroke-width="2.5" fill="none"/>
-    <ellipse cx="200" cy="225" rx="140" ry="158" stroke="#000" stroke-width="2.5" fill="none"/>
-    <ellipse cx="200" cy="225" rx="166" ry="188" stroke="#000" stroke-width="2.5" fill="none"/>
-    <ellipse cx="200" cy="225" rx="194" ry="220" stroke="#000" stroke-width="2.5" fill="none"/>
+    <ellipse cx="200" cy="225" rx="30"  ry="34"  stroke="#000" stroke-width="3" fill="none"/>
+    <ellipse cx="200" cy="225" rx="55"  ry="62"  stroke="#000" stroke-width="3" fill="none"/>
+    <ellipse cx="200" cy="225" rx="80"  ry="90"  stroke="#000" stroke-width="3" fill="none"/>
+    <ellipse cx="200" cy="225" rx="105" ry="118" stroke="#000" stroke-width="3" fill="none"/>
+    <ellipse cx="200" cy="225" rx="130" ry="146" stroke="#000" stroke-width="3" fill="none"/>
+    <ellipse cx="200" cy="225" rx="155" ry="174" stroke="#000" stroke-width="3" fill="none"/>
+    <ellipse cx="200" cy="225" rx="180" ry="202" stroke="#000" stroke-width="3" fill="none"/>
+    <ellipse cx="200" cy="225" rx="205" ry="230" stroke="#000" stroke-width="3" fill="none"/>
+    <ellipse cx="200" cy="225" rx="230" ry="258" stroke="#000" stroke-width="3" fill="none"/>
   </svg>
 
   <div class="content">
@@ -356,16 +381,13 @@
     <!-- Present / Harvest -->
     <div class="present-block">
       <p class="present-label">P R E S E N T :</p>
-      <h3 class="harvest-title">2026 Children and Youth Harvest</h3>
+      <h3 class="harvest-title">2026 CHILDREN AND YOUTH HARVEST</h3>
     </div>
 
-    <!-- Card Wrapper: photo + blue card + red bar -->
-    <div class="card-wrapper">
-
-      <!-- Photo is a child of card-wrapper, NOT .blue-card -->
-      <img class="contestant-photo" src="{{ photo_url }}" alt="{{ name }}">
-
-      <!-- Blue card: theme text only -->
+    <!-- Middle Section: Blue Card, Red Bar, Votes, Photo -->
+    <div class="middle-container">
+      
+      <!-- Blue card -->
       <div class="blue-card">
         <div class="theme-block">
           <p class="theme-eyebrow">T H E M E :</p>
@@ -376,57 +398,61 @@
           </h2>
           <p class="tagline">Support Our Harvest, Crown<br>a Champion.</p>
         </div>
-      </div>
 
-      <!-- Red bar: sibling of .blue-card, always full width -->
-      <div class="contestant-bar">
-        <div class="contestant-name">{{ name }}</div>
-        <div class="contestant-role">{{ category }}</div>
-      </div>
-
-    </div><!-- .card-wrapper -->
-
-    <!-- Vote Pricing -->
-    <div class="vote-section">
-      <div class="vote-row">
-        <div class="vote-btn gold">
-          <span class="v-amount">₦500</span>
-          <span class="v-count">1 Vote</span>
-        </div>
-        <div class="vote-btn navy">
-          <span class="v-amount">₦1,000</span>
-          <span class="v-count">2 Votes</span>
-        </div>
-        <div class="vote-btn red">
-          <span class="v-amount">₦5,000</span>
-          <span class="v-count">10 Votes</span>
-        </div>
-        <div class="vote-btn black">
-          <span class="v-amount">₦10,000</span>
-          <span class="v-count">20 Votes</span>
+        <!-- Red bar inside blue card bottom right -->
+        <div class="contestant-bar">
+          <div class="contestant-name">{{ name }}</div>
+          <div class="contestant-role">{{ category }}</div>
         </div>
       </div>
-    </div>
-    <p class="vote-note">
-      <strong>Note:</strong> There is no limit to the number of votes a supporter can cast.
-    </p>
 
-    <!-- Footer -->
-    <div class="footer">
-      <div class="footer-contact">
-        <div class="f-label">For more enquiry contact:</div>
-        <div class="f-phone">{{ contact_phone }}</div>
+      <!-- Vote Pricing -->
+      <div class="vote-section">
+        <div class="vote-row">
+          <div class="vote-btn gold">
+            <span class="v-amount">₦500</span>
+            <span class="v-count">1 Vote</span>
+          </div>
+          <div class="vote-btn navy">
+            <span class="v-amount">₦1,000</span>
+            <span class="v-count">2 Votes</span>
+          </div>
+          <div class="vote-btn red">
+            <span class="v-amount">₦5,000</span>
+            <span class="v-count">10 Votes</span>
+          </div>
+          <div class="vote-btn black">
+            <span class="v-amount">₦10,000</span>
+            <span class="v-count">20 Votes</span>
+          </div>
+        </div>
+        <p class="vote-note">
+          <strong>Note:</strong> There is no limit to the number of votes a supporter can cast.
+        </p>
       </div>
-      <div class="footer-message">
-        I kindly invite you to support my campaign<br>
-        And partner with us in this worthy cause.
-        <span class="vote-link">{{ vote_url }}</span>
-      </div>
-      <div class="footer-qr">
-        <img src="{{ qr_url }}" alt="QR Code">
-      </div>
-    </div>
+
+      <!-- Contestant Photo: Absolute positioned to overlap everything -->
+      <img class="contestant-photo" src="{{ photo_url }}" alt="{{ name }}">
+      
+    </div><!-- .middle-container -->
 
   </div><!-- .content -->
+
+  <!-- Footer fixed to bottom -->
+  <div class="footer">
+    <div class="footer-contact">
+      <div class="f-label">For more enquiry contact:</div>
+      <div class="f-phone"><span class="f-icon-square"></span> {{ contact_phone }}</div>
+    </div>
+    <div class="footer-message">
+      I kindly invite you to support my campaign<br>
+      And partner with us in this worthy cause.<br>
+      <span class="vote-link">{{ vote_url }}</span>
+    </div>
+    <div class="footer-qr">
+      <img src="{{ qr_url }}" alt="QR Code">
+    </div>
+  </div>
+
 </body>
 </html>

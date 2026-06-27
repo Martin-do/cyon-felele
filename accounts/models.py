@@ -157,7 +157,19 @@ class PinResetRequest(models.Model):
     def __str__(self):
         return f"Reset request for {self.member.name} ({'Resolved' if self.is_resolved else 'Pending'})"
 
+class AdminToken(models.Model):
+    admin = models.ForeignKey(Member, on_delete=models.CASCADE, related_name='generated_tokens')
+    token = models.CharField(max_length=6, unique=True)
+    is_used = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+    expires_at = models.DateTimeField()
 
+    def is_valid(self):
+        from django.utils import timezone
+        return not self.is_used and timezone.now() < self.expires_at
+
+    def __str__(self):
+        return f"Token by {self.admin.name} ({'Valid' if self.is_valid() else 'Invalid'})"
 class WebPushSubscription(models.Model):
     user = models.ForeignKey(Member, on_delete=models.CASCADE, null=True, blank=True, related_name='webpush_subscriptions')
     endpoint = models.URLField(max_length=500, unique=True)
