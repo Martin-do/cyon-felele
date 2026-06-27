@@ -129,6 +129,28 @@ def redeem_pledge_view(request):
 def generate_flyer_view(request):
     user = request.user
     
+    import os
+    from django.conf import settings
+    from django.http import HttpResponse
+
+    # Define cache path
+    flyers_dir = os.path.join(settings.MEDIA_ROOT, 'flyers')
+    os.makedirs(flyers_dir, exist_ok=True)
+    cache_path = os.path.join(flyers_dir, f"{user.id}.png")
+
+    force_regenerate = request.GET.get('force') == 'true' or request.GET.get('regenerate') == 'true'
+    if force_regenerate:
+        if user.custom_flyer:
+            try:
+                user.custom_flyer.delete(save=True)
+            except Exception:
+                pass
+        if os.path.exists(cache_path):
+            try:
+                os.remove(cache_path)
+            except Exception:
+                pass
+
     if user.custom_flyer:
         try:
             from django.http import FileResponse
@@ -138,15 +160,6 @@ def generate_flyer_view(request):
         except Exception:
             pass
 
-    import os
-    from django.conf import settings
-    from django.http import HttpResponse
-    
-    # Define cache path
-    flyers_dir = os.path.join(settings.MEDIA_ROOT, 'flyers')
-    os.makedirs(flyers_dir, exist_ok=True)
-    cache_path = os.path.join(flyers_dir, f"{user.id}.png")
-    
     if os.path.exists(cache_path):
         with open(cache_path, "rb") as f:
             response = HttpResponse(f.read(), content_type="image/png")
