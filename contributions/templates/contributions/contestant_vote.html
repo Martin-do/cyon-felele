@@ -4,21 +4,17 @@
 {% block title %}Vote for {{ referrer.name }} | CYON Harvest 2026{% endblock %}
 
 {% block head %}
-    {% if referrer.custom_flyer %}
     <meta property="og:title" content="Vote for {{ referrer.name }} | CYON Harvest 2026">
     <meta property="og:description" content="Support {{ referrer.name }} in the CYON Harvest 2026 Fundraising Challenge.">
-    <meta property="og:image" content="{{ request.scheme }}://{{ request.get_host }}{{ referrer.custom_flyer.url }}">
-    <meta property="og:url" content="{{ request.build_absolute_uri }}">
-    <meta property="og:type" content="website">
-    <meta name="twitter:card" content="summary_large_image">
-    {% elif og_image_url %}
-    <meta property="og:title" content="Vote for {{ referrer.name }} | CYON Harvest 2026">
-    <meta property="og:description" content="Support {{ referrer.name }} in the CYON Harvest 2026 Fundraising Challenge.">
-    <meta property="og:image" content="{{ request.scheme }}://{{ request.get_host }}{{ og_image_url }}">
-    <meta property="og:url" content="{{ request.build_absolute_uri }}">
-    <meta property="og:type" content="website">
-    <meta name="twitter:card" content="summary_large_image">
+    {% if og_image_url %}
+    <meta property="og:image" content="{{ og_image_url }}">
+    <meta property="og:image:width" content="1080">
+    <meta property="og:image:height" content="1080">
+    <meta property="og:image:type" content="image/png">
     {% endif %}
+    <meta property="og:url" content="{{ request.build_absolute_uri }}">
+    <meta property="og:type" content="website">
+    <meta name="twitter:card" content="summary_large_image">
 <style>
     /* ── Dark premium feel for contestant page ────────────────────── */
     body {

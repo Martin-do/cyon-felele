@@ -125,21 +125,21 @@ def redeem_pledge_view(request):
 
     return redirect('dashboard:my_pledges')
 
-@login_required(login_url='/accounts/login/')
-def generate_flyer_view(request):
-    user = request.user
-    
+def generate_member_flyer_image(request, user, force=False):
     import os
+    import base64
     from django.conf import settings
-    from django.http import HttpResponse
+    from django.template.loader import render_to_string
+    from playwright.sync_api import sync_playwright
+    import sys
+    import asyncio
 
     # Define cache path
     flyers_dir = os.path.join(settings.MEDIA_ROOT, 'flyers')
     os.makedirs(flyers_dir, exist_ok=True)
     cache_path = os.path.join(flyers_dir, f"{user.id}.png")
 
-    force_regenerate = request.GET.get('force') == 'true' or request.GET.get('regenerate') == 'true'
-    if force_regenerate:
+    if force:
         if user.custom_flyer:
             try:
                 user.custom_flyer.delete(save=True)
@@ -153,32 +153,29 @@ def generate_flyer_view(request):
 
     if user.custom_flyer:
         try:
-            from django.http import FileResponse
-            response = FileResponse(user.custom_flyer.open(), content_type="image/jpeg")
-            response['Content-Disposition'] = f'attachment; filename="flyer_{user.name.replace(" ", "_")}.jpg"'
-            return response
+            return user.custom_flyer.read(), "image/jpeg"
         except Exception:
             pass
 
     if os.path.exists(cache_path):
         with open(cache_path, "rb") as f:
-            response = HttpResponse(f.read(), content_type="image/png")
-            response['Content-Disposition'] = f'attachment; filename="flyer_{user.name.replace(" ", "_")}.png"'
-            return response
+            return f.read(), "image/png"
 
-    # If not cached, generate using Playwright
-    from django.template.loader import render_to_string
-    from playwright.sync_api import sync_playwright
-    import base64
-    
-    # Base64 encode the logo
+    # Base64 encode the logos
     logo_path = os.path.join(settings.BASE_DIR, 'static', 'images', 'brand', 'cyon-logo.png')
+    seal_path = os.path.join(settings.BASE_DIR, 'static', 'images', 'brand', 'church-seal.png')
+    
     try:
         with open(logo_path, "rb") as img_file:
-            bg_b64 = base64.b64encode(img_file.read()).decode('utf-8')
-            cyon_logo_base64 = f"data:image/png;base64,{bg_b64}"
+            cyon_logo_base64 = f"data:image/png;base64,{base64.b64encode(img_file.read()).decode('utf-8')}"
     except Exception:
         cyon_logo_base64 = ""
+
+    try:
+        with open(seal_path, "rb") as img_file:
+            church_seal_base64 = f"data:image/png;base64,{base64.b64encode(img_file.read()).decode('utf-8')}"
+    except Exception:
+        church_seal_base64 = ""
 
     # Base64 encode the profile picture
     photo_base64 = ""
@@ -189,8 +186,6 @@ def generate_flyer_view(request):
             
             # Strip background
             try:
-                import os
-                from django.conf import settings
                 u2net_path = os.path.join(settings.MEDIA_ROOT, 'u2net')
                 os.makedirs(u2net_path, exist_ok=True)
                 os.environ['U2NET_HOME'] = u2net_path
@@ -207,6 +202,15 @@ def generate_flyer_view(request):
             pass
 
     title = user.contestant_title if user.contestant_title and user.contestant_title != 'None' else "CYON AMBASSADOR"
+    if title == 'Most Influential Youth Fundraiser':
+        if user.gender == 'M':
+            category_text = "Most Influential Youth Fundraiser (Male)"
+        elif user.gender == 'F':
+            category_text = "Most Influential Youth Fundraiser (Female)"
+        else:
+            category_text = "Most Influential Youth Fundraiser"
+    else:
+        category_text = title
     
     # Generate vote_url and QR code
     base_url = request.build_absolute_uri('/')[:-1] 
@@ -224,35 +228,63 @@ def generate_flyer_view(request):
         'name': user.name,
         'photo_url': photo_base64,
         'logo_url': cyon_logo_base64,
-        'category': title,
+        'seal_url': church_seal_base64,
+        'category': category_text,
         'vote_url': vote_url,
         'contact_phone': "09134156737",
         'qr_url': qr_url,
     })
     
-    import sys
-    import asyncio
     if sys.platform == 'win32':
         asyncio.set_event_loop_policy(asyncio.WindowsProactorEventLoopPolicy())
         
+    with sync_playwright() as p:
+        browser = p.chromium.launch(args=['--no-sandbox', '--disable-setuid-sandbox'])
+        page = browser.new_page(viewport={"width": 1080, "height": 1080})
+        page.set_content(html_content, wait_until="load", timeout=30000)
+        # Ensure Montserrat font is fully loaded before screenshot
+        try:
+            page.evaluate("document.fonts.ready")
+        except Exception:
+            pass
+        page.wait_for_timeout(1500)
+        img_bytes = page.screenshot(type="png")
+        browser.close()
+        
+    # Cache it
+    with open(cache_path, "wb") as f:
+        f.write(img_bytes)
+        
+    return img_bytes, "image/png"
+
+@login_required(login_url='/accounts/login/')
+def generate_flyer_view(request):
+    user = request.user
+    from django.http import HttpResponse
+    force = request.GET.get('force') == 'true' or request.GET.get('regenerate') == 'true'
+    
     try:
-        with sync_playwright() as p:
-            browser = p.chromium.launch(args=['--no-sandbox', '--disable-setuid-sandbox'])
-            page = browser.new_page(viewport={"width": 1080, "height": 1080})
-            page.set_content(html_content, wait_until="load", timeout=30000)
-            page.wait_for_timeout(1500) # Give it 1.5s to render Google Fonts just in case
-            img_bytes = page.screenshot(type="png")
-            browser.close()
-            
-        # Cache it
-        with open(cache_path, "wb") as f:
-            f.write(img_bytes)
-            
-        response = HttpResponse(img_bytes, content_type="image/png")
-        response['Content-Disposition'] = f'attachment; filename="flyer_{user.name.replace(" ", "_")}.png"'
+        img_bytes, mime_type = generate_member_flyer_image(request, user, force=force)
+        ext = "jpg" if mime_type == "image/jpeg" else "png"
+        response = HttpResponse(img_bytes, content_type=mime_type)
+        response['Content-Disposition'] = f'attachment; filename="flyer_{user.name.replace(" ", "_")}.{ext}"'
         return response
     except Exception as e:
         return HttpResponse(f"Error generating flyer with Playwright: {str(e)}", status=500)
+
+def public_flyer_view(request, referral_slug):
+    from django.shortcuts import get_object_or_404
+    from django.http import HttpResponse
+    from accounts.models import Member
+    
+    user = get_object_or_404(Member, referral_slug=referral_slug)
+    force = request.GET.get('force') == 'true' or request.GET.get('regenerate') == 'true'
+    
+    try:
+        img_bytes, mime_type = generate_member_flyer_image(request, user, force=force)
+        return HttpResponse(img_bytes, content_type=mime_type)
+    except Exception as e:
+        return HttpResponse(f"Error generating public flyer: {str(e)}", status=500)
 
 @login_required(login_url='/accounts/login/')
 def generate_qr_code_view(request):

@@ -46,16 +46,33 @@
       display: flex;
       flex-direction: row;
       align-items: center;
-      justify-content: center;
-      gap: 20px;
+      justify-content: space-between;
+      width: 100%;
+      padding: 0 45px;
       margin-top: 35px;
       margin-bottom: 25px;
+    }
+    
+    .header-logo-container {
+      display: flex;
+      align-items: center;
+      gap: 20px;
     }
 
     .header-logo {
       width: 85px;
       height: 85px;
       object-fit: contain;
+      flex-shrink: 0;
+    }
+
+    .header-seal {
+      width: 85px;
+      height: 85px;
+      object-fit: contain;
+      border-radius: 50%;
+      flex-shrink: 0;
+      background: rgba(255, 255, 255, 0.08);
     }
 
     .header-text {
@@ -135,7 +152,7 @@
       right: 0;
       top: 40px;
       width: 90%;
-      height: 420px;
+      height: 460px;
       background: #1c2f7c;
       border-radius: 12px 0 0 12px;
       z-index: 1;
@@ -145,7 +162,7 @@
     .theme-block {
       position: absolute;
       left: 380px; /* Leave space for photo */
-      top: 40px;
+      top: 30px;
       right: 30px;
     }
 
@@ -153,11 +170,11 @@
       font-size: 13px;
       letter-spacing: 6px;
       color: rgba(255, 255, 255, 0.70);
-      margin-bottom: 12px;
+      margin-bottom: 8px;
     }
 
     .theme-title {
-      font-size: 68px;
+      font-size: 58px;
       font-weight: 900;
       color: #ffffff;
       line-height: 0.95;
@@ -167,11 +184,11 @@
     .theme-title .yellow { color: #f6c100; }
 
     .tagline {
-      margin-top: 22px;
-      font-size: 20px;
+      margin-top: 18px;
+      font-size: 18px;
       color: rgba(255, 255, 255, 0.90);
       font-weight: 500;
-      line-height: 1.4;
+      line-height: 1.35;
     }
 
     /* ── RED CONTESTANT BAR ───────────────────────────────────── */
@@ -219,7 +236,7 @@
     /* ── VOTE PRICING ROW ───────────────────────────────────── */
     .vote-section {
       position: absolute;
-      top: 480px; /* Below the blue card */
+      top: 520px; /* Below the blue card */
       right: 40px;
       width: 58%; /* Align with right side */
       z-index: 1;
@@ -265,10 +282,10 @@
     /* ── CONTESTANT PHOTO ─────────────────────────────────────── */
     .contestant-photo {
       position: absolute;
-      left: 30px;
+      left: 0;
       bottom: 120px; /* Sit right on top of the footer */
-      width: 480px;
-      height: 620px; /* Breaks out of top of blue card */
+      width: 530px;
+      height: 700px; /* Breaks out of top of blue card */
       object-fit: contain;
       object-position: bottom center;
       z-index: 5; /* Above blue card, but red bar sits to the right so it's fine */
@@ -366,11 +383,16 @@
 
     <!-- Header -->
     <div class="header">
-      <img class="header-logo" src="{{ logo_url }}" alt="Church Logo">
-      <div class="header-text">
-        <h1>CATHOLIC ARCHDIOCESE OF IBADAN</h1>
-        <p>Christ the Good Shepherd Parish, Felele, Ibadan, Oyo State.</p>
+      <div class="header-logo-container">
+        <img class="header-logo" src="{{ logo_url }}" alt="CYON Logo">
+        <div class="header-text">
+          <h1>CATHOLIC ARCHDIOCESE OF IBADAN</h1>
+          <p>Christ the Good Shepherd Parish, Felele, Ibadan, Oyo State.</p>
+        </div>
       </div>
+      {% if seal_url %}
+      <img class="header-seal" src="{{ seal_url }}" alt="Archdiocese Seal">
+      {% endif %}
     </div>
 
     <!-- CYON Banner -->

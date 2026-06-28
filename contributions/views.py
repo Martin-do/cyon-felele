@@ -122,18 +122,11 @@ def donation_form_view(request, referral_slug=None):
         target_amount = 5000000 
         progress_percentage = min(int((total_amount / target_amount) * 100), 100)
 
-        og_image_url = None
-        if referrer.custom_flyer:
-            # User uploaded a custom flyer — use it first
-            og_image_url = request.build_absolute_uri(referrer.custom_flyer.url)
-        else:
-            # Fall back to Playwright-generated flyer
-            import os
-            flyer_path = os.path.join(settings.MEDIA_ROOT, 'flyers', f"{referrer.id}.png")
-            if os.path.exists(flyer_path):
-                og_image_url = request.build_absolute_uri(
-                    f"{settings.MEDIA_URL}flyers/{referrer.id}.png"
-                )
+        # Dynamically point to the public flyer endpoint so it generates on-demand for crawlers
+        from django.urls import reverse
+        og_image_url = request.build_absolute_uri(
+            reverse('dashboard:public_flyer', args=[referrer.referral_slug])
+        )
 
         context = {
             'referrer': referrer,
