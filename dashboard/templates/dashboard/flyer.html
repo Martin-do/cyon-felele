@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <style>
-    @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800;900&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700;900&display=swap');
 
     *, *::before, *::after {
       margin: 0; padding: 0; box-sizing: border-box;
@@ -13,7 +13,7 @@
       width: 1080px;
       height: 1080px;
       background: #fdfdfd;
-      font-family: 'Montserrat', sans-serif;
+      font-family: 'Roboto', sans-serif;
       position: relative;
       overflow: hidden;
     }
@@ -151,13 +151,13 @@
       height: 460px;
       background: #1c2f7c;
       border-radius: 12px;
-      z-index: 1;
+      /* removed z-index: 1 so it doesn't trap children in its stacking context */
     }
 
     /* Theme text — right side of card */
     .theme-block {
       position: absolute;
-      left: 450px; /* Shifted right so text isn't hidden by the picture */
+      left: 450px; /* Reverted to 450px so text safely clears the picture */
       top: 30px;
       right: 30px;
     }
@@ -193,8 +193,8 @@
       right: 0;
       bottom: 0;
       background: #e21c21;
-      padding: 16px 30px 16px 40px;
-      width: 66%; /* Shifted left to match sample */
+      padding: 16px 30px 16px 100px; /* Reverted padding to keep text aligned with 450px mark */
+      width: 64%; /* Reduced width so the red banner recedes slightly from the photo */
       z-index: 6; /* Raised above the photo (which is z-index 5) so the banner overlays it */
       border-radius: 0 0 12px 0;
     }
@@ -214,12 +214,15 @@
     }
 
     .contestant-name {
-      font-size: 34px;
+      font-size: 28px; /* Reduced font size to accommodate long names */
       font-weight: 900;
       color: #ffffff;
       text-transform: uppercase;
       letter-spacing: 1px;
       line-height: 1.1;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
 
     .contestant-role {
@@ -232,9 +235,9 @@
     /* ── VOTE PRICING ROW ───────────────────────────────────── */
     .vote-section {
       position: absolute;
-      top: 520px; /* Below the blue card */
-      right: 5%;
-      width: 60%; /* Shifted left to match sample */
+      top: 508px; /* Pulled slightly up to tighten the gap and prevent pushing down */
+      left: 504px; /* Reverted to 504px to maintain vertical alignment with the text */
+      right: 5%; /* Aligns with the right margin of the blue card */
       z-index: 6; /* Layer over the photo (which is z-index 5) to prevent covering the vote buttons */
     }
 
@@ -252,13 +255,13 @@
 
     .vote-btn .v-amount {
       display: block;
-      font-size: 22px;
+      font-size: 17px;
       font-weight: 800;
     }
 
     .vote-btn .v-count {
       display: block;
-      font-size: 14px;
+      font-size: 11px;
       font-weight: 500;
       margin-top: 3px;
     }
@@ -269,21 +272,22 @@
     .vote-btn.black { background: #000000; color: #ffffff; }
 
     .vote-note {
-      font-size: 13px;
-      color: #333;
-      margin-top: 12px;
+      font-size: 14px;
+      color: #000000;
+      margin-top: 6px; /* Tightened margin */
       font-weight: 500;
+      white-space: nowrap; /* Ensures the text never wraps or gets pushed down */
     }
 
     /* ── CONTESTANT PHOTO ─────────────────────────────────────── */
     .contestant-photo {
       position: absolute;
-      left: 0;
+      left: -35px; /* Negative left margin forces it completely flush to the edge regardless of transparent padding */
       bottom: 120px; /* Sit right on top of the footer */
-      width: 530px;
+      width: 550px; /* Slightly increased width to compensate for the left shift */
       height: 700px; /* Breaks out of top of blue card */
       object-fit: contain;
-      object-position: bottom center;
+      object-position: bottom left; /* Forces the image completely to the left edge */
       z-index: 5; /* Above blue card, but red bar sits to the right so it's fine */
     }
 

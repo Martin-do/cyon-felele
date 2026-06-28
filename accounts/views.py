@@ -200,23 +200,26 @@ def settings_view(request):
                 messages.success(request, 'PIN changed successfully.')
                 
         if 'profile_picture' in request.FILES or 'custom_flyer' in request.FILES:
-            if 'profile_picture' in request.FILES:
-                user.profile_picture = request.FILES['profile_picture']
-            if 'custom_flyer' in request.FILES:
-                user.custom_flyer = request.FILES['custom_flyer']
-            user.save()
-            
-            # Invalidate cached flyer
-            import os
-            from django.conf import settings
-            cache_path = os.path.join(settings.MEDIA_ROOT, 'flyers', f"{user.id}.png")
-            if os.path.exists(cache_path):
-                try:
-                    os.remove(cache_path)
-                except Exception:
-                    pass
-                    
-            messages.success(request, 'Profile media updated successfully.')
+            if user.is_flyer_locked:
+                messages.error(request, 'Your flyer is locked and cannot be updated. Contact the admin/developer (Seun) for edits.')
+            else:
+                if 'profile_picture' in request.FILES:
+                    user.profile_picture = request.FILES['profile_picture']
+                if 'custom_flyer' in request.FILES:
+                    user.custom_flyer = request.FILES['custom_flyer']
+                user.save()
+                
+                # Invalidate cached flyer
+                import os
+                from django.conf import settings
+                cache_path = os.path.join(settings.MEDIA_ROOT, 'flyers', f"{user.id}.png")
+                if os.path.exists(cache_path):
+                    try:
+                        os.remove(cache_path)
+                    except Exception:
+                        pass
+                        
+                messages.success(request, 'Profile media updated successfully.')
                 
         return redirect('accounts:settings')
 

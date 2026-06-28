@@ -190,11 +190,12 @@ def generate_member_flyer_image(request, user, force=False):
     if not force and os.path.exists(cache_path) and os.path.exists(template_path):
         try:
             if os.path.getmtime(template_path) > os.path.getmtime(cache_path):
-                force = True
+                if not user.is_flyer_locked:
+                    force = True
         except Exception:
             pass
 
-    if force:
+    if force and not user.is_flyer_locked:
         if user.custom_flyer:
             try:
                 user.custom_flyer.delete(save=True)
@@ -362,37 +363,244 @@ def generate_qr_code_view(request):
     img.save(buffer, format="PNG")
     return HttpResponse(buffer.getvalue(), content_type="image/png")
 
-def leaderboard_view(request):
+def get_leaderboard_standings_helper(cutoff_time=None):
+    from django.db.models import Sum
+    from accounts.models import Member
+    from contributions.models import Contribution
+    
     members = Member.objects.filter(is_active=True, is_staff=False)
-    youth_leaderboard = []
-    children_leaderboard = []
+    youth_list = []
+    children_list = []
     
     for member in members:
-        total = Contribution.objects.filter(referred_by=member, is_voided=False, status='approved').aggregate(Sum('amount'))['amount__sum'] or 0.00
-        if total > 0:
+        contrib_query = Contribution.objects.filter(referred_by=member, is_voided=False, status='approved')
+        if cutoff_time:
+            contrib_query = contrib_query.filter(timestamp__lte=cutoff_time)
+            
+        total = contrib_query.aggregate(Sum('amount'))['amount__sum'] or 0.00
+        if total > 0 or not cutoff_time:
             entry = {
                 'name': member.name,
-                'total': total,
+                'total': float(total),
                 'votes': int(total // 500),
                 'gender': member.gender,
-                'title': member.contestant_title
+                'title': member.contestant_title,
+                'avatar': member.profile_picture.url if member.profile_picture else None,
+                'slug': member.referral_slug,
             }
             if member.contestant_title in ['Master Harvest', 'Miss Harvest']:
-                children_leaderboard.append(entry)
+                children_list.append(entry)
             else:
-                youth_leaderboard.append(entry)
+                youth_list.append(entry)
+                
+    youth_list = sorted(youth_list, key=lambda x: x['total'], reverse=True)
+    children_list = sorted(children_list, key=lambda x: x['total'], reverse=True)
+    
+    return youth_list, children_list
+
+def leaderboard_view(request):
+    from django.utils import timezone
+    import datetime
+    from django.db.models import Sum
+    from contributions.models import Contribution
+    from django.urls import reverse
+    
+    # Current standings
+    youth_curr, children_curr = get_leaderboard_standings_helper()
+    
+    # Standings 24 hours ago
+    cutoff_24h = timezone.now() - datetime.timedelta(days=1)
+    youth_prev, children_prev = get_leaderboard_standings_helper(cutoff_time=cutoff_24h)
+    
+    # Map previous ranks
+    youth_prev_ranks = {entry['slug']: i + 1 for i, entry in enumerate(youth_prev)}
+    children_prev_ranks = {entry['slug']: i + 1 for i, entry in enumerate(children_prev)}
+    
+    # Annotate current youth
+    for i, entry in enumerate(youth_curr):
+        rank = i + 1
+        entry['rank'] = rank
+        prev_rank = youth_prev_ranks.get(entry['slug'])
+        if prev_rank is None:
+            entry['rank_change'] = 'new'
+        else:
+            diff = prev_rank - rank
+            entry['rank_change'] = diff
+            entry['rank_change_abs'] = abs(diff)
             
-    youth_leaderboard = sorted(youth_leaderboard, key=lambda x: x['total'], reverse=True)
-    children_leaderboard = sorted(children_leaderboard, key=lambda x: x['total'], reverse=True)
+    # Annotate current children
+    for i, entry in enumerate(children_curr):
+        rank = i + 1
+        entry['rank'] = rank
+        prev_rank = children_prev_ranks.get(entry['slug'])
+        if prev_rank is None:
+            entry['rank_change'] = 'new'
+        else:
+            diff = prev_rank - rank
+            entry['rank_change'] = diff
+            entry['rank_change_abs'] = abs(diff)
+            
+    total_harvest = Contribution.objects.filter(is_voided=False, status='approved').aggregate(Sum('amount'))['amount__sum'] or 0.00
+    
+    snapshot_url = request.build_absolute_uri(reverse('dashboard:leaderboard_snapshot'))
+    
+    context = {
+        'youth_leaderboard': youth_curr,
+        'children_leaderboard': children_curr,
+        'total_harvest': total_harvest,
+        'snapshot_url': snapshot_url,
+    }
+    return render(request, 'dashboard/leaderboard.html', context)
+
+def generate_leaderboard_snapshot_image(request, force=False):
+    import os
+    import base64
+    from django.conf import settings
+    from django.template.loader import render_to_string
+    from playwright.sync_api import sync_playwright
+    import sys
+    import asyncio
+    from django.urls import reverse
+    from django.db.models import Sum
+    
+    hide_kids = request.GET.get('hide_kids') == 'true'
+    
+    # Define cache path
+    snapshot_dir = os.path.join(settings.MEDIA_ROOT, 'leaderboard')
+    os.makedirs(snapshot_dir, exist_ok=True)
+    cache_filename = "standings_snapshot_hide_kids.png" if hide_kids else "standings_snapshot.png"
+    cache_path = os.path.join(snapshot_dir, cache_filename)
+    
+    # Check if cache is valid (newer than latest approved contribution)
+    from contributions.models import Contribution
+    latest_contrib = Contribution.objects.filter(is_voided=False, status='approved').order_by('-timestamp').first()
+    
+    use_cache = False
+    if not force and os.path.exists(cache_path):
+        if latest_contrib:
+            import datetime
+            from django.utils import timezone
+            mtime = datetime.datetime.fromtimestamp(os.path.getmtime(cache_path), tz=timezone.utc)
+            if mtime > latest_contrib.timestamp:
+                use_cache = True
+        else:
+            use_cache = True
+            
+    if use_cache:
+        with open(cache_path, "rb") as f:
+            return f.read(), "image/png"
+            
+    # Base64 encode the logos
+    logo_path = os.path.join(settings.BASE_DIR, 'static', 'images', 'brand', 'cyon-logo.png')
+    seal_path = os.path.join(settings.BASE_DIR, 'static', 'images', 'brand', 'church-seal.png')
+    
+    try:
+        with open(logo_path, "rb") as img_file:
+            cyon_logo_base64 = f"data:image/png;base64,{base64.b64encode(img_file.read()).decode('utf-8')}"
+    except Exception:
+        cyon_logo_base64 = ""
+        
+    try:
+        with open(seal_path, "rb") as img_file:
+            church_seal_base64 = f"data:image/png;base64,{base64.b64encode(img_file.read()).decode('utf-8')}"
+    except Exception:
+        church_seal_base64 = ""
+        
+    # Get standings
+    youth_curr, children_curr = get_leaderboard_standings_helper()
+    
+    # Base64-encode avatars for top 5 contestants in each category
+    from accounts.models import Member
+    for entry in youth_curr[:5]:
+        if entry['avatar']:
+            try:
+                member = Member.objects.get(referral_slug=entry['slug'])
+                if member.profile_picture:
+                    with open(member.profile_picture.path, "rb") as f:
+                        entry['avatar_b64'] = f"data:image/png;base64,{base64.b64encode(f.read()).decode('utf-8')}"
+                else:
+                    entry['avatar_b64'] = None
+            except Exception:
+                entry['avatar_b64'] = None
+        else:
+            entry['avatar_b64'] = None
+            
+    for entry in children_curr[:5]:
+        if entry['avatar']:
+            try:
+                member = Member.objects.get(referral_slug=entry['slug'])
+                if member.profile_picture:
+                    with open(member.profile_picture.path, "rb") as f:
+                        entry['avatar_b64'] = f"data:image/png;base64,{base64.b64encode(f.read()).decode('utf-8')}"
+                else:
+                    entry['avatar_b64'] = None
+            except Exception:
+                entry['avatar_b64'] = None
+        else:
+            entry['avatar_b64'] = None
+
+    # Generate QR code for the live leaderboard url
+    base_url = request.build_absolute_uri('/')[:-1]
+    leaderboard_url = f"{base_url}{reverse('dashboard:leaderboard')}"
+    
+    import qrcode
+    import io
+    qr = qrcode.QRCode(version=1, box_size=10, border=1)
+    qr.add_data(leaderboard_url)
+    qr.make(fit=True)
+    qr_img = qr.make_image(fill_color="#14301F", back_color="white")
+    buf = io.BytesIO()
+    qr_img.save(buf, format="PNG")
+    qr_b64 = base64.b64encode(buf.getvalue()).decode('utf-8')
+    qr_url = f"data:image/png;base64,{qr_b64}"
     
     total_harvest = Contribution.objects.filter(is_voided=False, status='approved').aggregate(Sum('amount'))['amount__sum'] or 0.00
     
-    context = {
-        'youth_leaderboard': youth_leaderboard,
-        'children_leaderboard': children_leaderboard,
-        'total_harvest': total_harvest
-    }
-    return render(request, 'dashboard/leaderboard.html', context)
+    html_content = render_to_string('dashboard/leaderboard_snapshot_tmpl.html', {
+        'youth_leaderboard': youth_curr[:5],
+        'children_leaderboard': children_curr[:5],
+        'total_harvest': total_harvest,
+        'logo_url': cyon_logo_base64,
+        'seal_url': church_seal_base64,
+        'qr_url': qr_url,
+        'leaderboard_url': leaderboard_url,
+        'hide_kids': hide_kids,
+    })
+    
+    if sys.platform == 'win32':
+        asyncio.set_event_loop_policy(asyncio.WindowsProactorEventLoopPolicy())
+        
+    with sync_playwright() as p:
+        browser = p.chromium.launch(args=['--no-sandbox', '--disable-setuid-sandbox'])
+        page = browser.new_page(viewport={"width": 1080, "height": 1080})
+        page.set_content(html_content, wait_until="load", timeout=30000)
+        try:
+            page.evaluate("document.fonts.ready")
+        except Exception:
+            pass
+        page.wait_for_timeout(1500)
+        img_bytes = page.screenshot(type="png")
+        browser.close()
+        
+    with open(cache_path, "wb") as f:
+        f.write(img_bytes)
+        
+    return img_bytes, "image/png"
+
+def leaderboard_snapshot_view(request):
+    force = request.GET.get('force') == 'true' or request.GET.get('regenerate') == 'true'
+    try:
+        img_bytes, mime_type = generate_leaderboard_snapshot_image(request, force=force)
+        from django.http import HttpResponse
+        response = HttpResponse(img_bytes, content_type=mime_type)
+        if request.GET.get('download') == 'true':
+            response['Content-Disposition'] = 'attachment; filename="leaderboard_snapshot.png"'
+        return response
+    except Exception as e:
+        import traceback
+        tb = traceback.format_exc()
+        from django.http import HttpResponse
+        return HttpResponse(f"Error generating snapshot: {str(e)}\n\n{tb}", status=500)
 
 @login_required(login_url='/accounts/login/')
 def my_pledges_view(request):
@@ -1251,6 +1459,46 @@ def send_approval_push_notification(contribution):
         }
         for sub in subscriptions:
             send_web_push(sub, payload)
+
+
+@admin_required
+def admin_update_member_flyer_view(request, pk):
+    if request.method == 'POST':
+        member = get_object_or_404(Member, pk=pk)
+        
+        # Profile picture
+        if 'profile_picture' in request.FILES:
+            member.profile_picture = request.FILES['profile_picture']
+            
+        # Custom flyer
+        if 'custom_flyer' in request.FILES:
+            member.custom_flyer = request.FILES['custom_flyer']
+            
+        # Lock status (checkbox)
+        member.is_flyer_locked = 'is_flyer_locked' in request.POST
+        member.save()
+        
+        # Clear custom flyer if requested
+        if request.POST.get('clear_custom_flyer') == 'true':
+            if member.custom_flyer:
+                try:
+                    member.custom_flyer.delete(save=True)
+                except Exception:
+                    pass
+        
+        # Force invalidate cached flyer image
+        import os
+        from django.conf import settings
+        cache_path = os.path.join(settings.MEDIA_ROOT, 'flyers', f"{member.id}.png")
+        if os.path.exists(cache_path):
+            try:
+                os.remove(cache_path)
+            except Exception:
+                pass
+                
+        messages.success(request, f"Flyer configuration and lock status for {member.name} updated successfully.")
+        
+    return redirect('dashboard:master_dashboard')
 
 
 

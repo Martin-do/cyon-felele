@@ -137,6 +137,9 @@
         <button id="tab-btn-roles" onclick="switchTab('roles')" class="px-4 py-2 text-amber-100/70 hover:text-amber-100 font-semibold rounded-lg text-sm transition-all duration-300 shrink-0">
             👥 Youth Roles
         </button>
+        <button id="tab-btn-flyers" onclick="switchTab('flyers')" class="px-4 py-2 text-amber-100/70 hover:text-amber-100 font-semibold rounded-lg text-sm transition-all duration-300 shrink-0">
+            🎨 Member Flyers
+        </button>
         <button id="tab-btn-categories" onclick="switchTab('categories')" class="px-4 py-2 text-amber-100/70 hover:text-amber-100 font-semibold rounded-lg text-sm transition-all duration-300 shrink-0">
             📁 Inflow Categories
         </button>
@@ -449,6 +452,108 @@
                     <tr>
                         <td colspan="4" class="px-4 py-8 text-center text-amber-200/50 text-sm">
                             👥 No youth members found. (All accounts may have admin/superuser privileges — accounts registered via the Sign Up page will appear here.)
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Tab Section: Member Flyers -->
+    <div id="tab-content-flyers" class="tab-content" style="display:none;flex-direction:column;gap:1.25rem;background:rgba(6,78,59,0.3);border:1px solid rgba(245,158,11,0.15);padding:1.5rem;border-radius:1rem;backdrop-filter:blur(12px);">
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div>
+                <h3 class="text-lg font-bold text-amber-100 text-left">Member Flyers Management</h3>
+                <p class="text-sm text-amber-200/70 text-left">Upload custom profile photos or pre-designed flyers and lock/unlock flyer regeneration to freeze the designs.</p>
+            </div>
+            <!-- Client side search -->
+            <div class="relative max-w-xs w-full text-left">
+                <input type="text" id="flyer-search" placeholder="Search members..." class="w-full bg-emerald-950/50 border border-amber-500/20 rounded-lg px-3.5 py-1.5 text-amber-50 text-sm focus:outline-none focus:border-amber-400 placeholder-amber-200/40">
+            </div>
+        </div>
+        
+        <div class="overflow-x-auto w-full">
+            <table class="w-full text-left border-collapse">
+                <thead>
+                    <tr class="border-b border-emerald-950/20 bg-emerald-950/40 text-amber-400/80 text-xs font-bold uppercase tracking-wider">
+                        <th class="px-4 py-3">Member Details</th>
+                        <th class="px-4 py-3">Status</th>
+                        <th class="px-4 py-3">Flyer Preview</th>
+                        <th class="px-4 py-3 text-right">Flyer Update Configuration & Lock Options</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-emerald-950/10" id="flyer-table-body">
+                    {% for member in members %}
+                    <tr class="border-b border-emerald-950/20 hover:bg-emerald-950/10 transition-colors member-flyer-row" data-name="{{ member.name|lower }}">
+                        <td class="px-4 py-3.5 text-sm">
+                            <div class="flex items-center gap-3">
+                                {% if member.profile_picture %}
+                                <img src="{{ member.profile_picture.url }}" class="w-10 h-10 rounded-full object-cover border border-amber-500/30">
+                                {% else %}
+                                <div class="w-10 h-10 rounded-full bg-emerald-800/60 border border-amber-500/20 flex items-center justify-center text-xs font-bold text-amber-200">
+                                    {{ member.name|slice:":2"|upper }}
+                                </div>
+                                {% endif %}
+                                <div>
+                                    <div class="font-bold text-amber-50">{{ member.name }}</div>
+                                    <div class="text-xs text-amber-200/50">slug: {{ member.referral_slug }}</div>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="px-4 py-3.5 text-sm">
+                            {% if member.is_flyer_locked %}
+                            <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-rose-500/10 text-rose-400 border border-rose-500/20">
+                                🔒 Locked
+                            </span>
+                            {% else %}
+                            <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                                🔓 Active
+                            </span>
+                            {% endif %}
+                        </td>
+                        <td class="px-4 py-3.5 text-sm">
+                            {% if member.custom_flyer %}
+                            <a href="{{ member.custom_flyer.url }}" target="_blank" class="text-amber-400 hover:text-amber-300 font-medium underline text-xs">Custom Bg</a>
+                            {% else %}
+                            <a href="{% url 'dashboard:public_flyer' member.referral_slug %}" target="_blank" class="text-amber-200/70 hover:text-amber-100 font-medium underline text-xs">View Flyer</a>
+                            {% endif %}
+                        </td>
+                        <td class="px-4 py-3.5 text-sm">
+                            <form method="POST" action="{% url 'dashboard:admin_update_member_flyer' member.pk %}" enctype="multipart/form-data" class="flex flex-wrap items-center gap-3 justify-end flyer-update-form">
+                                {% csrf_token %}
+                                <div class="flex flex-col gap-1 text-left">
+                                    <span class="text-[9px] text-amber-200/40 uppercase font-semibold">Photo</span>
+                                    <input type="file" name="profile_picture" accept="image/*" class="text-[11px] text-amber-200 file:mr-2 file:py-0.5 file:px-2 file:rounded file:border-0 file:text-[11px] file:font-semibold file:bg-amber-500/20 file:text-amber-200 hover:file:bg-amber-500/30 cursor-pointer" style="max-width: 140px;">
+                                </div>
+                                
+                                <div class="flex flex-col gap-1 text-left">
+                                    <span class="text-[9px] text-amber-200/40 uppercase font-semibold">Custom Flyer Bg</span>
+                                    <input type="file" name="custom_flyer" accept="image/*" class="text-[11px] text-amber-200 file:mr-2 file:py-0.5 file:px-2 file:rounded file:border-0 file:text-[11px] file:font-semibold file:bg-amber-500/20 file:text-amber-200 hover:file:bg-amber-500/30 cursor-pointer" style="max-width: 140px;">
+                                </div>
+                                
+                                <div class="flex items-center gap-1.5 mt-2">
+                                    <input type="checkbox" name="is_flyer_locked" id="lock-{{ member.pk }}" {% if member.is_flyer_locked %}checked{% endif %} class="rounded bg-emerald-950 border-amber-500/30 text-amber-500 focus:ring-0 focus:ring-offset-0">
+                                    <label for="lock-{{ member.pk }}" class="text-xs text-amber-200 cursor-pointer select-none">Lock</label>
+                                </div>
+                                
+                                {% if member.custom_flyer %}
+                                <div class="flex items-center gap-1.5 mt-2">
+                                    <input type="checkbox" name="clear_custom_flyer" value="true" id="clear-{{ member.pk }}" class="rounded bg-emerald-950 border-amber-500/30 text-rose-500 focus:ring-0 focus:ring-offset-0">
+                                    <label for="clear-{{ member.pk }}" class="text-xs text-rose-400 cursor-pointer select-none">Clear Custom</label>
+                                </div>
+                                {% endif %}
+                                
+                                <button type="submit" class="bg-amber-500 hover:bg-amber-400 text-emerald-950 font-bold px-3 py-1 rounded text-xs transition mt-2">
+                                    Save
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="4" class="px-4 py-8 text-center text-amber-200/50 text-sm">
+                            👥 No members found.
                         </td>
                     </tr>
                     {% endfor %}
@@ -1369,7 +1474,7 @@
         sessionStorage.setItem('admin_active_tab', tabId);
 
         // Get all tab content divs by their IDs directly
-        var ids = ['tab-content-ledger', 'tab-content-roles', 'tab-content-categories', 'tab-content-resets', 'tab-content-import', 'tab-content-pledges'];
+        var ids = ['tab-content-ledger', 'tab-content-roles', 'tab-content-flyers', 'tab-content-categories', 'tab-content-resets', 'tab-content-import', 'tab-content-pledges'];
         for (var i = 0; i < ids.length; i++) {
             var el = document.getElementById(ids[i]);
             if (el) {
@@ -1390,7 +1495,7 @@
         }
 
         // Update button styles
-        var btnIds = ['ledger', 'roles', 'categories', 'resets', 'import', 'pledges'];
+        var btnIds = ['ledger', 'roles', 'flyers', 'categories', 'resets', 'import', 'pledges'];
         for (var j = 0; j < btnIds.length; j++) {
             var btn = document.getElementById('tab-btn-' + btnIds[j]);
             if (btn) {
@@ -1402,6 +1507,25 @@
             }
         }
     }
+
+    // Client-side search for Member Flyers
+    document.addEventListener('DOMContentLoaded', function() {
+        var searchInput = document.getElementById('flyer-search');
+        if (searchInput) {
+            searchInput.addEventListener('keyup', function() {
+                var filterVal = this.value.toLowerCase().trim();
+                var rows = document.querySelectorAll('.member-flyer-row');
+                rows.forEach(function(row) {
+                    var name = row.getAttribute('data-name') || '';
+                    if (name.includes(filterVal)) {
+                        row.style.display = '';
+                    } else {
+                        row.style.display = 'none';
+                    }
+                });
+            });
+        }
+    });
 
     // Auto-dismiss the welcome banner after 4 seconds
     (function() {

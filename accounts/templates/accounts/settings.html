@@ -106,6 +106,30 @@
 
     <!-- Profile Update Form -->
     <h3 class="section-title" style="margin-top:0;">Profile & Flyer Settings</h3>
+    
+    {% if user.is_flyer_locked %}
+    <div style="background: rgba(220, 38, 38, 0.05); border: 1.5px solid rgba(220, 38, 38, 0.2); border-left: 4px solid #DC2626; padding: 1.2rem; border-radius: 12px; margin-bottom: 1.5rem; display: flex; align-items: flex-start; gap: 0.85rem; text-align: left;">
+        <span style="font-size: 1.35rem; line-height: 1;">🔒</span>
+        <div>
+            <h4 style="margin: 0; font-size: 0.95rem; font-weight: 700; color: #991B1B;">Flyer Design Locked</h4>
+            <p style="margin: 0.25rem 0 0 0; font-size: 0.82rem; color: #7F1D1D; line-height: 1.45;">Your campaign flyer has been customized and locked by the developer/admin to preserve the layout. If you need any changes, please contact the developer, <strong>Seun (08079028453)</strong>.</p>
+        </div>
+    </div>
+    
+    <div style="display: flex; gap: 1rem; flex-wrap: wrap; align-items: center; margin-bottom: 1.5rem; padding: 1rem; background: #FAF6EC; border-radius: 8px; border: 1px solid rgba(201,162,39,0.15);">
+        {% if user.profile_picture %}
+        <img src="{{ user.profile_picture.url }}" style="width: 70px; height: 70px; border-radius: 50%; object-fit: cover; border: 2px solid #C9A227;">
+        {% else %}
+        <div style="width: 70px; height: 70px; border-radius: 50%; background: #E8C547; display: flex; align-items: center; justify-content: center; font-size: 1.8rem; color: #fff;">
+            {{ user.name|make_list|first|upper }}
+        </div>
+        {% endif %}
+        <div style="flex: 1; text-align: left;">
+            <p style="margin: 0; font-weight: 700; color: #1B3B2B; font-size: 0.95rem;">{{ user.name }}</p>
+            <p style="margin: 0.2rem 0 0 0; font-size: 0.8rem; color: #6B7280;">Profile details and custom flyer backgrounds are locked for this account.</p>
+        </div>
+    </div>
+    {% else %}
     <form method="post" enctype="multipart/form-data" id="profileUpdateForm">
         {% csrf_token %}
         <div style="display: flex; gap: 1rem; flex-wrap: wrap; align-items: center; margin-bottom: 1.25rem;">
@@ -138,6 +162,7 @@
             🔄 Force Regenerate My Flyer
         </a>
     </div>
+    {% endif %}
 
     <!-- Security Preferences Form -->
     <h3 class="section-title">Security Preferences</h3>

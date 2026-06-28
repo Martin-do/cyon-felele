@@ -297,3 +297,50 @@ class AdminDashboardAPITests(APITestCase):
         self.assertIsNotNone(req.temp_pin)
         self.assertEqual(len(req.temp_pin), 4)
 
+    def test_flyer_locking_and_admin_update(self):
+        from django.core.files.uploadedfile import SimpleUploadedFile
+        
+        # Log in regular user
+        self.client.force_login(self.regular_user)
+        
+        # Verify flyer not locked by default
+        self.assertFalse(self.regular_user.is_flyer_locked)
+        
+        # Admin updates flyer and locks it
+        self.client.force_login(self.admin_user)
+        
+        # Prepare mock files
+        profile_pic = SimpleUploadedFile("new_pic.jpg", b"file_content", content_type="image/jpeg")
+        custom_flyer = SimpleUploadedFile("new_flyer.jpg", b"flyer_content", content_type="image/jpeg")
+        
+        # Post to admin flyer update endpoint
+        url = reverse('dashboard:admin_update_member_flyer', args=[self.regular_user.id])
+        response = self.client.post(url, {
+            'profile_picture': profile_pic,
+            'custom_flyer': custom_flyer,
+            'is_flyer_locked': 'on'
+        })
+        
+        self.assertEqual(response.status_code, 302)
+        
+        # Verify changes in DB
+        self.regular_user.refresh_from_db()
+        self.assertTrue(self.regular_user.is_flyer_locked)
+        self.assertTrue(self.regular_user.profile_picture.name.startswith('profiles/new_pic'))
+        self.assertTrue(self.regular_user.custom_flyer.name.startswith('flyers/new_flyer'))
+        
+        # Now regular user logs back in and tries to update settings with a new picture
+        self.client.force_login(self.regular_user)
+        another_pic = SimpleUploadedFile("another_pic.jpg", b"another_content", content_type="image/jpeg")
+        
+        settings_url = reverse('accounts:settings')
+        response = self.client.post(settings_url, {
+            'profile_picture': another_pic
+        })
+        self.assertEqual(response.status_code, 302)
+        
+        # Check that profile picture was NOT changed
+        self.regular_user.refresh_from_db()
+        self.assertTrue(self.regular_user.profile_picture.name.startswith('profiles/new_pic'))
+        self.assertFalse(self.regular_user.profile_picture.name.startswith('profiles/another_pic'))
+

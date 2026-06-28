@@ -60,6 +60,7 @@ class Member(AbstractBaseUser, PermissionsMixin):
         (60, '60 Minutes'),
     )
     lock_timeout = models.IntegerField(choices=LOCK_CHOICES, default=15)
+    is_flyer_locked = models.BooleanField(default=False, help_text="Lock flyer and profile picture modification/regeneration on dashboard")
     
     objects = MemberManager()
 
