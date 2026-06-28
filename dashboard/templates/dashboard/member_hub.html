@@ -472,7 +472,7 @@
         <h3 style="font-size: 1.25rem; font-weight: 800; color: #1B3B2B; margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.5rem; background: none !important; -webkit-text-fill-color: initial !important;">🪙 Redeem Pledge</h3>
         <p style="font-size: 0.85rem; color: #4B6B57; margin-bottom: 1.25rem;" id="redeemSubtitle"></p>
         
-        <form method="POST" action="{% url 'dashboard:redeem_pledge' %}" style="display: flex; flex-direction: column; gap: 1rem;" id="redeemForm" onsubmit="setButtonLoading(this.querySelector('button[type=submit]'))">
+        <form method="POST" action="{% url 'dashboard:redeem_pledge' %}" enctype="multipart/form-data" style="display: flex; flex-direction: column; gap: 1rem;" id="redeemForm" onsubmit="setButtonLoading(this.querySelector('button[type=submit]'))">
             {% csrf_token %}
             <input type="hidden" name="pledge_id" id="redeem_pledge_id">
             
@@ -486,14 +486,20 @@
                 <label style="display: block; font-size: 0.78rem; font-weight: 700; color: #1B3B2B; text-transform: uppercase; margin-bottom: 0.4rem;">Payment Method</label>
                 <div style="display: flex; gap: 0.75rem;">
                     <label class="payment-method-label">
-                        <input type="radio" name="method" value="Transfer" checked>
+                        <input type="radio" name="method" value="Transfer" checked onchange="togglePaymentMethod('Transfer')">
                         <div class="payment-method-box">Manual Transfer</div>
                     </label>
                     <label class="payment-method-label">
-                        <input type="radio" name="method" value="Online">
+                        <input type="radio" name="method" value="Online" onchange="togglePaymentMethod('Online')">
                         <div class="payment-method-box">Pay Online</div>
                     </label>
                 </div>
+            </div>
+
+            <!-- Receipt Upload Field (shown only for Transfer) -->
+            <div id="receipt-upload-field">
+                <label style="display: block; font-size: 0.78rem; font-weight: 700; color: #1B3B2B; text-transform: uppercase; margin-bottom: 0.4rem;">Upload Transfer Receipt (Mandatory)</label>
+                <input type="file" name="receipt_image" accept="image/*" required style="width: 100%; padding: 0.5rem; border-radius: 8px; border: 1.5px solid rgba(201,162,39,0.3); background: #FFF; font-size: 0.85rem;">
             </div>
             
             <button type="submit" class="btn-copy" style="width: 100%; padding: 0.85rem; background: linear-gradient(135deg, #245C3F 0%, #14301F 100%); color: #C9A227; font-weight: 800; border-radius: 8px; border: 1px solid rgba(201,162,39,0.3); margin-top: 0.75rem;">
@@ -509,10 +515,27 @@
 
 {% block scripts %}
 <script>
+function togglePaymentMethod(method) {
+    const receiptField = document.getElementById('receipt-upload-field');
+    const receiptInput = receiptField.querySelector('input[name="receipt_image"]');
+    if (method === 'Transfer') {
+        receiptField.style.display = 'block';
+        receiptInput.required = true;
+    } else {
+        receiptField.style.display = 'none';
+        receiptInput.required = false;
+    }
+}
+
 function openRedeemModal(pledgeId, maxAmount, category) {
     document.getElementById('redeem_pledge_id').value = pledgeId;
     document.getElementById('redeem_amount').value = maxAmount;
     document.getElementById('redeemSubtitle').textContent = "Payment towards: " + category;
+    
+    const manualRadio = document.querySelector('input[name="method"][value="Transfer"]');
+    if (manualRadio) manualRadio.checked = true;
+    togglePaymentMethod('Transfer');
+    
     document.getElementById('redeemModal').style.display = 'flex';
 }
 function closeRedeemModal() {

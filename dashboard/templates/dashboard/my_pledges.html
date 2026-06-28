@@ -109,7 +109,7 @@
         <h3 class="text-xl font-bold text-amber-100 mb-2">Redeem Pledge</h3>
         <p class="text-sm text-amber-200/70 mb-4" id="redeemSubtitle"></p>
         
-        <form method="POST" action="{% url 'dashboard:redeem_pledge' %}" class="flex flex-col gap-4 text-left" id="redeemForm" onsubmit="setButtonLoading(this.querySelector('button[type=submit]'))">
+        <form method="POST" action="{% url 'dashboard:redeem_pledge' %}" enctype="multipart/form-data" class="flex flex-col gap-4 text-left" id="redeemForm" onsubmit="setButtonLoading(this.querySelector('button[type=submit]'))">
             {% csrf_token %}
             <input type="hidden" name="pledge_id" id="redeem_pledge_id">
             
@@ -123,18 +123,24 @@
                 <label class="block text-amber-400 text-xs font-semibold mb-1.5">Payment Method</label>
                 <div class="flex gap-4">
                     <label class="flex-1 cursor-pointer">
-                        <input type="radio" name="method" value="Transfer" checked class="peer hidden">
+                        <input type="radio" name="method" value="Transfer" checked class="peer hidden" onchange="togglePaymentMethod('Transfer')">
                         <div class="w-full text-center py-2.5 bg-emerald-950 border border-amber-500/20 rounded-lg peer-checked:border-amber-500 peer-checked:bg-amber-500/10 text-amber-100/70 peer-checked:text-amber-300 text-sm font-semibold transition">
                             Manual Transfer
                         </div>
                     </label>
                     <label class="flex-1 cursor-pointer">
-                        <input type="radio" name="method" value="Online" class="peer hidden">
+                        <input type="radio" name="method" value="Online" class="peer hidden" onchange="togglePaymentMethod('Online')">
                         <div class="w-full text-center py-2.5 bg-emerald-950 border border-amber-500/20 rounded-lg peer-checked:border-amber-500 peer-checked:bg-amber-500/10 text-amber-100/70 peer-checked:text-amber-300 text-sm font-semibold transition">
                             Pay Online
                         </div>
                     </label>
                 </div>
+            </div>
+
+            <!-- Receipt Upload Field (shown only for Transfer) -->
+            <div id="receipt-upload-field" class="mt-2">
+                <label class="block text-amber-400 text-xs font-semibold mb-1.5">Upload Transfer Receipt (Mandatory)</label>
+                <input type="file" name="receipt_image" accept="image/*" required class="w-full bg-emerald-950 border border-amber-500/20 rounded-lg px-3 py-2 text-amber-50 text-sm focus:outline-none focus:border-amber-400">
             </div>
             
             <button type="submit" class="w-full bg-gradient-to-r from-amber-400 to-amber-600 hover:from-amber-300 hover:to-amber-500 text-emerald-950 font-bold py-2.5 rounded-lg transition shadow-lg mt-4 shadow-amber-500/20">
@@ -148,10 +154,27 @@
 </div>
 
 <script>
+function togglePaymentMethod(method) {
+    const receiptField = document.getElementById('receipt-upload-field');
+    const receiptInput = receiptField.querySelector('input[name="receipt_image"]');
+    if (method === 'Transfer') {
+        receiptField.classList.remove('hidden');
+        receiptInput.required = true;
+    } else {
+        receiptField.classList.add('hidden');
+        receiptInput.required = false;
+    }
+}
+
 function openRedeemModal(pledgeId, maxAmount, category) {
     document.getElementById('redeem_pledge_id').value = pledgeId;
     document.getElementById('redeem_amount').value = maxAmount;
     document.getElementById('redeemSubtitle').textContent = "Payment towards: " + category;
+    
+    const manualRadio = document.querySelector('input[name="method"][value="Transfer"]');
+    if (manualRadio) manualRadio.checked = true;
+    togglePaymentMethod('Transfer');
+    
     document.getElementById('redeemModal').classList.remove('hidden');
 }
 </script>

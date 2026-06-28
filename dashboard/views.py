@@ -123,8 +123,10 @@ def redeem_pledge_view(request):
         
         pledge = get_object_or_404(Pledge, pk=pledge_id, member=request.user)
         
-        # Create a pending contribution
+        # Create a pending contribution with the uploaded receipt image
         import uuid as uuid_module
+        receipt_image = request.FILES.get('receipt_image')
+        
         contribution = Contribution.objects.create(
             idempotency_key=uuid_module.uuid4(),
             name=request.user.name,
@@ -135,16 +137,19 @@ def redeem_pledge_view(request):
             status='pending',
             referred_by=request.user,
             inflow_category=pledge.inflow_category,
-            pledge=pledge
+            pledge=pledge,
+            receipt_image=receipt_image
         )
+        
+        redirect_url = request.META.get('HTTP_REFERER') or 'dashboard:my_pledges'
         
         if method == 'Online':
             # Redirect to Paystack or handle online payment later
             messages.info(request, "Online payment for pledge redemption will be processed. (Paystack Integration Pending)")
-            return redirect('dashboard:my_pledges')
+            return redirect(redirect_url)
         else:
-            messages.success(request, f"Your manual transfer of ₦{amount} towards your pledge has been logged. It is now pending approval by an admin.")
-            return redirect('dashboard:my_pledges')
+            messages.success(request, f"Your manual transfer of ₦{amount} towards your pledge has been logged with the uploaded proof. It is now pending approval by an admin.")
+            return redirect(redirect_url)
 
     return redirect('dashboard:my_pledges')
 
