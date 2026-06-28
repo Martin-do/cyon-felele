@@ -422,6 +422,11 @@
 
     <!-- PWA Preloader Overlay -->
     <div id="pwa-preloader">
+        <script>
+            if (sessionStorage.getItem('pwa_preloader_played')) {
+                document.getElementById('pwa-preloader').style.display = 'none';
+            }
+        </script>
         <div style="text-align: center; display: flex; flex-direction: column; align-items: center; justify-content: center;">
             <img src="{% static 'images/brand/cyon-logo.png' %}" alt="CYON Logo" style="width: 100px; height: 100px; object-fit: contain; animation: logoPulse 1.8s ease-in-out infinite;">
             <div style="margin-top: 1.5rem; font-family: 'Poppins', sans-serif; font-size: 0.9rem; color: var(--harvest-gold-400); font-weight: 700; letter-spacing: 1px; text-transform: uppercase;">
@@ -650,10 +655,13 @@
         window.addEventListener('load', function() {
             var loader = document.getElementById('pwa-preloader');
             if (loader) {
-                loader.classList.add('fade-out');
-                setTimeout(function() {
-                    loader.style.display = 'none';
-                }, 400);
+                if (loader.style.display !== 'none') {
+                    loader.classList.add('fade-out');
+                    sessionStorage.setItem('pwa_preloader_played', 'true');
+                    setTimeout(function() {
+                        loader.style.display = 'none';
+                    }, 400);
+                }
             }
         });
     </script>
