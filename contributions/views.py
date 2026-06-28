@@ -129,12 +129,21 @@ def donation_form_view(request, referral_slug=None):
         
         flyers_dir = os.path.join(settings.MEDIA_ROOT, 'flyers')
         cache_path = os.path.join(flyers_dir, f"{referrer.id}.png")
+        template_path = os.path.join(settings.BASE_DIR, 'dashboard', 'templates', 'dashboard', 'flyer.html')
         v = "1"
+        mtimes = []
         if os.path.exists(cache_path):
             try:
-                v = str(int(os.path.getmtime(cache_path)))
+                mtimes.append(os.path.getmtime(cache_path))
             except Exception:
                 pass
+        if os.path.exists(template_path):
+            try:
+                mtimes.append(os.path.getmtime(template_path))
+            except Exception:
+                pass
+        if mtimes:
+            v = str(int(max(mtimes)))
                 
         og_image_url = request.build_absolute_uri(
             reverse('dashboard:public_flyer', args=[referrer.referral_slug])
