@@ -74,6 +74,23 @@ def member_hub_view(request):
     
     category_stats.sort(key=lambda x: x['amount'], reverse=True)
 
+    # Fetch pledges and compute outstanding balances
+    from contributions.models import Pledge
+    my_pledges = Pledge.objects.filter(member=user).exclude(status='voided').order_by('-timestamp')
+    categories = InflowCategory.objects.filter(is_active=True)
+    
+    total_pledged = float(user.levy_amount)
+    total_fulfilled = float(user.levy_paid)
+    
+    for pledge in my_pledges:
+        pledge.balance = pledge.amount_pledged - pledge.amount_fulfilled
+        if pledge.status == 'approved':
+            total_pledged += float(pledge.amount_pledged)
+            total_fulfilled += float(pledge.amount_fulfilled)
+            
+    outstanding_balance = total_pledged - total_fulfilled
+    levy_balance = float(user.levy_amount) - float(user.levy_paid)
+
     base_url = request.build_absolute_uri('/')[:-1] 
     referral_link = f"{base_url}/support/{user.referral_slug}/"
 
@@ -86,6 +103,12 @@ def member_hub_view(request):
         'category_stats': category_stats,
         'referral_link': referral_link,
         'member': user,
+        'my_pledges': my_pledges,
+        'categories': categories,
+        'total_pledged': total_pledged,
+        'total_fulfilled': total_fulfilled,
+        'outstanding_balance': outstanding_balance,
+        'levy_balance': levy_balance,
     }
     return render(request, 'dashboard/member_hub.html', context)
 

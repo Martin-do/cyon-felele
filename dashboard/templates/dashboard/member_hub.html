@@ -198,6 +198,33 @@
         border-radius: 12px;
         border: 1px dashed rgba(201,162,39,0.3);
     }
+
+    /* Payment Method selector buttons */
+    .payment-method-label {
+        display: block;
+        flex: 1;
+        cursor: pointer;
+    }
+    .payment-method-label input[type="radio"] {
+        display: none;
+    }
+    .payment-method-box {
+        text-align: center;
+        padding: 0.75rem;
+        background: #FFFFFF;
+        border: 1.5px solid rgba(201, 162, 39, 0.25);
+        border-radius: 8px;
+        font-size: 0.85rem;
+        font-weight: 700;
+        color: #4B6B57;
+        transition: all 0.2s;
+    }
+    .payment-method-label input[type="radio"]:checked + .payment-method-box {
+        border-color: #C9A227;
+        background: rgba(201, 162, 39, 0.08);
+        color: #1B3B2B;
+        box-shadow: 0 0 10px rgba(201, 162, 39, 0.15);
+    }
 </style>
 {% endblock %}
 
@@ -293,7 +320,7 @@
         </div>
     </div>
 
-    <!-- Settings Link -->
+    <!-- Settings & Pledges Hub Card -->
     <div class="link-block" style="margin-bottom: 1.75rem;">
         <div style="display: flex; justify-content: space-between; align-items: center;">
             <div style="display: flex; align-items: center; gap: 1rem;">
@@ -304,18 +331,97 @@
                     {{ member.name|make_list|first|upper }}
                 </div>
                 {% endif %}
-                <div>
+                <div style="text-align: left;">
                     <h3 style="margin: 0; font-size: 1rem; color: #1B3B2B;">{{ member.name }}</h3>
                     <p style="margin: 0; font-size: 0.8rem; color: #6B7280;">{{ member.contestant_title }}</p>
                 </div>
             </div>
-            <a href="{% url 'accounts:settings' %}" class="btn-leaderboard" style="margin: 0;">⚙️ Settings</a>
+            <a href="{% url 'accounts:settings' %}" class="btn-leaderboard" style="margin: 0; padding: 0.5rem 0.8rem; font-size: 0.8rem;">⚙️ Settings</a>
         </div>
         
-        <div style="margin-top: 1rem;">
-            <a href="{% url 'dashboard:my_pledges' %}" class="btn-copy" style="display: flex; align-items: center; justify-content: center; width: 100%; gap: 0.5rem; text-decoration: none; padding: 0.85rem; background: linear-gradient(135deg, #245C3F 0%, #14301F 100%); color: #C9A227; border: 1px solid rgba(201,162,39,0.3);">
-                📜 My Pledges & Dues
-            </a>
+        <hr style="border: 0; border-top: 1px solid rgba(201,162,39,0.15); margin: 1.25rem 0;">
+
+        <!-- Detailed Pledges & Dues Section -->
+        <div>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem;">
+                <h4 style="font-size: 0.85rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: #1B3B2B; margin: 0;">📜 Pledges & Dues Tracker</h4>
+                <a href="{% url 'dashboard:my_pledges' %}" style="text-decoration: none; color: #C9A227; font-size: 0.75rem; font-weight: 700;">+ New Pledge</a>
+            </div>
+
+            <!-- Pledge Balance Summary -->
+            <div style="display: flex; gap: 0.5rem; margin-bottom: 1rem; text-align: center;">
+                <div style="flex: 1; background: rgba(36,92,63,0.05); border: 1px solid rgba(36,92,63,0.15); padding: 0.5rem; border-radius: 8px;">
+                    <div style="font-size: 0.6rem; font-weight: 700; color: #245C3F; text-transform: uppercase;">Total Billed</div>
+                    <div style="font-size: 0.95rem; font-weight: 800; color: #1B3B2B; margin-top: 0.15rem; font-family: 'Poppins', sans-serif;">₦{{ total_pledged|floatformat:0|intcomma }}</div>
+                </div>
+                <div style="flex: 1; background: rgba(201,162,39,0.05); border: 1px solid rgba(201,162,39,0.15); padding: 0.5rem; border-radius: 8px;">
+                    <div style="font-size: 0.6rem; font-weight: 700; color: #C9A227; text-transform: uppercase;">Fulfilled</div>
+                    <div style="font-size: 0.95rem; font-weight: 800; color: #1B3B2B; margin-top: 0.15rem; font-family: 'Poppins', sans-serif;">₦{{ total_fulfilled|floatformat:0|intcomma }}</div>
+                </div>
+                <div style="flex: 1; background: rgba(179,38,30,0.05); border: 1px solid rgba(179,38,30,0.15); padding: 0.5rem; border-radius: 8px;">
+                    <div style="font-size: 0.6rem; font-weight: 700; color: #B3261E; text-transform: uppercase;">Owing</div>
+                    <div style="font-size: 0.95rem; font-weight: 800; color: #B3261E; margin-top: 0.15rem; font-family: 'Poppins', sans-serif;">₦{{ outstanding_balance|floatformat:0|intcomma }}</div>
+                </div>
+            </div>
+
+            <!-- Levy / Pledge Items List -->
+            <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+                {% if member.levy_amount > 0 %}
+                <div style="display: flex; justify-content: space-between; align-items: center; background: #FFFFFF; border: 1px solid rgba(201,162,39,0.15); padding: 0.6rem 0.8rem; border-radius: 8px;">
+                    <div style="text-align: left;">
+                        <div style="font-size: 0.8rem; font-weight: 700; color: #1B3B2B;">Harvest Levy</div>
+                        <div style="font-size: 0.68rem; color: #6B7280; margin-top: 0.1rem;">Assigned church dues</div>
+                    </div>
+                    <div style="text-align: right; display: flex; align-items: center; gap: 0.5rem;">
+                        <div style="text-align: right;">
+                            <div style="font-size: 0.8rem; font-weight: 800; color: #1B3B2B; font-family: 'Poppins', sans-serif;">
+                                {% if levy_balance > 0 %}
+                                <span style="color: #B3261E;">₦{{ levy_balance|floatformat:0|intcomma }} owing</span>
+                                {% else %}
+                                <span style="color: #2E7D4F; background: rgba(46,125,79,0.1); padding: 0.1rem 0.4rem; border-radius: 3px; font-size: 0.7rem;">Paid</span>
+                                {% endif %}
+                            </div>
+                            <div style="font-size: 0.62rem; color: #6B7280;">of ₦{{ member.levy_amount|floatformat:0|intcomma }}</div>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+
+                {% for pledge in my_pledges %}
+                    {% if pledge.balance > 0 or pledge.status == 'pending' %}
+                    <div style="display: flex; justify-content: space-between; align-items: center; background: #FFFFFF; border: 1px solid rgba(201,162,39,0.15); padding: 0.6rem 0.8rem; border-radius: 8px;">
+                        <div style="text-align: left;">
+                            <div style="display: flex; align-items: center; gap: 0.3rem;">
+                                <span style="font-size: 0.8rem; font-weight: 700; color: #1B3B2B;">{{ pledge.inflow_category.name|default:"General Pledge" }}</span>
+                                {% if pledge.status == 'pending' %}
+                                <span style="font-size: 0.58rem; font-weight: 600; color: #9A7B1A; background: rgba(201,162,39,0.1); border: 1px solid rgba(201,162,39,0.25); padding: 0.05rem 0.3rem; border-radius: 3px;">Pending</span>
+                                {% endif %}
+                            </div>
+                            <div style="font-size: 0.68rem; color: #6B7280; margin-top: 0.1rem;">Pledged on {{ pledge.timestamp|date:"M d, Y" }}</div>
+                        </div>
+                        <div style="text-align: right; display: flex; align-items: center; gap: 0.5rem;">
+                            <div style="text-align: right;">
+                                <div style="font-size: 0.8rem; font-weight: 800; color: #1B3B2B; font-family: 'Poppins', sans-serif;">
+                                    {% if pledge.status == 'pending' %}
+                                    <span style="color: #6B7280;">₦{{ pledge.amount_pledged|floatformat:0|intcomma }}</span>
+                                    {% else %}
+                                    <span style="color: #B3261E;">₦{{ pledge.balance|floatformat:0|intcomma }} owing</span>
+                                    {% endif %}
+                                </div>
+                                <div style="font-size: 0.62rem; color: #6B7280;">of ₦{{ pledge.amount_pledged|floatformat:0|intcomma }}</div>
+                            </div>
+                            {% if pledge.status == 'approved' and pledge.balance > 0 %}
+                            <button type="button" onclick="openRedeemModal('{{ pledge.id }}', '{{ pledge.balance }}', '{{ pledge.inflow_category.name|default:"General Pledge" }}')" style="padding: 0.25rem 0.55rem; font-size: 0.7rem; background: #C9A227; color: #1B3B2B; font-weight: 700; border: none; border-radius: 4px; cursor: pointer; transition: opacity 0.2s;">Pay</button>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endif %}
+                {% empty %}
+                    {% if member.levy_amount == 0 %}
+                    <p style="font-size: 0.8rem; color: #6B7280; font-style: italic; margin-top: 0.25rem;">No outstanding pledges or levies.</p>
+                    {% endif %}
+                {% endfor %}
+            </div>
         </div>
     </div>
 
@@ -358,10 +464,60 @@
     </div>
     {% endif %}
 </div>
+
+<!-- Redeem Pledge Modal -->
+<div id="redeemModal" style="display: none; position: fixed; inset: 0; z-index: 1000; align-items: center; justify-content: center; padding: 1rem;">
+    <div style="position: absolute; inset: 0; background: rgba(20,48,31,0.6); backdrop-filter: blur(4px);" onclick="closeRedeemModal()"></div>
+    <div class="glass-card" style="position: relative; z-index: 10; width: 100%; max-w: 450px; width: 450px; padding: 2rem; border-radius: 16px; text-align: left; background: #FAF6EC !important; border: 1.5px solid rgba(201,162,39,0.4) !important;">
+        <h3 style="font-size: 1.25rem; font-weight: 800; color: #1B3B2B; margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.5rem; background: none !important; -webkit-text-fill-color: initial !important;">🪙 Redeem Pledge</h3>
+        <p style="font-size: 0.85rem; color: #4B6B57; margin-bottom: 1.25rem;" id="redeemSubtitle"></p>
+        
+        <form method="POST" action="{% url 'dashboard:redeem_pledge' %}" style="display: flex; flex-direction: column; gap: 1rem;" id="redeemForm" onsubmit="setButtonLoading(this.querySelector('button[type=submit]'))">
+            {% csrf_token %}
+            <input type="hidden" name="pledge_id" id="redeem_pledge_id">
+            
+            <div>
+                <label style="display: block; font-size: 0.78rem; font-weight: 700; color: #1B3B2B; text-transform: uppercase; margin-bottom: 0.4rem;">Amount to Pay Now (₦)</label>
+                <input type="number" name="amount" id="redeem_amount" required step="0.01" style="width: 100%; padding: 0.7rem 0.9rem; border-radius: 8px; border: 1.5px solid rgba(201,162,39,0.3); background: #FFF; font-family: 'Poppins', sans-serif; font-weight: 700; color: #1B3B2B;" class="form-control">
+                <p style="font-size: 0.7rem; color: #6B7280; margin-top: 0.3rem;">You can pay partially or in full.</p>
+            </div>
+            
+            <div>
+                <label style="display: block; font-size: 0.78rem; font-weight: 700; color: #1B3B2B; text-transform: uppercase; margin-bottom: 0.4rem;">Payment Method</label>
+                <div style="display: flex; gap: 0.75rem;">
+                    <label class="payment-method-label">
+                        <input type="radio" name="method" value="Transfer" checked>
+                        <div class="payment-method-box">Manual Transfer</div>
+                    </label>
+                    <label class="payment-method-label">
+                        <input type="radio" name="method" value="Online">
+                        <div class="payment-method-box">Pay Online</div>
+                    </label>
+                </div>
+            </div>
+            
+            <button type="submit" class="btn-copy" style="width: 100%; padding: 0.85rem; background: linear-gradient(135deg, #245C3F 0%, #14301F 100%); color: #C9A227; font-weight: 800; border-radius: 8px; border: 1px solid rgba(201,162,39,0.3); margin-top: 0.75rem;">
+                Proceed to Payment
+            </button>
+            <button type="button" onclick="closeRedeemModal()" style="width: 100%; border: none; background: none; color: #6B7280; font-size: 0.85rem; font-weight: 600; cursor: pointer; padding: 0.5rem 0;">
+                Cancel
+            </button>
+        </form>
+    </div>
+</div>
 {% endblock %}
 
 {% block scripts %}
 <script>
+function openRedeemModal(pledgeId, maxAmount, category) {
+    document.getElementById('redeem_pledge_id').value = pledgeId;
+    document.getElementById('redeem_amount').value = maxAmount;
+    document.getElementById('redeemSubtitle').textContent = "Payment towards: " + category;
+    document.getElementById('redeemModal').style.display = 'flex';
+}
+function closeRedeemModal() {
+    document.getElementById('redeemModal').style.display = 'none';
+}
 function copyLink() {
     const input = document.getElementById('ref-link');
     const btn = document.getElementById('copy-btn');
