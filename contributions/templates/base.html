@@ -489,6 +489,12 @@
                 <a href="{% url 'dashboard:admin_login' %}">Admin Portal</a>
             {% else %}
                 <a href="{% url 'dashboard:member_hub' %}">Member Hub</a>
+                {% if user.is_usher %}
+                &nbsp;·&nbsp; <a href="{% url 'dashboard:live_entry' %}">Live Entry</a>
+                {% endif %}
+                {% if user.is_approver %}
+                &nbsp;·&nbsp; <a href="{% url 'dashboard:approval_center' %}">Approval Center</a>
+                {% endif %}
                 {% if user.is_admin_user %}
                 &nbsp;·&nbsp; <a href="{% url 'dashboard:master_dashboard' %}">Admin Portal</a>
                 {% endif %}
@@ -569,6 +575,7 @@
         function initializeCustomSelects() {
             document.querySelectorAll('select').forEach(function(select) {
                 if (select.parentNode.classList.contains('custom-select-wrapper')) return;
+                if (select.classList.contains('native-select')) return;
                 
                 const wrapper = document.createElement('div');
                 wrapper.className = 'custom-select-wrapper';

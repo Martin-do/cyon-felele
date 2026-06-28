@@ -430,7 +430,7 @@
                             <form method="POST" action="{% url 'dashboard:update_member_role' member.pk %}" class="inline-flex items-center gap-2">
                                 {% csrf_token %}
                                 <div class="relative inline-block text-left">
-                                    <select name="role" class="appearance-none bg-emerald-900/40 border border-amber-500/20 rounded pl-2 pr-6 py-1 text-amber-50 text-xs focus:outline-none focus:border-amber-400 cursor-pointer">
+                                    <select name="role" class="native-select appearance-none bg-emerald-900/40 border border-amber-500/20 rounded pl-2 pr-6 py-1 text-amber-50 text-xs focus:outline-none focus:border-amber-400 cursor-pointer">
                                         {% for r_val, r_lbl in member.ROLE_CHOICES %}
                                         <option value="{{ r_val }}" class="text-black" {% if member.role == r_val %}selected{% endif %}>{{ r_lbl }}</option>
                                         {% endfor %}

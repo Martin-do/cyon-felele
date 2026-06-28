@@ -234,10 +234,41 @@
     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1.75rem; flex-wrap:wrap; gap:0.75rem;">
         <div>
             <p style="font-size:0.75rem; font-weight:700; text-transform:uppercase; letter-spacing:1px; color:#C9A227; margin-bottom:0.2rem;">CYON Harvest 2026</p>
-            <h1 style="font-size:1.6rem; text-align:left; margin:0;">👋 Hello, {{ user.name }}</h1>
+            <h1 style="font-size:1.6rem; text-align:left; margin:0; display:flex; align-items:center; gap:0.5rem; flex-wrap:wrap;">
+                👋 Hello, {{ user.name }}
+                {% if user.role != 'member' %}
+                <span style="font-size:0.65rem; font-weight:700; text-transform:uppercase; letter-spacing:0.5px; background:rgba(201,162,39,0.12); border:1px solid rgba(201,162,39,0.3); color:#9A7B1A; padding:0.15rem 0.5rem; border-radius:12px; display:inline-block; vertical-align:middle;">
+                    {{ user.get_role_display }}
+                </span>
+                {% endif %}
+            </h1>
         </div>
         <a href="{% url 'accounts:logout' %}" style="font-size:0.85rem; color:#6B7280; text-decoration:none; padding:0.4rem 1rem; border:1px solid rgba(201,162,39,0.25); border-radius:8px;">Logout</a>
     </div>
+
+    <!-- Authorized Tools Quick Links -->
+    {% if user.role != 'member' or user.is_staff or user.is_superuser %}
+    <div style="background: rgba(201,162,39,0.03); border: 1.5px dashed rgba(201,162,39,0.25); border-radius: 14px; padding: 1.25rem; margin-bottom: 1.75rem; display: flex; flex-direction: column; gap: 0.75rem; text-align: left;">
+        <div style="font-size: 0.72rem; font-weight: 800; color: #9A7B1A; text-transform: uppercase; letter-spacing: 0.5px;">Authorized Portal Access</div>
+        <div style="display: flex; gap: 0.75rem; flex-wrap: wrap; width: 100%;">
+            {% if user.is_usher %}
+            <a href="{% url 'dashboard:live_entry' %}" class="btn-leaderboard" style="flex: 1; min-width: 140px; display: inline-flex; align-items: center; justify-content: center; gap: 0.4rem; padding: 0.6rem; font-size: 0.8rem;">
+                📝 Live Entry Tool
+            </a>
+            {% endif %}
+            {% if user.is_approver %}
+            <a href="{% url 'dashboard:approval_center' %}" class="btn-leaderboard" style="flex: 1; min-width: 140px; display: inline-flex; align-items: center; justify-content: center; gap: 0.4rem; padding: 0.6rem; font-size: 0.8rem;">
+                🔍 Approval Center
+            </a>
+            {% endif %}
+            {% if user.is_admin_user %}
+            <a href="{% url 'dashboard:master_dashboard' %}" class="btn-leaderboard" style="flex: 1; min-width: 140px; display: inline-flex; align-items: center; justify-content: center; gap: 0.4rem; padding: 0.6rem; font-size: 0.8rem;">
+                ⚙️ Admin Portal
+            </a>
+            {% endif %}
+        </div>
+    </div>
+    {% endif %}
 
     <!-- Global Campaign Progress -->
     <div style="background: rgba(255,255,255,0.7); border: 1.5px solid rgba(201,162,39,0.2); border-radius: 14px; padding: 1.25rem; margin-bottom: 1.75rem; cursor: pointer; transition: all 0.3s ease;" onclick="document.getElementById('progress-modal').style.display='flex'" onmouseover="this.style.borderColor='rgba(201,162,39,0.5)'" onmouseout="this.style.borderColor='rgba(201,162,39,0.2)'">

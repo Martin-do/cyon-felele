@@ -799,6 +799,12 @@
             <a href="{% url 'dashboard:admin_login' %}">Admin Portal</a>
             {% else %}
             <a href="{% url 'dashboard:member_hub' %}">Member Hub</a>
+            {% if user.is_usher %}
+            <a href="{% url 'dashboard:live_entry' %}">Live Entry</a>
+            {% endif %}
+            {% if user.is_approver %}
+            <a href="{% url 'dashboard:approval_center' %}">Approval Center</a>
+            {% endif %}
             {% if user.is_admin_user %}
             <a href="{% url 'dashboard:master_dashboard' %}">Admin Portal</a>
             {% endif %}
