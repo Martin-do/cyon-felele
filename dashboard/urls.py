@@ -11,6 +11,7 @@ urlpatterns = [
     path('live/', views.live_entry_view, name='live_entry'),
     path('flyer/', views.generate_flyer_view, name='flyer'),
     path('flyer/<slug:referral_slug>.png', views.public_flyer_view, name='public_flyer'),
+    path('flyer/<slug:referral_slug>-<str:v>.png', views.public_flyer_view, name='public_flyer_versioned'),
     path('qr-code/', views.generate_qr_code_view, name='qr_code'),
     path('leaderboard/', views.leaderboard_view, name='leaderboard'),
     path('master/', views.master_dashboard_view, name='master_dashboard'),

@@ -94,10 +94,7 @@ def onboarding_view(request):
             
         if gender in dict(Member.GENDER_CHOICES):
             user.gender = gender
-            if gender == 'M':
-                user.contestant_title = 'Master Harvest'
-            elif gender == 'F':
-                user.contestant_title = 'Miss Harvest'
+            user.contestant_title = 'Most Influential Youth Fundraiser'
             
         if 'profile_picture' in request.FILES:
             user.profile_picture = request.FILES['profile_picture']

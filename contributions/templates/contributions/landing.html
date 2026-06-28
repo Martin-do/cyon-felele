@@ -691,7 +691,7 @@
         </div>
 
         <div class="hero-cta">
-            <a href="{% url 'contributions:generic_donation' %}" class="btn-gold btn-gold-pulse" style="animation-delay:0.4s;">🙏 Donate / Pledge Now</a>
+            <a href="#donate" class="btn-gold btn-gold-pulse" style="animation-delay:0.4s;">🙏 Donate / Pledge Now</a>
         </div>
     </div>
 </section>
@@ -752,16 +752,18 @@
                     <div class="account-number" id="acct-num">0000313701</div>
                     <button class="copy-btn" onclick="copyAcct(event)">📋 Copy Number</button>
                 </div>
-                <p style="margin-top:1.25rem; font-size:0.8rem; color:rgba(250,246,236,0.55); font-style:italic;">After transferring, click "Log Your Contribution" to record it and get your receipt.</p>
+                <p style="margin-top:1.25rem; font-size:0.8rem; color:rgba(250,246,236,0.55); font-style:italic;">After transferring, send your proof of payment to CYON Support on WhatsApp to log it and get your receipt.</p>
             </div>
 
             <!-- Log Contribution Card -->
             <div class="contribute-card">
-                <h3>📝 Log Your Contribution</h3>
+                <h3>💬 Log Your Contribution</h3>
                 <p style="color:rgba(250,246,236,0.7); font-size:0.9rem; margin-bottom:1.25rem; line-height:1.6;">
-                    Whether you've paid cash, made a transfer, or want to pledge — log it here to appear on the Live Board and get your receipt.
+                    After making a transfer or pledge, message CYON Support on WhatsApp (using the button below) to submit your receipt so your contribution can be logged.
                 </p>
-                <a href="{% url 'contributions:generic_donation' %}" class="btn-gold">Record My Contribution →</a>
+                <a href="https://wa.me/2348079028453?text=Hello%20CYON%20Harvest%20Support%21%20I%27ve%20made%20a%20contribution%20and%20would%20like%20to%20submit%20my%20receipt%20to%20be%20logged." target="_blank" rel="noopener noreferrer" class="btn-gold" style="background:#25D366; color:#fff; border-color:#25D366; text-align:center; display:block;">
+                    💬 Submit Receipt via CYON Support →
+                </a>
                 <div style="margin-top:1.5rem; padding-top:1.25rem; border-top:1px solid rgba(201,162,39,0.2);">
                     <p style="color:rgba(250,246,236,0.55); font-size:0.82rem; margin-bottom:0.75rem;">Are you a CYON youth member? Get your personal fundraising link!</p>
                     <a href="{% url 'accounts:signup' %}" class="btn-outline" style="border-radius:10px; padding:0.7rem 1rem; font-size:0.9rem; display:block; text-align:center;">Join & Get My Link →</a>

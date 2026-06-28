@@ -145,19 +145,19 @@
     /* ── BLUE MAIN CARD ─────────────────────────────────────── */
     .blue-card {
       position: absolute;
-      right: 0;
+      left: 5%;
       top: 40px;
       width: 90%;
       height: 460px;
       background: #1c2f7c;
-      border-radius: 12px 0 0 12px;
+      border-radius: 12px;
       z-index: 1;
     }
 
     /* Theme text — right side of card */
     .theme-block {
       position: absolute;
-      left: 380px; /* Leave space for photo */
+      left: 450px; /* Shifted right so text isn't hidden by the picture */
       top: 30px;
       right: 30px;
     }
@@ -194,9 +194,9 @@
       bottom: 0;
       background: #e21c21;
       padding: 16px 30px 16px 40px;
-      width: 63%; /* Covers right side */
-      z-index: 3;
-      border-radius: 0 0 0 0;
+      width: 66%; /* Shifted left to match sample */
+      z-index: 6; /* Raised above the photo (which is z-index 5) so the banner overlays it */
+      border-radius: 0 0 12px 0;
     }
 
     /* Gold arrow pointer */
@@ -233,9 +233,9 @@
     .vote-section {
       position: absolute;
       top: 520px; /* Below the blue card */
-      right: 40px;
-      width: 58%; /* Align with right side */
-      z-index: 1;
+      right: 5%;
+      width: 60%; /* Shifted left to match sample */
+      z-index: 6; /* Layer over the photo (which is z-index 5) to prevent covering the vote buttons */
     }
 
     .vote-row {
@@ -315,7 +315,7 @@
     }
 
     .footer-contact .f-phone {
-      font-size: 26px;
+      font-size: 20px;
       font-weight: 800;
       color: #ffffff;
       display: flex;
@@ -462,7 +462,13 @@
   <div class="footer">
     <div class="footer-contact">
       <div class="f-label">For more enquiry contact:</div>
-      <div class="f-phone"><span class="f-icon-square"></span> {{ contact_phone }}</div>
+      <div class="f-phone">
+         <span class="f-icon-square"></span>
+         <div style="display: flex; flex-direction: column; line-height: 1.2;">
+           <span>{{ contact_phone_1 }}</span>
+           <span>{{ contact_phone_2 }}</span>
+         </div>
+      </div>
     </div>
     <div class="footer-message">
       I kindly invite you to support my campaign<br>

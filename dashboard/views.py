@@ -257,7 +257,7 @@ def generate_member_flyer_image(request, user, force=False):
             pass
 
     title = user.contestant_title if user.contestant_title and user.contestant_title != 'None' else "CYON AMBASSADOR"
-    if title == 'Most Influential Youth Fundraiser':
+    if title in ['Most Influential Youth Fundraiser', 'Master Harvest', 'Miss Harvest']:
         if user.gender == 'M':
             category_text = "Most Influential Youth Fundraiser (Male)"
         elif user.gender == 'F':
@@ -286,7 +286,8 @@ def generate_member_flyer_image(request, user, force=False):
         'seal_url': church_seal_base64,
         'category': category_text,
         'vote_url': vote_url,
-        'contact_phone': "09134156737",
+        'contact_phone_1': "09133486038",
+        'contact_phone_2': "07025899645",
         'qr_url': qr_url,
     })
     
@@ -327,7 +328,7 @@ def generate_flyer_view(request):
     except Exception as e:
         return HttpResponse(f"Error generating flyer with Playwright: {str(e)}", status=500)
 
-def public_flyer_view(request, referral_slug):
+def public_flyer_view(request, referral_slug, v=None):
     from django.shortcuts import get_object_or_404
     from django.http import HttpResponse
     from accounts.models import Member

@@ -146,8 +146,8 @@ def donation_form_view(request, referral_slug=None):
             v = str(int(max(mtimes)))
                 
         og_image_url = request.build_absolute_uri(
-            reverse('dashboard:public_flyer', args=[referrer.referral_slug])
-        ) + f"?v={v}"
+            reverse('dashboard:public_flyer_versioned', args=[referrer.referral_slug, v])
+        )
 
         context = {
             'referrer': referrer,
