@@ -52,12 +52,6 @@
       margin-top: 35px;
       margin-bottom: 25px;
     }
-    
-    .header-logo-container {
-      display: flex;
-      align-items: center;
-      gap: 20px;
-    }
 
     .header-logo {
       width: 85px;
@@ -76,7 +70,9 @@
     }
 
     .header-text {
-      text-align: left;
+      text-align: center;
+      flex: 1;
+      padding: 0 20px;
     }
 
     .header-text h1 {
@@ -383,16 +379,18 @@
 
     <!-- Header -->
     <div class="header">
-      <div class="header-logo-container">
-        <img class="header-logo" src="{{ logo_url }}" alt="CYON Logo">
-        <div class="header-text">
-          <h1>CATHOLIC ARCHDIOCESE OF IBADAN</h1>
-          <p>Christ the Good Shepherd Parish, Felele, Ibadan, Oyo State.</p>
-        </div>
-      </div>
       {% if seal_url %}
       <img class="header-seal" src="{{ seal_url }}" alt="Archdiocese Seal">
+      {% else %}
+      <div style="width: 85px; height: 85px;"></div>
       {% endif %}
+      
+      <div class="header-text">
+        <h1>CATHOLIC ARCHDIOCESE OF IBADAN</h1>
+        <p>Christ the Good Shepherd Parish, Felele, Ibadan, Oyo State.</p>
+      </div>
+
+      <img class="header-logo" src="{{ logo_url }}" alt="CYON Logo">
     </div>
 
     <!-- CYON Banner -->

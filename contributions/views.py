@@ -124,9 +124,21 @@ def donation_form_view(request, referral_slug=None):
 
         # Dynamically point to the public flyer endpoint so it generates on-demand for crawlers
         from django.urls import reverse
+        import os
+        from django.conf import settings
+        
+        flyers_dir = os.path.join(settings.MEDIA_ROOT, 'flyers')
+        cache_path = os.path.join(flyers_dir, f"{referrer.id}.png")
+        v = "1"
+        if os.path.exists(cache_path):
+            try:
+                v = str(int(os.path.getmtime(cache_path)))
+            except Exception:
+                pass
+                
         og_image_url = request.build_absolute_uri(
             reverse('dashboard:public_flyer', args=[referrer.referral_slug])
-        )
+        ) + f"?v={v}"
 
         context = {
             'referrer': referrer,
