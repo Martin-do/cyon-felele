@@ -471,7 +471,7 @@
         <div class="share-row" style="display: flex; gap: 0.5rem; flex-wrap: wrap; margin-top: 1rem;">
             <a class="btn-whatsapp" onclick="shareWhatsApp()" style="flex: 1; text-align: center;">📱 WhatsApp</a>
             <a href="{% url 'dashboard:qr_code' %}" download="qr_code.png" class="btn-leaderboard" style="flex: 1; text-align: center;">🔲 QR Code</a>
-            <a href="{% url 'dashboard:flyer' %}" class="btn-leaderboard" style="flex: 1; text-align: center;">🎨 Flyer</a>
+            <a href="{% url 'dashboard:flyer' %}?regenerate=true" class="btn-leaderboard" style="flex: 1; text-align: center;" onclick="setButtonLoading(this, 'Generating...')">🎨 Flyer</a>
             <a href="{% url 'dashboard:leaderboard' %}" class="btn-leaderboard" style="flex: 1; text-align: center;">🏆 Leaderboard</a>
         </div>
         <p class="link-hint">Share this link! Every donation made through it appears on your leaderboard score.</p>

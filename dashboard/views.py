@@ -201,15 +201,10 @@ def generate_member_flyer_image(request, user, force=False):
     os.makedirs(flyers_dir, exist_ok=True)
     cache_path = os.path.join(flyers_dir, f"{user.id}.png")
 
-    # If the flyer template has been modified since the cached image was generated, force a refresh.
-    template_path = os.path.join(settings.BASE_DIR, 'dashboard', 'templates', 'dashboard', 'flyer.html')
-    if not force and os.path.exists(cache_path) and os.path.exists(template_path):
-        try:
-            if os.path.getmtime(template_path) > os.path.getmtime(cache_path):
-                if not user.is_flyer_locked:
-                    force = True
-        except Exception:
-            pass
+    # We removed the auto-regeneration check here (checking if template_path > cache_path)
+    # because it causes social media crawlers (WhatsApp/Facebook) to timeout (they only wait ~3s).
+    # Playwright takes ~5s to generate the flyer. 
+    # Instead, we will rely on the user to regenerate it manually via the dashboard or use the cached version.
 
     if force and not user.is_flyer_locked:
         if user.custom_flyer:
