@@ -90,8 +90,24 @@ def member_hub_view(request):
     outstanding_balance = total_pledged - total_fulfilled
     levy_balance = float(user.levy_amount) - float(user.levy_paid)
 
+    import os
+    from django.conf import settings
+    v = "1"
+    flyers_dir = os.path.join(settings.MEDIA_ROOT, 'flyers')
+    cache_path = os.path.join(flyers_dir, f"{user.id}.png")
+    template_path = os.path.join(settings.BASE_DIR, 'dashboard', 'templates', 'dashboard', 'flyer.html')
+    mtimes = []
+    if os.path.exists(cache_path):
+        try: mtimes.append(os.path.getmtime(cache_path))
+        except Exception: pass
+    if os.path.exists(template_path):
+        try: mtimes.append(os.path.getmtime(template_path))
+        except Exception: pass
+    if mtimes:
+        v = str(int(max(mtimes)))
+
     base_url = request.build_absolute_uri('/')[:-1] 
-    referral_link = f"{base_url}/support/{user.referral_slug}/"
+    referral_link = f"{base_url}/support/{user.referral_slug}/?v={v}"
 
     context = {
         'total_referred': total_referred,
@@ -444,11 +460,72 @@ def leaderboard_view(request):
     
     snapshot_url = request.build_absolute_uri(reverse('dashboard:leaderboard_snapshot'))
     
+    # Check logged-in user's category and entry
+    user_youth_entry = None
+    user_youth_rank = None
+    user_children_entry = None
+    user_children_rank = None
+    
+    if request.user.is_authenticated and not request.user.is_staff:
+        user_title = request.user.contestant_title
+        user_slug = request.user.referral_slug
+        
+        if user_title in ['Master Harvest', 'Miss Harvest']:
+            in_list = any(e['slug'] == user_slug for e in children_curr)
+            if not in_list:
+                rank = len(children_curr) + 1
+                user_children_entry = {
+                    'name': request.user.name,
+                    'total': 0.0,
+                    'votes': 0,
+                    'gender': request.user.gender,
+                    'title': request.user.contestant_title,
+                    'avatar': request.user.profile_picture.url if request.user.profile_picture else None,
+                    'slug': request.user.referral_slug,
+                    'rank': rank,
+                    'rank_change': 'new',
+                    'rank_change_abs': 0,
+                }
+                user_children_rank = rank
+            else:
+                for entry in children_curr:
+                    if entry['slug'] == user_slug:
+                        user_children_entry = entry
+                        user_children_rank = entry['rank']
+                        break
+        elif user_title != 'None':
+            in_list = any(e['slug'] == user_slug for e in youth_curr)
+            if not in_list:
+                rank = len(youth_curr) + 1
+                user_youth_entry = {
+                    'name': request.user.name,
+                    'total': 0.0,
+                    'votes': 0,
+                    'gender': request.user.gender,
+                    'title': request.user.contestant_title,
+                    'avatar': request.user.profile_picture.url if request.user.profile_picture else None,
+                    'slug': request.user.referral_slug,
+                    'rank': rank,
+                    'rank_change': 'new',
+                    'rank_change_abs': 0,
+                }
+                user_youth_rank = rank
+            else:
+                for entry in youth_curr:
+                    if entry['slug'] == user_slug:
+                        user_youth_entry = entry
+                        user_youth_rank = entry['rank']
+                        break
+    
     context = {
         'youth_leaderboard': youth_curr,
         'children_leaderboard': children_curr,
         'total_harvest': total_harvest,
         'snapshot_url': snapshot_url,
+        'user_youth_entry': user_youth_entry,
+        'user_youth_rank': user_youth_rank,
+        'user_children_entry': user_children_entry,
+        'user_children_rank': user_children_rank,
     }
     return render(request, 'dashboard/leaderboard.html', context)
 
