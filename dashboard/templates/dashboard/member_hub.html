@@ -257,7 +257,9 @@
         <div style="width: 100%; background: rgba(36,92,63,0.1); border-radius: 9999px; height: 16px; overflow: hidden; display: flex;">
             {% if category_stats %}
                 {% for cat in category_stats %}
-                <div style="height: 100%; width: 0%; background-color: {{ cat.color }}; transition: width 1s ease-out; border-right: 1px solid rgba(255,255,255,0.2);" title="{{ cat.name }}: ₦{{ cat.amount|floatformat:0|intcomma }}" class="progress-segment" data-width="{{ cat.percent }}%"></div>
+                    {% if cat.amount > 0 %}
+                    <div style="height: 100%; width: 0%; background-color: {{ cat.color }}; transition: width 1s ease-out; border-right: 1px solid rgba(255,255,255,0.2);" title="{{ cat.name }}: ₦{{ cat.amount|floatformat:0|intcomma }}" class="progress-segment" data-width="{{ cat.percent }}%"></div>
+                    {% endif %}
                 {% endfor %}
             {% else %}
                 <div style="height: 100%; width: 100%; background: rgba(36,92,63,0.05);"></div>
@@ -274,7 +276,7 @@
             
             <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 1rem;">
                 {% for cat in category_stats %}
-                <div style="background: rgba(36,92,63,0.04); border: 1px solid rgba(36,92,63,0.1); border-radius: 10px; padding: 1rem; cursor: default; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); animation: modalFadeInUp 0.4s ease-out forwards; animation-delay: {{ forloop.counter0|add:'1'|add:'0' }}00ms; opacity: 0; transform: translateY(10px);" onmouseover="this.style.transform='translateY(-4px)'; this.style.boxShadow='0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)'; this.style.backgroundColor='rgba(36,92,63,0.08)';" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='none'; this.style.backgroundColor='rgba(36,92,63,0.04)';">
+                <div style="background: rgba(36,92,63,0.04); border: 1px solid rgba(36,92,63,0.1); border-radius: 10px; padding: 1rem; cursor: default; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); animation: modalFadeInUp 0.4s ease-out forwards; animation-delay: {{ forloop.counter0 }}00ms; opacity: 0; transform: translateY(10px);" onmouseover="this.style.transform='translateY(-4px)'; this.style.boxShadow='0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)'; this.style.backgroundColor='rgba(36,92,63,0.08)';" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='none'; this.style.backgroundColor='rgba(36,92,63,0.04)';">
                     <div style="display: flex; align-items: center; gap: 6px; margin-bottom: 6px;">
                         <span style="width: 12px; height: 12px; border-radius: 50%; background-color: {{ cat.color }}; box-shadow: 0 0 6px {{ cat.color }};"></span>
                         <span style="font-size: 0.7rem; font-weight: 700; color: #4B6B57; text-transform: uppercase; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; letter-spacing: 0.5px;" title="{{ cat.name }}">{{ cat.name }}</span>
@@ -283,7 +285,7 @@
                     <div style="font-size: 0.65rem; color: #6B7280; margin-top: 2px; font-weight: 600;">{{ cat.percent|floatformat:1 }}% of goal</div>
                 </div>
                 {% empty %}
-                <div style="grid-column: 1 / -1; text-align: center; font-size: 0.9rem; color: #6B7280; padding: 1rem;">No contributions recorded yet.</div>
+                <div style="grid-column: 1 / -1; text-align: center; font-size: 0.9rem; color: #6B7280; padding: 1rem;">No categories available.</div>
                 {% endfor %}
             </div>
             
@@ -383,6 +385,9 @@
                             </div>
                             <div style="font-size: 0.62rem; color: #6B7280;">of ₦{{ member.levy_amount|floatformat:0|intcomma }}</div>
                         </div>
+                        {% if levy_balance > 0 %}
+                        <button type="button" onclick="openRedeemModal('levy', '{{ levy_balance }}', 'Harvest Levy')" style="padding: 0.25rem 0.55rem; font-size: 0.7rem; background: #C9A227; color: #1B3B2B; font-weight: 700; border: none; border-radius: 4px; cursor: pointer; transition: opacity 0.2s;">Pay</button>
+                        {% endif %}
                     </div>
                 </div>
                 {% endif %}

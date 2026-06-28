@@ -55,22 +55,21 @@ def member_hub_view(request):
     color_idx = 0
     for cat in active_categories:
         cat_total = all_approved.filter(inflow_category=cat).aggregate(Sum('amount'))['amount__sum'] or 0.00
-        if cat_total > 0:
-            lower_name = cat.name.lower()
-            if 'campaign funds' in lower_name or 'cash' in lower_name:
-                assigned_color = '#10b981' # emerald-500
-            elif 'pledge' in lower_name:
-                assigned_color = '#f59e0b' # amber-500
-            else:
-                assigned_color = colors[color_idx % len(colors)]
-                color_idx += 1
-                
-            category_stats.append({
-                'name': cat.name,
-                'amount': float(cat_total),
-                'percent': (float(cat_total) / 5000000.0) * 100,
-                'color': assigned_color
-            })
+        lower_name = cat.name.lower()
+        if 'campaign funds' in lower_name or 'cash' in lower_name:
+            assigned_color = '#10b981' # emerald-500
+        elif 'pledge' in lower_name:
+            assigned_color = '#f59e0b' # amber-500
+        else:
+            assigned_color = colors[color_idx % len(colors)]
+            color_idx += 1
+            
+        category_stats.append({
+            'name': cat.name,
+            'amount': float(cat_total),
+            'percent': (float(cat_total) / 5000000.0) * 100,
+            'color': assigned_color
+        })
     
     category_stats.sort(key=lambda x: x['amount'], reverse=True)
 
@@ -121,25 +120,44 @@ def redeem_pledge_view(request):
         amount = request.POST.get('amount')
         method = request.POST.get('method') # 'Transfer' or 'Online'
         
-        pledge = get_object_or_404(Pledge, pk=pledge_id, member=request.user)
-        
-        # Create a pending contribution with the uploaded receipt image
         import uuid as uuid_module
         receipt_image = request.FILES.get('receipt_image')
-        
-        contribution = Contribution.objects.create(
-            idempotency_key=uuid_module.uuid4(),
-            name=request.user.name,
-            phone=request.user.identifier,
-            amount=amount,
-            method=method,
-            source='member_hub',
-            status='pending',
-            referred_by=request.user,
-            inflow_category=pledge.inflow_category,
-            pledge=pledge,
-            receipt_image=receipt_image
-        )
+
+        if pledge_id == 'levy':
+            from contributions.models import InflowCategory
+            category = InflowCategory.objects.filter(name__icontains='levy').first()
+            if not category:
+                category = InflowCategory.objects.filter(is_active=True).first()
+
+            contribution = Contribution.objects.create(
+                idempotency_key=uuid_module.uuid4(),
+                name=request.user.name,
+                phone=request.user.identifier,
+                amount=amount,
+                method=method,
+                source='member_hub',
+                status='pending',
+                referred_by=request.user,
+                inflow_category=category,
+                pledge=None,
+                receipt_image=receipt_image
+            )
+        else:
+            pledge = get_object_or_404(Pledge, pk=pledge_id, member=request.user)
+
+            contribution = Contribution.objects.create(
+                idempotency_key=uuid_module.uuid4(),
+                name=request.user.name,
+                phone=request.user.identifier,
+                amount=amount,
+                method=method,
+                source='member_hub',
+                status='pending',
+                referred_by=request.user,
+                inflow_category=pledge.inflow_category,
+                pledge=pledge,
+                receipt_image=receipt_image
+            )
         
         redirect_url = request.META.get('HTTP_REFERER') or 'dashboard:my_pledges'
         
@@ -591,6 +609,13 @@ def approve_contribution_view(request, pk):
         if contribution.pledge:
             contribution.pledge.amount_fulfilled += contribution.amount
             contribution.pledge.save()
+
+        # If the category is a levy, update the member's levy_paid
+        if contribution.inflow_category and 'levy' in contribution.inflow_category.name.lower():
+            member = contribution.referred_by
+            if member:
+                member.levy_paid += contribution.amount
+                member.save()
         
         # Trigger Web Push notification
         send_approval_push_notification(contribution)
