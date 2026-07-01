@@ -271,7 +271,7 @@ def generate_member_flyer_image(request, user, force=False):
     title = user.contestant_title if user.contestant_title and user.contestant_title != 'None' else "CYON AMBASSADOR"
     if title in ['Most Influential Youth Fundraiser', 'Master Harvest', 'Miss Harvest']:
         if user.gender == 'M':
-            category_text = "Most Influential Youth Fundraiser (Male)"
+            category_text = "Most Influential Child Fundraiser\n(Master of Harvest category)"
         elif user.gender == 'F':
             category_text = "Most Influential Youth Fundraiser (Female)"
         else:
