@@ -732,16 +732,15 @@
 
 <div class="view-toggle-container">
     <div class="view-toggle-track">
-        <button class="view-toggle-btn active" id="toggle-youth" onclick="setViewMode('youth')">Youth Ambassadors
-            Only</button>
-        <button class="view-toggle-btn" id="toggle-all" onclick="setViewMode('all')">Show All Standings</button>
+        <button class="view-toggle-btn active" id="toggle-youth" onclick="setViewMode('youth')">Youth Ambassadors Only</button>
+        <button class="view-toggle-btn" id="toggle-children" onclick="setViewMode('children')">Children Ambassadors Only</button>
     </div>
 </div>
 
 <div class="categories-grid">
 
     <!-- Youth Ambassador Category -->
-    <div class="category-section">
+    <div class="category-section" id="youth-category-section">
         <div class="category-title">
             <span>🌟 Youth Ambassadors</span>
             <span style="font-size:0.8rem; font-weight:normal; color:#A8C5B5;">{{ youth_leaderboard|length }}
@@ -1137,26 +1136,23 @@
 
     function setViewMode(mode) {
         currentViewMode = mode;
-
+        
         const youthBtn = document.getElementById('toggle-youth');
         const allBtn = document.getElementById('toggle-all');
         const kidsSection = document.getElementById('kids-category-section');
         const grid = document.querySelector('.categories-grid');
-
+        
         if (!grid) return;
-
+        
         if (mode === 'youth') {
             if (youthBtn) youthBtn.classList.add('active');
-            if (allBtn) allBtn.classList.remove('active');
-            if (kidsSection) kidsSection.style.display = 'none';
-            grid.style.gridTemplateColumns = '1fr';
-            grid.style.maxWidth = '600px';
-            grid.style.margin = '0 auto';
+            if (youthSection) youthSection.style.display = 'block';
+            if (kidsSection)  kidsSection.style.display  = 'none';
         } else {
             if (allBtn) allBtn.classList.add('active');
-            // if (youthBtn) youthBtn.classList.remove('active');
+            if (youthBtn) youthBtn.classList.remove('active');
             if (kidsSection) kidsSection.style.display = 'block';
-
+            
             // Adjust columns based on window width
             if (window.innerWidth > 900) {
                 grid.style.gridTemplateColumns = '1fr 1fr';
