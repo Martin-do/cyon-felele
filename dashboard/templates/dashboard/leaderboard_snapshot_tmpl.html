@@ -118,7 +118,7 @@
     .board-list {
       display: flex;
       flex-direction: column;
-      gap: 6px;
+      gap: 7px;
       flex: 1;
     }
 
@@ -129,15 +129,15 @@
       background: rgba(27, 67, 50, 0.35);
       border: 1px solid rgba(201, 162, 39, 0.15);
       border-radius: 10px;
-      padding: 6px 12px;
+      padding: 7px 12px;
       position: relative;
-      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.12);
     }
 
     .row-item.rank-1 {
       background: linear-gradient(135deg, rgba(201, 162, 39, 0.2) 0%, rgba(20, 48, 31, 0.6) 100%);
       border: 1.5px solid rgba(232, 197, 71, 0.55);
-      box-shadow: 0 0 15px rgba(232, 197, 71, 0.2);
+      box-shadow: 0 0 12px rgba(232, 197, 71, 0.2);
     }
     .row-item.rank-2 {
       background: linear-gradient(135deg, rgba(148, 163, 184, 0.15) 0%, rgba(20, 48, 31, 0.6) 100%);
@@ -148,29 +148,36 @@
       border: 1.2px solid rgba(146, 64, 14, 0.4);
     }
 
+    /* ── Future Icons Row ─────────────────────────────────────── */
+    .row-item.future-icons {
+      background: rgba(201, 162, 39, 0.05);
+      border: 1px dashed rgba(201, 162, 39, 0.3);
+    }
+
     .rank-badge {
-      font-size: 16px;
+      font-size: 14px;
       font-weight: 900;
-      width: 32px;
+      width: 24px;
       text-align: center;
-      margin-right: 6px;
+      margin-right: 5px;
     }
 
     .avatar-wrap {
-      width: 36px;
-      height: 36px;
+      width: 34px;
+      height: 34px;
       border-radius: 50%;
       overflow: hidden;
-      margin-right: 10px;
-      border: 2px solid rgba(201, 162, 39, 0.4);
+      margin-right: 8px;
+      border: 1.5px solid rgba(201, 162, 39, 0.4);
       display: flex;
       align-items: center;
       justify-content: center;
       background: #14301F;
+      flex-shrink: 0;
     }
     .row-item.rank-1 .avatar-wrap {
-      border: 2px solid #E8C547;
-      box-shadow: 0 0 8px rgba(232, 197, 71, 0.4);
+      border: 1.5px solid #E8C547;
+      box-shadow: 0 0 6px rgba(232, 197, 71, 0.4);
     }
 
     .avatar-img {
@@ -188,32 +195,36 @@
       align-items: center;
       justify-content: center;
       font-weight: 700;
-      font-size: 14px;
+      font-size: 12px;
     }
 
     .contestant-info {
       flex: 1;
       display: flex;
       flex-direction: column;
+      min-width: 0;
     }
 
     .contestant-name {
       font-size: 13px;
       font-weight: 700;
       color: #FFFFFF;
-      margin-bottom: 1px;
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
-      max-width: 230px;
+      max-width: 210px;
     }
     .row-item.rank-1 .contestant-name {
-      font-size: 14px;
+      font-size: 12px;
       color: #E8C547;
+    }
+    .row-item.future-icons .contestant-name {
+      color: #A8C5B5;
+      font-style: italic;
     }
 
     .contestant-votes {
-      font-size: 10px;
+      font-size: 9px;
       color: #A8C5B5;
       font-weight: 500;
     }
@@ -224,9 +235,14 @@
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
       background-clip: text;
-      font-size: 15px;
+      font-size: 13px;
       font-weight: 900;
       text-align: right;
+      white-space: nowrap;
+    }
+    .row-item.future-icons .score-badge {
+      font-size: 11px;
+      opacity: 0.7;
     }
 
     /* ── Footer ────────────────────────────────────────────────── */
@@ -328,6 +344,19 @@
       <h2 class="column-title">🌟 Youth Ambassadors</h2>
       <div class="board-list">
         {% for entry in youth_leaderboard %}
+        {% if entry.is_others_group %}
+        <div class="row-item future-icons">
+          <div class="rank-badge">＋</div>
+          <div class="avatar-wrap">
+            <div class="avatar-fallback" style="font-size:10px;">+{{ entry.votes }}</div>
+          </div>
+          <div class="contestant-info">
+            <div class="contestant-name">Future Icons</div>
+            <div class="contestant-votes">Everyone outside Top 10</div>
+          </div>
+          <div class="score-badge">{{ entry.votes }} Votes</div>
+        </div>
+        {% else %}
         <div class="row-item rank-{{ forloop.counter }}">
           <div class="rank-badge">
             {% if forloop.counter == 1 %}🥇{% elif forloop.counter == 2 %}🥈{% elif forloop.counter == 3 %}🥉{% else %}{{ forloop.counter }}{% endif %}
@@ -345,6 +374,7 @@
           </div>
           <div class="score-badge">{{ entry.votes }} Votes</div>
         </div>
+        {% endif %}
         {% empty %}
         <div style="color: #A8C5B5; text-align: center; margin-top: 100px;">No entries yet!</div>
         {% endfor %}
@@ -354,9 +384,22 @@
     {% if not hide_kids %}
     <!-- Children Category Column -->
     <div class="column">
-      <h2 class="column-title">👑 Kids Harvest</h2>
+      <h2 class="column-title">👑 Children Ambassadors</h2>
       <div class="board-list">
         {% for entry in children_leaderboard %}
+        {% if entry.is_others_group %}
+        <div class="row-item future-icons">
+          <div class="rank-badge">＋</div>
+          <div class="avatar-wrap">
+            <div class="avatar-fallback" style="font-size:10px;">+{{ entry.votes }}</div>
+          </div>
+          <div class="contestant-info">
+            <div class="contestant-name">Future Icons</div>
+            <div class="contestant-votes">Everyone outside Top 10</div>
+          </div>
+          <div class="score-badge">{{ entry.votes }} Votes</div>
+        </div>
+        {% else %}
         <div class="row-item rank-{{ forloop.counter }}">
           <div class="rank-badge">
             {% if forloop.counter == 1 %}🥇{% elif forloop.counter == 2 %}🥈{% elif forloop.counter == 3 %}🥉{% else %}{{ forloop.counter }}{% endif %}
@@ -374,6 +417,7 @@
           </div>
           <div class="score-badge">{{ entry.votes }} Votes</div>
         </div>
+        {% endif %}
         {% empty %}
         <div style="color: #A8C5B5; text-align: center; margin-top: 100px;">No entries yet!</div>
         {% endfor %}

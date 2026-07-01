@@ -904,7 +904,7 @@
     <!-- Kids / Children Category -->
     <div class="category-section" id="kids-category-section">
         <div class="category-title">
-            <span>👑 Kids Harvest</span>
+            <span>👑 Children Ambassadors</span>
             <span style="font-size:0.8rem; font-weight:normal; color:#A8C5B5;">{{ children_leaderboard|length }}
                 Contestants</span>
         </div>
@@ -1136,32 +1136,30 @@
 
     function setViewMode(mode) {
         currentViewMode = mode;
-        
-        const youthBtn = document.getElementById('toggle-youth');
-        const allBtn = document.getElementById('toggle-all');
-        const kidsSection = document.getElementById('kids-category-section');
-        const grid = document.querySelector('.categories-grid');
-        
+
+        const youthBtn     = document.getElementById('toggle-youth');
+        const childrenBtn  = document.getElementById('toggle-children');
+        const youthSection = document.getElementById('youth-category-section');
+        const kidsSection  = document.getElementById('kids-category-section');
+        const grid         = document.querySelector('.categories-grid');
+
         if (!grid) return;
-        
+
+        [youthBtn, childrenBtn].forEach(b => b && b.classList.remove('active'));
+
         if (mode === 'youth') {
             if (youthBtn) youthBtn.classList.add('active');
             if (youthSection) youthSection.style.display = 'block';
             if (kidsSection)  kidsSection.style.display  = 'none';
         } else {
-            if (allBtn) allBtn.classList.add('active');
-            if (youthBtn) youthBtn.classList.remove('active');
-            if (kidsSection) kidsSection.style.display = 'block';
-            
-            // Adjust columns based on window width
-            if (window.innerWidth > 900) {
-                grid.style.gridTemplateColumns = '1fr 1fr';
-            } else {
-                grid.style.gridTemplateColumns = '1fr';
-            }
-            grid.style.maxWidth = 'none';
-            grid.style.margin = '0';
+            if (childrenBtn) childrenBtn.classList.add('active');
+            if (youthSection) youthSection.style.display = 'none';
+            if (kidsSection)  kidsSection.style.display  = 'block';
         }
+
+        grid.style.gridTemplateColumns = '1fr';
+        grid.style.maxWidth = '600px';
+        grid.style.margin = '0 auto';
     }
 
     // Adapt layout on window resize
