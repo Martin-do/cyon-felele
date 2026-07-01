@@ -1,3 +1,4 @@
+from numpy._core.defchararray import title
 import qrcode
 from io import BytesIO
 from django.core.files.base import ContentFile
@@ -22,6 +23,8 @@ from django.conf import settings
 from collections import OrderedDict
 from contributions.serializers import ContributionSerializer
 
+from decimal import Decimal
+
 @login_required(login_url='/accounts/login/')
 def member_hub_view(request):
     from contributions.models import InflowCategory
@@ -34,7 +37,7 @@ def member_hub_view(request):
     if request.method == 'POST':
         pass
 
-    referred_contributions = Contribution.objects.filter(referred_by=user, is_voided=False, status='approved')
+    referred_contributions = Contribution.objects.filter(referred_by=user, is_voided=False, status='approved').exclude(method__icontains='Pledge')
     total_referred = referred_contributions.aggregate(Sum('amount'))['amount__sum'] or 0.00
     
     progress_percentage = 0
@@ -270,12 +273,20 @@ def generate_member_flyer_image(request, user, force=False):
 
     title = user.contestant_title if user.contestant_title and user.contestant_title != 'None' else "CYON AMBASSADOR"
     if title in ['Most Influential Youth Fundraiser', 'Master Harvest', 'Miss Harvest']:
-        if user.gender == 'M':
-            category_text = "Most Influential Youth Fundraiser (Male)"
-        elif user.gender == 'F':
-            category_text = "Most Influential Youth Fundraiser (Female)"
+        if getattr(user, 'age_group', 'youth') == 'children':
+            if user.gender == 'M':
+                category_text = "Most Influential Child Fundraiser\n(Master of Harvest)"
+            elif user.gender == 'F':
+                category_text = "Most Influential Child Fundraiser\n(Miss Harvest)"
+            else:
+                category_text = "Most Influential Child Fundraiser"
         else:
-            category_text = "Most Influential Youth Fundraiser"
+            if user.gender == 'M':
+                category_text = "Most Influential Youth Fundraiser (Male)"
+            elif user.gender == 'F':
+                category_text = "Most Influential Youth Fundraiser (Female)"
+            else:
+                category_text = "Most Influential Youth Fundraiser"
     else:
         category_text = title
     
@@ -384,7 +395,7 @@ def get_leaderboard_standings_helper(cutoff_time=None):
     children_list = []
     
     for member in members:
-        contrib_query = Contribution.objects.filter(referred_by=member, is_voided=False, status='approved')
+        contrib_query = Contribution.objects.filter(referred_by=member, is_voided=False, status='approved').exclude(method__icontains='Pledge')
         if cutoff_time:
             contrib_query = contrib_query.filter(timestamp__lte=cutoff_time)
             
@@ -399,7 +410,7 @@ def get_leaderboard_standings_helper(cutoff_time=None):
                 'avatar': member.profile_picture.url if member.profile_picture else None,
                 'slug': member.referral_slug,
             }
-            if member.contestant_title in ['Master Harvest', 'Miss Harvest']:
+            if getattr(member, 'age_group', 'youth') == 'children':
                 children_list.append(entry)
             else:
                 youth_list.append(entry)
@@ -581,9 +592,46 @@ def generate_leaderboard_snapshot_image(request, force=False):
     # Get standings
     youth_curr, children_curr = get_leaderboard_standings_helper()
     
-    # Base64-encode avatars for top 5 contestants in each category
+    # Slice to top 10 and aggregate others as "Future Icons"
+    youth_top = youth_curr[:10]
+    youth_others = youth_curr[10:]
+    if youth_others:
+        others_votes = sum(entry['votes'] for entry in youth_others)
+        others_total = sum(entry['total'] for entry in youth_others)
+        youth_top.append({
+            'name': 'Future Icons',
+            'total': float(others_total),
+            'votes': int(others_votes),
+            'gender': 'N/A',
+            'title': 'Others',
+            'avatar': None,
+            'avatar_b64': None,
+            'slug': 'future-icons',
+            'is_others_group': True
+        })
+        
+    kids_top = children_curr[:10]
+    kids_others = children_curr[10:]
+    if kids_others:
+        others_votes = sum(entry['votes'] for entry in kids_others)
+        others_total = sum(entry['total'] for entry in kids_others)
+        kids_top.append({
+            'name': 'Future Icons',
+            'total': float(others_total),
+            'votes': int(others_votes),
+            'gender': 'N/A',
+            'title': 'Others',
+            'avatar': None,
+            'avatar_b64': None,
+            'slug': 'future-icons',
+            'is_others_group': True
+        })
+    
+    # Base64-encode avatars for top contestants in each category
     from accounts.models import Member
-    for entry in youth_curr[:5]:
+    for entry in youth_top:
+        if entry.get('is_others_group'):
+            continue
         if entry['avatar']:
             try:
                 member = Member.objects.get(referral_slug=entry['slug'])
@@ -597,7 +645,9 @@ def generate_leaderboard_snapshot_image(request, force=False):
         else:
             entry['avatar_b64'] = None
             
-    for entry in children_curr[:5]:
+    for entry in kids_top:
+        if entry.get('is_others_group'):
+            continue
         if entry['avatar']:
             try:
                 member = Member.objects.get(referral_slug=entry['slug'])
@@ -629,8 +679,8 @@ def generate_leaderboard_snapshot_image(request, force=False):
     total_harvest = Contribution.objects.filter(is_voided=False, status='approved').aggregate(Sum('amount'))['amount__sum'] or 0.00
     
     html_content = render_to_string('dashboard/leaderboard_snapshot_tmpl.html', {
-        'youth_leaderboard': youth_curr[:5],
-        'children_leaderboard': children_curr[:5],
+        'youth_leaderboard': youth_top,
+        'children_leaderboard': kids_top,
         'total_harvest': total_harvest,
         'logo_url': cyon_logo_base64,
         'seal_url': church_seal_base64,
@@ -780,16 +830,35 @@ def master_dashboard_view(request):
         except Exception:
             pass
 
-    total_amount = contributions.aggregate(Sum('amount'))['amount__sum'] or 0.00
-    
+    total_amount_direct = contributions.filter(pledge__isnull=True).aggregate(Sum('amount'))['amount__sum'] or Decimal(0.00)
+
+    pledge_filters = Q(status='approved')
+    if category_id and category_id != 'All':
+        pledge_filters &= Q(inflow_category_id=category_id)
+    if date_from:
+        pledge_filters &= Q(timestamp__date__gte=date_from)
+    if date_to:
+        pledge_filters &= Q(timestamp__date__lte=date_to)
+    from contributions.models import Pledge
+    committed_pledges_total = Pledge.objects.filter(pledge_filters).aggregate(Sum('amount_pledged'))['amount_pledged__sum'] or Decimal(0.00)
+
+    cash_total = contributions.filter(pledge__isnull=True, method__icontains='Cash').aggregate(Sum('amount'))['amount__sum'] or Decimal(0.00)
+    transfer_total = contributions.filter(pledge__isnull=True, method__icontains='Transfer').aggregate(Sum('amount'))['amount__sum'] or Decimal(0.00)
+    paystack_total = contributions.filter(pledge__isnull=True).filter(Q(method__icontains='Paystack') | Q(method__icontains='Online')).aggregate(Sum('amount'))['amount__sum'] or Decimal(0.00)
+    guest_pledge_total = contributions.filter(pledge__isnull=True, method__icontains='Pledge').aggregate(Sum('amount'))['amount__sum'] or Decimal(0.00)
+    pledge_total = guest_pledge_total + committed_pledges_total
+
+    # Pledge Redemptions: cash actually received against a pledge - tracked
+    # separately for audit, deliberately excluded from total_amount since
+    # the pledge's full value was already counted above when committed.
+    pledge_redemptions_total = contributions.filter(pledge__isnull=False).aggregate(Sum('amount'))['amount__sum'] or Decimal(0.00)
+
+    total_amount = cash_total + transfer_total + paystack_total + pledge_total
+
     target_amount = 5000000
     progress_percentage = min(round((total_amount / target_amount) * 100, 1), 100) if total_amount else 0
     if total_amount > 0 and progress_percentage < 1:
         progress_percentage = 1  # Show at least 1% when there are contributions
-
-    cash_total = contributions.filter(method__icontains='Cash').aggregate(Sum('amount'))['amount__sum'] or 0.00
-    transfer_total = contributions.filter(method__icontains='Transfer').aggregate(Sum('amount'))['amount__sum'] or 0.00
-    pledge_total = contributions.filter(method__icontains='Pledge').aggregate(Sum('amount'))['amount__sum'] or 0.00
 
     categories = InflowCategory.objects.all()
     members = Member.objects.filter(is_active=True).order_by('name')
@@ -806,7 +875,9 @@ def master_dashboard_view(request):
         'progress_percentage': progress_percentage,
         'cash_total': cash_total,
         'transfer_total': transfer_total,
+        'paystack_total': paystack_total,
         'pledge_total': pledge_total,
+        'pledge_redemptions_total': pledge_redemptions_total,
         'method': method,
         'date_from': date_from,
         'date_to': date_to,
@@ -827,7 +898,7 @@ def export_csv_view(request):
     response['Content-Disposition'] = 'attachment; filename="harvest_contributions.csv"'
     
     writer = csv.writer(response)
-    writer.writerow(['ID', 'Name', 'Phone', 'Amount', 'Method', 'Source', 'Referred By', 'Anonymous', 'Date'])
+    writer.writerow(['ID', 'Name', 'Phone', 'Amount', 'Method', 'Type', 'Source', 'Referred By', 'Anonymous', 'Date'])
     
     contributions = Contribution.objects.filter(is_voided=False, status='approved').order_by('timestamp')
     
@@ -856,12 +927,40 @@ def export_csv_view(request):
 
     for c in contributions:
         referrer = c.referred_by.name if c.referred_by else ''
+        row_type = 'Pledge Redemption' if c.pledge_id else 'Direct'
         writer.writerow([
-            str(c.id)[:8], c.name, c.phone, c.amount, c.method, 
+            str(c.id)[:8], c.name, c.phone, c.amount, c.method, row_type,
             c.source, referrer, 'Yes' if c.is_anonymous else 'No', 
             c.timestamp.strftime('%Y-%m-%d %H:%M:%S')
         ])
-        
+
+    # Append committed pledges separately for a complete audit trail,
+    # since their value is counted in Total Raised at commitment time,
+    # not duplicated when later redeemed (the redemption rows above
+    # are still listed individually, tagged 'Pledge Redemption').
+    writer.writerow([])
+    writer.writerow(['--- Committed Pledges (counted once, at approval) ---'])
+    writer.writerow(['ID', 'Name', 'Phone', 'Amount Pledged', 'Amount Fulfilled', 'Outstanding', 'Status', 'Date'])
+    from contributions.models import Pledge
+    pledges_qs = Pledge.objects.filter(status='approved').order_by('timestamp')
+    if category_id and category_id != 'All':
+        pledges_qs = pledges_qs.filter(inflow_category_id=category_id)
+    if date_from:
+        try:
+            pledges_qs = pledges_qs.filter(timestamp__date__gte=date_from)
+        except Exception:
+            pass
+    if date_to:
+        try:
+            pledges_qs = pledges_qs.filter(timestamp__date__lte=date_to)
+        except Exception:
+            pass
+    for p in pledges_qs:
+        writer.writerow([
+            str(p.id)[:8], p.name, p.phone or '', p.amount_pledged, p.amount_fulfilled,
+            p.amount_pledged - p.amount_fulfilled, p.status, p.timestamp.strftime('%Y-%m-%d %H:%M:%S')
+        ])
+
     return response
 
 from django.shortcuts import get_object_or_404, redirect
@@ -1000,6 +1099,8 @@ class AdminTransactionListAPIView(APIView):
     permission_classes = [IsAuthenticated, IsAdminUser]
 
     def get(self, request, *args, **kwargs):
+        from contributions.models import InflowCategory, Pledge
+
         queryset = Contribution.objects.filter(is_voided=False)
 
         method = request.query_params.get('method')
@@ -1019,32 +1120,75 @@ class AdminTransactionListAPIView(APIView):
         if date_to:
             queryset = queryset.filter(timestamp__date__lte=date_to)
 
-        # Single database aggregation pass using Sum with filter=Q(...) conditional aggregations
-        stats = queryset.aggregate(
-            total_raised=Sum('amount'),
+        # --- Headline financial stats ---
+        # These must ALWAYS reflect confirmed, approved money, regardless of
+        # whichever status the admin is currently browsing in the table below.
+        # (Previously this used `queryset` directly, which had no status
+        # filter by default on page load, so pending/rejected contributions
+        # were silently included in "Total Raised". Fixed: stats are scoped
+        # to approved-only, independent of the status_val table filter.)
+        stats_base = Contribution.objects.filter(is_voided=False, status='approved')
+        if method:
+            stats_base = stats_base.filter(method__icontains=method)
+        if category_id:
+            stats_base = stats_base.filter(inflow_category_id=category_id)
+        if date_from:
+            stats_base = stats_base.filter(timestamp__date__gte=date_from)
+        if date_to:
+            stats_base = stats_base.filter(timestamp__date__lte=date_to)
+
+        # Direct money received (excludes contributions that are themselves
+        # a pledge redemption payment - those are tracked separately below
+        # so a pledge's value is never counted twice).
+        direct = stats_base.filter(pledge__isnull=True)
+        direct_stats = direct.aggregate(
             cash=Sum('amount', filter=Q(method__icontains='Cash')),
             transfer=Sum('amount', filter=Q(method__icontains='Transfer')),
-            pledges=Sum('amount', filter=Q(method__icontains='Pledge')),
             paystack=Sum('amount', filter=Q(method__icontains='Paystack') | Q(method__icontains='Online')),
+            guest_pledges=Sum('amount', filter=Q(method__icontains='Pledge')),
+        )
+        cash = float(direct_stats['cash'] or 0.0)
+        transfer = float(direct_stats['transfer'] or 0.0)
+        paystack = float(direct_stats['paystack'] or 0.0)
+        guest_pledges = float(direct_stats['guest_pledges'] or 0.0)
+
+        # Pledges (member-hub tracked) count toward Total Raised ONCE, the
+        # moment they're approved/committed - not again when later redeemed.
+        pledge_filters = Q(status='approved')
+        if category_id:
+            pledge_filters &= Q(inflow_category_id=category_id)
+        if date_from:
+            pledge_filters &= Q(timestamp__date__gte=date_from)
+        if date_to:
+            pledge_filters &= Q(timestamp__date__lte=date_to)
+        committed_pledges = float(
+            Pledge.objects.filter(pledge_filters).aggregate(total=Sum('amount_pledged'))['total'] or 0.0
         )
 
-        total_raised = float(stats['total_raised'] or 0.0)
-        cash = float(stats['cash'] or 0.0)
-        transfer = float(stats['transfer'] or 0.0)
-        pledges = float(stats['pledges'] or 0.0)
-        paystack = float(stats['paystack'] or 0.0)
+        pledges = guest_pledges + committed_pledges
+
+        # Pledge Redemptions: actual cash that has come in to fulfil a pledge.
+        # Tracked for audit purposes only - deliberately NOT added into
+        # total_raised, since the pledge's full value was already counted
+        # above at the point it was committed.
+        pledge_redemptions = float(
+            stats_base.filter(pledge__isnull=False).aggregate(total=Sum('amount'))['total'] or 0.0
+        )
+
+        total_raised = cash + transfer + paystack + pledges
 
         target = 5000000
         progress_percentage = min(int((total_raised / target) * 100), 100) if total_raised > 0 else 0
 
-        # Fetch all active categories and sum amounts for this queryset
-        from contributions.models import InflowCategory
+        # Fetch all active categories and sum amounts (approved-only, same as headline stats)
         category_stats = {}
         for category in InflowCategory.objects.filter(is_active=True):
-            category_stats[f"cat_{category.id}"] = float(queryset.filter(inflow_category=category).aggregate(total=Sum('amount'))['total'] or 0.0)
+            cat_direct = float(direct.filter(inflow_category=category).aggregate(total=Sum('amount'))['total'] or 0.0)
+            cat_pledged = float(Pledge.objects.filter(pledge_filters, inflow_category=category).aggregate(total=Sum('amount_pledged'))['total'] or 0.0)
+            category_stats[f"cat_{category.id}"] = cat_direct + cat_pledged
 
         # Include uncategorized payments
-        category_stats["uncategorized"] = float(queryset.filter(inflow_category__isnull=True).aggregate(total=Sum('amount'))['total'] or 0.0)
+        category_stats["uncategorized"] = float(direct.filter(inflow_category__isnull=True).aggregate(total=Sum('amount'))['total'] or 0.0)
 
         statistics = {
             'total_raised': total_raised,
@@ -1052,6 +1196,7 @@ class AdminTransactionListAPIView(APIView):
             'transfer': transfer,
             'pledges': pledges,
             'paystack': paystack,
+            'pledge_redemptions': pledge_redemptions,
             'progress_percentage': progress_percentage,
             'category_stats': category_stats
         }

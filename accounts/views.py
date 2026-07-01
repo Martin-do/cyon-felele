@@ -86,14 +86,27 @@ def onboarding_view(request):
     if request.method == 'POST':
         first_name = request.POST.get('first_name', '').strip()
         last_name = request.POST.get('last_name', '').strip()
-        title = request.POST.get('contestant_title')
         gender = request.POST.get('gender')
-        
+        age_group = request.POST.get('age_group', 'youth')
+
         if first_name or last_name:
             user.name = f"{first_name} {last_name}".strip()
-            
+
         if gender in dict(Member.GENDER_CHOICES):
             user.gender = gender
+
+        if age_group in dict(Member.AGE_GROUP_CHOICES):
+            user.age_group = age_group
+
+        # Assign contestant_title based on age group + gender
+        if age_group == 'children':
+            if gender == 'M':
+                user.contestant_title = 'Master Harvest'
+            elif gender == 'F':
+                user.contestant_title = 'Miss Harvest'
+            else:
+                user.contestant_title = 'Master Harvest'  # fallback
+        else:
             user.contestant_title = 'Most Influential Youth Fundraiser'
             
         if 'profile_picture' in request.FILES:

@@ -4,34 +4,97 @@
 
 {% block head %}
 <style>
-    .custom-select-wrapper { position: relative; width: 100%; user-select: none; }
+    .custom-select-wrapper {
+        position: relative;
+        width: 100%;
+        user-select: none;
+    }
+
     .custom-select-trigger {
-        width: 100%; padding: 0.85rem 1rem; background: rgba(20, 48, 31, 0.7);
-        border: 1.5px solid rgba(201, 162, 39, 0.25); border-radius: 10px;
-        color: var(--harvest-cream); font-family: 'Inter', sans-serif; font-size: 1rem;
-        cursor: pointer; display: flex; justify-content: space-between; align-items: center;
+        width: 100%;
+        padding: 0.85rem 1rem;
+        background: rgba(20, 48, 31, 0.7);
+        border: 1.5px solid rgba(201, 162, 39, 0.25);
+        border-radius: 10px;
+        color: var(--harvest-cream);
+        font-family: 'Inter', sans-serif;
+        font-size: 1rem;
+        cursor: pointer;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
         transition: border-color 0.25s, box-shadow 0.25s;
     }
-    .custom-select-trigger:focus { border-color: var(--harvest-gold-500); outline: none; box-shadow: 0 0 0 3px rgba(201, 162, 39, 0.2); }
+
+    .custom-select-trigger:focus {
+        border-color: var(--harvest-gold-500);
+        outline: none;
+        box-shadow: 0 0 0 3px rgba(201, 162, 39, 0.2);
+    }
+
     .custom-select-options {
-        position: absolute; top: 100%; left: 0; right: 0; background: #1B4332;
-        border: 1.5px solid rgba(201, 162, 39, 0.25); border-radius: 10px;
-        margin-top: 0.5rem; z-index: 50; display: none; max-height: 200px; overflow-y: auto;
-        box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+        position: absolute;
+        top: 100%;
+        left: 0;
+        right: 0;
+        background: #1B4332;
+        border: 1.5px solid rgba(201, 162, 39, 0.25);
+        border-radius: 10px;
+        margin-top: 0.5rem;
+        z-index: 50;
+        display: none;
+        max-height: 200px;
+        overflow-y: auto;
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
     }
-    .custom-select-options.open { display: block; animation: fadeIn 0.2s ease; }
+
+    .custom-select-options.open {
+        display: block;
+        animation: fadeIn 0.2s ease;
+    }
+
     .custom-select-option {
-        padding: 0.75rem 1rem; color: var(--harvest-cream); cursor: pointer; transition: background 0.2s;
-        border-bottom: 1px solid rgba(201,162,39,0.1);
+        padding: 0.75rem 1rem;
+        color: var(--harvest-cream);
+        cursor: pointer;
+        transition: background 0.2s;
+        border-bottom: 1px solid rgba(201, 162, 39, 0.1);
     }
-    .custom-select-option:last-child { border-bottom: none; }
-    .custom-select-option:hover, .custom-select-option.selected {
-        background: rgba(201, 162, 39, 0.15); color: var(--harvest-gold-400);
+
+    .custom-select-option:last-child {
+        border-bottom: none;
     }
-    .arrow-icon { width: 12px; height: 12px; fill: none; stroke: currentColor; stroke-width: 2; transition: transform 0.2s; }
-    .custom-select-options.open ~ .custom-select-trigger .arrow-icon { transform: rotate(180deg); }
-    
-    @keyframes fadeIn { from { opacity: 0; transform: translateY(-5px); } to { opacity: 1; transform: translateY(0); } }
+
+    .custom-select-option:hover,
+    .custom-select-option.selected {
+        background: rgba(201, 162, 39, 0.15);
+        color: var(--harvest-gold-400);
+    }
+
+    .arrow-icon {
+        width: 12px;
+        height: 12px;
+        fill: none;
+        stroke: currentColor;
+        stroke-width: 2;
+        transition: transform 0.2s;
+    }
+
+    .custom-select-options.open~.custom-select-trigger .arrow-icon {
+        transform: rotate(180deg);
+    }
+
+    @keyframes fadeIn {
+        from {
+            opacity: 0;
+            transform: translateY(-5px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
 </style>
 {% endblock %}
 
@@ -39,11 +102,13 @@
 <div class="glass-card" style="max-width: 600px; margin: 0 auto;">
     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
         <h1 style="margin-bottom: 0;">Live Entry Form</h1>
-        <a href="{% url 'dashboard:master_dashboard' %}" class="submit-btn" style="width: auto; margin-top: 0; padding: 0.5rem 1rem; background: rgba(255,255,255,0.1); color: white; text-decoration: none;">Back</a>
+        <a href="{% url 'dashboard:master_dashboard' %}" class="submit-btn"
+            style="width: auto; margin-top: 0; padding: 0.5rem 1rem; background: rgba(255,255,255,0.1); color: white; text-decoration: none;">Back</a>
     </div>
 
     <p style="color: var(--text-muted); margin-bottom: 2rem;">
-        Use this form during the live harvest to rapidly record physical payments. Contributions logged here bypass verification and are instantly approved.
+        Use this form during the live harvest to rapidly record physical payments. Contributions logged here bypass
+        verification and are instantly approved.
     </p>
 
     {% if messages %}
@@ -68,7 +133,8 @@
 
         <div class="form-group">
             <label class="form-label" for="amount">Amount (₦) *</label>
-            <input type="number" id="amount" name="amount" class="form-control" required min="1" step="0.01" placeholder="e.g. 5000">
+            <input type="number" id="amount" name="amount" class="form-control" required min="1" step="0.01"
+                placeholder="e.g. 5000">
         </div>
 
         <div class="form-group">
@@ -77,7 +143,9 @@
                 <input type="hidden" name="method" id="method-input" value="Cash" required>
                 <div class="custom-select-trigger" tabindex="0">
                     <span class="trigger-text">Cash</span>
-                    <svg class="arrow-icon" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"></path></svg>
+                    <svg class="arrow-icon" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"></path>
+                    </svg>
                 </div>
                 <div class="custom-select-options">
                     <div class="custom-select-option selected" data-value="Cash">Cash</div>
@@ -99,7 +167,9 @@
                 <input type="hidden" name="referred_by" id="referred-input" value="">
                 <div class="custom-select-trigger" tabindex="0">
                     <span class="trigger-text">-- None / Walk-in --</span>
-                    <svg class="arrow-icon" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"></path></svg>
+                    <svg class="arrow-icon" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"></path>
+                    </svg>
                 </div>
                 <div class="custom-select-options">
                     <div class="custom-select-option selected" data-value="">-- None / Walk-in --</div>
@@ -113,26 +183,22 @@
         <div class="form-group">
             <label class="form-label">Inflow Category</label>
             <div class="custom-select-wrapper">
-                {% for cat in categories %}
-                    {% if cat.name == 'Campaign Funds' %}
-                        <input type="hidden" name="category" id="category-input" value="{{ cat.id }}">
-                    {% endif %}
-                {% endfor %}
-                <!-- Fallback if Campaign Funds not found -->
-                {% if not categories %}
-                    <input type="hidden" name="category" id="category-input" value="">
-                {% endif %}
+                <input type="hidden" name="category" id="category-input"
+                    value="{% for cat in categories %}{% if cat.name == 'Main Harvest Contributions' %}{{ cat.id }}{% endif %}{% endfor %}">
                 <div class="custom-select-trigger" tabindex="0">
                     <span class="trigger-text">
                         {% for cat in categories %}
-                            {% if cat.name == 'Campaign Funds' %}{{ cat.name }}{% endif %}
+                        {% if cat.name == 'Main Harvest Contributions' %}{{ cat.name }}{% endif %}
                         {% endfor %}
                     </span>
-                    <svg class="arrow-icon" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"></path></svg>
+                    <svg class="arrow-icon" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"></path>
+                    </svg>
                 </div>
                 <div class="custom-select-options">
                     {% for cat in categories %}
-                    <div class="custom-select-option {% if cat.name == 'Campaign Funds' %}selected{% endif %}" data-value="{{ cat.id }}">{{ cat.name }}</div>
+                    <div class="custom-select-option {% if cat.name == 'Main Harvest Contributions' %}selected{% endif %}"
+                        data-value="{{ cat.id }}">{{ cat.name }}</div>
                     {% endfor %}
                 </div>
             </div>
@@ -145,17 +211,20 @@
 
 {% block scripts %}
 <script>
-    document.addEventListener('DOMContentLoaded', function() {
+    document.addEventListener('DOMContentLoaded', function () {
         const customSelects = document.querySelectorAll('.custom-select-wrapper');
 
         // Set initial fallback text if missing
-        const catTrigger = document.querySelector('#category-input').nextElementSibling.querySelector('.trigger-text');
-        if (!catTrigger.textContent.trim()) {
-            const firstOpt = document.querySelector('#category-input').parentElement.querySelector('.custom-select-option');
-            if (firstOpt) {
-                catTrigger.textContent = firstOpt.textContent;
-                document.querySelector('#category-input').value = firstOpt.dataset.value;
-                firstOpt.classList.add('selected');
+        const categoryInput = document.querySelector('#category-input');
+        if (categoryInput) {
+            const catTrigger = categoryInput.nextElementSibling ? categoryInput.nextElementSibling.querySelector('.trigger-text') : null;
+            if (catTrigger && !catTrigger.textContent.trim()) {
+                const firstOpt = categoryInput.parentElement.querySelector('.custom-select-option');
+                if (firstOpt) {
+                    catTrigger.textContent = firstOpt.textContent;
+                    categoryInput.value = firstOpt.dataset.value;
+                    firstOpt.classList.add('selected');
+                }
             }
         }
 
@@ -166,7 +235,7 @@
             const hiddenInput = wrapper.querySelector('input[type="hidden"]');
             const triggerText = trigger.querySelector('.trigger-text');
 
-            trigger.addEventListener('click', function(e) {
+            trigger.addEventListener('click', function (e) {
                 e.stopPropagation();
                 // Close all other selects
                 document.querySelectorAll('.custom-select-options').forEach(opt => {
@@ -176,17 +245,17 @@
             });
 
             options.forEach(option => {
-                option.addEventListener('click', function(e) {
+                option.addEventListener('click', function (e) {
                     e.stopPropagation();
-                    
+
                     // Update selected visual state
                     options.forEach(opt => opt.classList.remove('selected'));
                     this.classList.add('selected');
-                    
+
                     // Update values
                     triggerText.textContent = this.textContent;
                     hiddenInput.value = this.dataset.value;
-                    
+
                     // Close dropdown
                     optionsContainer.classList.remove('open');
                 });
@@ -194,7 +263,7 @@
         });
 
         // Close when clicking outside
-        document.addEventListener('click', function(e) {
+        document.addEventListener('click', function (e) {
             document.querySelectorAll('.custom-select-options').forEach(opt => {
                 opt.classList.remove('open');
             });
@@ -202,7 +271,7 @@
 
         // Idempotency Key logic
         function generateUUID() {
-            return ([1e7]+-1e3+-4e3+-8e3+-1e11).replace(/[018]/g, c =>
+            return ([1e7] + -1e3 + -4e3 + -8e3 + -1e11).replace(/[018]/g, c =>
                 (c ^ crypto.getRandomValues(new Uint8Array(1))[0] & 15 >> c / 4).toString(16)
             );
         }
@@ -214,8 +283,8 @@
 
         const form = document.getElementById('live-entry-form');
         if (form) {
-            form.addEventListener('submit', function() {
-                setTimeout(function() {
+            form.addEventListener('submit', function () {
+                setTimeout(function () {
                     if (idKeyField) {
                         idKeyField.value = generateUUID();
                     }

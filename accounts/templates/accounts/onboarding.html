@@ -10,35 +10,66 @@
         background-image: none !important;
         color: #1B3B2B !important;
     }
+
     .glass-card {
         background: #FFFFFF !important;
-        border: 1.5px solid rgba(201,162,39,0.3) !important;
-        box-shadow: 0 8px 40px rgba(20,48,31,0.1) !important;
+        border: 1.5px solid rgba(201, 162, 39, 0.3) !important;
+        box-shadow: 0 8px 40px rgba(20, 48, 31, 0.1) !important;
         max-width: 520px;
         margin: 0 auto;
     }
-    label { color: #245C3F !important; font-weight: 600; display: block; margin-bottom: 0.5rem; }
-    h1 { color: #1B3B2B !important; background: none !important; -webkit-text-fill-color: initial !important; }
-    p.subtitle { color: #4B6B57 !important; }
-    input[type="text"], input[type="file"], select {
+
+    label {
+        color: #245C3F !important;
+        font-weight: 600;
+        display: block;
+        margin-bottom: 0.5rem;
+    }
+
+    h1 {
+        color: #1B3B2B !important;
+        background: none !important;
+        -webkit-text-fill-color: initial !important;
+    }
+
+    p.subtitle {
+        color: #4B6B57 !important;
+    }
+
+    input[type="text"],
+    input[type="file"],
+    select {
         width: 100%;
         padding: 0.8rem;
         background: #FAF6EC !important;
-        border: 1px solid rgba(201,162,39,0.3) !important;
+        border: 1px solid rgba(201, 162, 39, 0.3) !important;
         color: #1B3B2B !important;
         border-radius: 8px;
         margin-bottom: 1rem;
         box-sizing: border-box;
     }
-    input::placeholder { color: rgba(27,59,43,0.35) !important; }
-    input:focus, select:focus {
+
+    input::placeholder {
+        color: rgba(27, 59, 43, 0.35) !important;
+    }
+
+    input:focus,
+    select:focus {
         border-color: #C9A227 !important;
         outline: none;
-        box-shadow: 0 0 0 3px rgba(201,162,39,0.15) !important;
+        box-shadow: 0 0 0 3px rgba(201, 162, 39, 0.15) !important;
     }
-    .site-footer { background: #F4EFE2 !important; border-color: rgba(201,162,39,0.2) !important; }
-    .site-footer p, .site-footer a { color: #4B6B57 !important; }
-    
+
+    .site-footer {
+        background: #F4EFE2 !important;
+        border-color: rgba(201, 162, 39, 0.2) !important;
+    }
+
+    .site-footer p,
+    .site-footer a {
+        color: #4B6B57 !important;
+    }
+
     .alert {
         padding: 1.2rem !important;
         border-radius: 12px !important;
@@ -48,58 +79,79 @@
         animation: slideDownFade 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards !important;
         transform: translateY(-20px);
         opacity: 0;
-        box-shadow: 0 8px 30px rgba(0,0,0,0.05) !important;
+        box-shadow: 0 8px 30px rgba(0, 0, 0, 0.05) !important;
     }
+
     @keyframes slideDownFade {
-        to { transform: translateY(0); opacity: 1; }
+        to {
+            transform: translateY(0);
+            opacity: 1;
+        }
     }
+
     .alert.success {
         background: rgba(36, 92, 63, 0.1) !important;
         border: 1px solid rgba(36, 92, 63, 0.25) !important;
         color: #1B3B2B !important;
         border-left: 4px solid #245C3F !important;
     }
-    .alert.error { 
-        background: rgba(179,38,30,0.1) !important; 
-        border: 1px solid rgba(179,38,30,0.25) !important;
-        color: #8B1A1A !important; 
+
+    .alert.error {
+        background: rgba(179, 38, 30, 0.1) !important;
+        border: 1px solid rgba(179, 38, 30, 0.25) !important;
+        color: #8B1A1A !important;
         border-left: 4px solid #B3261E !important;
     }
-    
+
     .step-section {
         display: none;
     }
+
     .step-section.active {
         display: block;
         animation: fadeIn 0.4s ease forwards;
     }
+
     @keyframes fadeIn {
-        from { opacity: 0; transform: translateY(10px); }
-        to { opacity: 1; transform: translateY(0); }
+        from {
+            opacity: 0;
+            transform: translateY(10px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
     }
+
     .rules-panel {
-        background: rgba(36,92,63,0.04);
+        background: rgba(36, 92, 63, 0.04);
         border-left: 4px solid #C9A227;
         padding: 1.25rem;
         border-radius: 0 8px 8px 0;
         margin-bottom: 1.5rem;
     }
+
     .rules-panel h3 {
         color: #1B4332;
         margin-top: 0;
         margin-bottom: 0.5rem;
         font-size: 1.1rem;
     }
-    .rules-panel p, .rules-panel li {
+
+    .rules-panel p,
+    .rules-panel li {
         color: #245C3F;
         font-size: 0.95rem;
         line-height: 1.5;
     }
+
     .btn-group {
         display: flex;
         gap: 1rem;
         margin-top: 1rem;
     }
+
     .btn-secondary {
         background: #FAF6EC;
         border: 1px solid #C9A227;
@@ -111,13 +163,13 @@
         flex: 1;
         text-align: center;
     }
-    
+
     /* Custom File Input Styling */
     .file-upload-wrapper {
         position: relative;
         width: 100%;
         height: 120px;
-        border: 2px dashed rgba(201,162,39,0.5);
+        border: 2px dashed rgba(201, 162, 39, 0.5);
         border-radius: 12px;
         background: #FAF6EC;
         display: flex;
@@ -128,10 +180,12 @@
         transition: all 0.3s ease;
         overflow: hidden;
     }
+
     .file-upload-wrapper:hover {
         background: #F4EFE2;
         border-color: #C9A227;
     }
+
     .file-upload-input {
         position: absolute;
         top: 0;
@@ -142,17 +196,20 @@
         cursor: pointer;
         z-index: 10;
     }
+
     .file-upload-text {
         color: #245C3F;
         font-weight: 600;
         margin-top: 8px;
         z-index: 1;
     }
+
     .file-upload-icon {
         font-size: 2rem;
         color: #C9A227;
         z-index: 1;
     }
+
     .file-name-display {
         font-size: 0.85rem;
         color: #4B6B57;
@@ -168,23 +225,26 @@
 <div class="glass-card">
     <form method="POST" enctype="multipart/form-data" id="onboardingForm">
         {% csrf_token %}
-        
+
         <!-- Step 1: Profile Info -->
         <div id="step1" class="step-section active">
             <div style="text-align: center; margin-bottom: 1.5rem;">
-                <img src="{% static 'images/brand/cyon-logo.png' %}" alt="CYON Logo" style="height: 60px; margin-bottom: 0.75rem;">
+                <img src="{% static 'images/brand/cyon-logo.png' %}" alt="CYON Logo"
+                    style="height: 60px; margin-bottom: 0.75rem;">
                 <h1>Complete Your Profile</h1>
                 <p class="subtitle">Welcome! Let's get your ambassador profile ready.</p>
             </div>
 
             <div class="form-group">
                 <label for="first_name">First Name</label>
-                <input type="text" id="first_name" name="first_name" value="{{ first_name }}" required placeholder="e.g. Adaeze">
+                <input type="text" id="first_name" name="first_name" value="{{ first_name }}" required
+                    placeholder="e.g. Adaeze">
             </div>
-            
+
             <div class="form-group">
                 <label for="last_name">Last Name</label>
-                <input type="text" id="last_name" name="last_name" value="{{ last_name }}" required placeholder="e.g. Okonkwo">
+                <input type="text" id="last_name" name="last_name" value="{{ last_name }}" required
+                    placeholder="e.g. Okonkwo">
             </div>
 
             <div class="form-group">
@@ -195,7 +255,8 @@
             <div class="form-group">
                 <label>Profile Picture (Optional)</label>
                 <div class="file-upload-wrapper" id="drop-zone">
-                    <input type="file" id="profile_picture" name="profile_picture" accept="image/*" class="file-upload-input" onchange="updateFileName(this)">
+                    <input type="file" id="profile_picture" name="profile_picture" accept="image/*"
+                        class="file-upload-input" onchange="updateFileName(this)">
                     <div class="file-upload-icon">📸</div>
                     <div class="file-upload-text">Click or drag photo to upload</div>
                     <div class="file-name-display" id="file-name">Supports JPG, PNG</div>
@@ -210,48 +271,64 @@
                     <option value="F" {% if user.gender == 'F' %}selected{% endif %}>Female</option>
                 </select>
             </div>
-
-            <!-- Contestant Title is auto-assigned based on gender in views.py -->
-
-            <button type="button" onclick="nextStep()" class="submit-btn" style="width: 100%;">Continue to Rules ➔</button>
-        </div>
-
-        <!-- Step 2: Rules -->
-        <div id="step2" class="step-section">
-            <div style="text-align: center; margin-bottom: 1.5rem;">
-                <h1 style="font-size: 1.5rem;">How to Participate</h1>
-                <p class="subtitle">Fundraising Ambassador Challenge Rules</p>
-            </div>
-
-            <div class="rules-panel">
-                <h3>Voting System</h3>
-                <p style="margin-bottom: 0.5rem;">Every donation made through your link constitutes a vote. The number of votes is determined by the donation amount:</p>
-                <ul style="padding-left: 1.5rem; margin-bottom: 0.5rem;">
-                    <li><strong>₦500</strong> = 1 Vote</li>
-                    <li><strong>₦1,000</strong> = 2 Votes</li>
-                    <li><strong>₦5,000</strong> = 10 Votes</li>
-                    <li><strong>₦10,000</strong> = 20 Votes</li>
-                </ul>
-                <p style="font-style: italic; font-size: 0.85rem;">Note: There is no limit to the number of votes a supporter may cast.</p>
-            </div>
-
-            <div class="rules-panel">
-                <h3>Your Role</h3>
-                <ul style="padding-left: 1.5rem; margin-bottom: 0;">
-                    <li>Share your unique campaign link with your network.</li>
-                    <li>All donations go exclusively into the Harvest account.</li>
-                    <li>Be an advocate for the 2026 Harvest project.</li>
-                    <li>Winners will be celebrated at the Grand Finale!</li>
-                </ul>
-            </div>
-
-            <div class="btn-group">
-                <button type="button" onclick="prevStep()" class="btn-secondary">Back</button>
-                <button type="submit" class="submit-btn" style="flex: 2;">Accept & Enter Dashboard</button>
+            <div class="form-field">
+                <label>Age Group</label>
+                <div style="display: flex; gap: 1rem; margin-top: 0.5rem;">
+                    <label style="display: flex; align-items: center; gap: 0.4rem; cursor: pointer;">
+                        <input type="radio" name="age_group" value="youth" checked style="accent-color: #4B6B57;">
+                        Youth (16+)
+                    </label>
+                    <label style="display: flex; align-items: center; gap: 0.4rem; cursor: pointer;">
+                        <input type="radio" name="age_group" value="children" style="accent-color: #4B6B57;">
+                        Children (under 16)
+                    </label>
+                </div>
             </div>
         </div>
-        
-    </form>
+
+        <br></br>
+
+        <button type="button" onclick="nextStep()" class="submit-btn" style="width: 100%;">Continue to Rules ➔</button>
+</div>
+
+<!-- Step 2: Rules -->
+<div id="step2" class="step-section">
+    <div style="text-align: center; margin-bottom: 1.5rem;">
+        <h1 style="font-size: 1.5rem;">How to Participate</h1>
+        <p class="subtitle">Fundraising Ambassador Challenge Rules</p>
+    </div>
+
+    <div class="rules-panel">
+        <h3>Voting System</h3>
+        <p style="margin-bottom: 0.5rem;">Every donation made through your link constitutes a vote. The number of votes
+            is determined by the donation amount:</p>
+        <ul style="padding-left: 1.5rem; margin-bottom: 0.5rem;">
+            <li><strong>₦500</strong> = 1 Vote</li>
+            <li><strong>₦1,000</strong> = 2 Votes</li>
+            <li><strong>₦5,000</strong> = 10 Votes</li>
+            <li><strong>₦10,000</strong> = 20 Votes</li>
+        </ul>
+        <p style="font-style: italic; font-size: 0.85rem;">Note: There is no limit to the number of votes a supporter
+            may cast.</p>
+    </div>
+
+    <div class="rules-panel">
+        <h3>Your Role</h3>
+        <ul style="padding-left: 1.5rem; margin-bottom: 0;">
+            <li>Share your unique campaign link with your network.</li>
+            <li>All donations go exclusively into the Harvest account.</li>
+            <li>Be an advocate for the 2026 Harvest project.</li>
+            <li>Winners will be celebrated at the Grand Finale!</li>
+        </ul>
+    </div>
+
+    <div class="btn-group">
+        <button type="button" onclick="prevStep()" class="btn-secondary">Back</button>
+        <button type="submit" class="submit-btn" style="flex: 2;">Accept & Enter Dashboard</button>
+    </div>
+</div>
+
+</form>
 </div>
 {% endblock %}
 
@@ -260,13 +337,13 @@
     function nextStep() {
         document.getElementById('step1').classList.remove('active');
         document.getElementById('step2').classList.add('active');
-        window.scrollTo(0,0);
+        window.scrollTo(0, 0);
     }
-    
+
     function prevStep() {
         document.getElementById('step2').classList.remove('active');
         document.getElementById('step1').classList.add('active');
-        window.scrollTo(0,0);
+        window.scrollTo(0, 0);
     }
 
     function updateFileName(input) {
@@ -283,12 +360,12 @@
     }
 
     // Client-side image compression before submission
-    document.getElementById('onboardingForm').addEventListener('submit', function(e) {
+    document.getElementById('onboardingForm').addEventListener('submit', function (e) {
         var fileInput = document.getElementById('profile_picture');
         if (!fileInput.files || fileInput.files.length === 0) {
             return; // Submit normally
         }
-        
+
         var file = fileInput.files[0];
         if (!file.type.startsWith('image/')) {
             return; // Not an image
@@ -299,9 +376,9 @@
         setButtonLoading(submitBtn, 'Processing Image...');
 
         var reader = new FileReader();
-        reader.onload = function(event) {
+        reader.onload = function (event) {
             var img = new Image();
-            img.onload = function() {
+            img.onload = function () {
                 var canvas = document.createElement('canvas');
                 var ctx = canvas.getContext('2d');
 
@@ -328,7 +405,7 @@
                 ctx.drawImage(img, 0, 0, width, height);
 
                 // Compress
-                canvas.toBlob(function(blob) {
+                canvas.toBlob(function (blob) {
                     var newFile = new File([blob], file.name.split('.')[0] + '.jpg', {
                         type: 'image/jpeg',
                         lastModified: Date.now()
@@ -344,7 +421,7 @@
                     document.getElementById('onboardingForm').submit();
                 }, 'image/jpeg', 0.75); // 75% quality
             };
-            img.onerror = function() {
+            img.onerror = function () {
                 // Fallback if image fails to load
                 document.getElementById('onboardingForm').submit();
             };

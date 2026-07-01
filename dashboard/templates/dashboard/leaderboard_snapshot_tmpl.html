@@ -1,3 +1,4 @@
+{% load humanize %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -14,9 +15,9 @@
       height: 1080px;
       background: #09170e;
       background-image: 
-        radial-gradient(circle at 10% 10%, rgba(201, 162, 39, 0.15) 0%, transparent 45%),
-        radial-gradient(circle at 90% 90%, rgba(36, 92, 63, 0.4) 0%, transparent 55%),
-        radial-gradient(circle at 50% 50%, rgba(20, 48, 31, 0.95) 0%, #050d08 100%);
+      radial-gradient(circle at 10% 10%, rgba(201, 162, 39, 0.15) 0%, transparent 45%),
+      radial-gradient(circle at 90% 90%, rgba(36, 92, 63, 0.4) 0%, transparent 55%),
+      radial-gradient(circle at 50% 50%, rgba(20, 48, 31, 0.95) 0%, #050d08 100%);
       font-family: 'Montserrat', sans-serif;
       position: relative;
       overflow: hidden;
@@ -117,7 +118,7 @@
     .board-list {
       display: flex;
       flex-direction: column;
-      gap: 12px;
+      gap: 6px;
       flex: 1;
     }
 
@@ -127,10 +128,10 @@
       align-items: center;
       background: rgba(27, 67, 50, 0.35);
       border: 1px solid rgba(201, 162, 39, 0.15);
-      border-radius: 12px;
-      padding: 12px 16px;
+      border-radius: 10px;
+      padding: 6px 12px;
       position: relative;
-      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
     }
 
     .row-item.rank-1 {
@@ -148,19 +149,19 @@
     }
 
     .rank-badge {
-      font-size: 22px;
+      font-size: 16px;
       font-weight: 900;
-      width: 40px;
+      width: 32px;
       text-align: center;
-      margin-right: 8px;
+      margin-right: 6px;
     }
 
     .avatar-wrap {
-      width: 48px;
-      height: 48px;
+      width: 36px;
+      height: 36px;
       border-radius: 50%;
       overflow: hidden;
-      margin-right: 12px;
+      margin-right: 10px;
       border: 2px solid rgba(201, 162, 39, 0.4);
       display: flex;
       align-items: center;
@@ -187,7 +188,7 @@
       align-items: center;
       justify-content: center;
       font-weight: 700;
-      font-size: 18px;
+      font-size: 14px;
     }
 
     .contestant-info {
@@ -197,22 +198,22 @@
     }
 
     .contestant-name {
-      font-size: 15px;
+      font-size: 13px;
       font-weight: 700;
       color: #FFFFFF;
-      margin-bottom: 2px;
+      margin-bottom: 1px;
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
       max-width: 230px;
     }
     .row-item.rank-1 .contestant-name {
-      font-size: 16px;
+      font-size: 14px;
       color: #E8C547;
     }
 
     .contestant-votes {
-      font-size: 12px;
+      font-size: 10px;
       color: #A8C5B5;
       font-weight: 500;
     }
@@ -223,7 +224,7 @@
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
       background-clip: text;
-      font-size: 18px;
+      font-size: 15px;
       font-weight: 900;
       text-align: right;
     }
@@ -389,7 +390,7 @@
       <div class="footer-subtitle">Scan to open live standings, vote and support contestants!</div>
     </div>
     <div class="footer-right">
-      <div class="total-chip">₦{{ total_harvest|floatformat:0 }} Raised</div>
+      <div class="total-chip">₦{{ total_harvest|floatformat:0|intcomma }} Raised</div>
       {% if qr_url %}
       <div class="qr-container">
         <img src="{{ qr_url }}" class="qr-img" alt="QR Code">

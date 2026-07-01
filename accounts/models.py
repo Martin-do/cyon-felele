@@ -26,6 +26,12 @@ class Member(AbstractBaseUser, PermissionsMixin):
         ('None', 'Not Contesting'),
     )
 
+    AGE_GROUP_CHOICES = (
+        ('youth', 'Youth'),
+        ('children', 'Children'),
+    )
+
+
     ROLE_CHOICES = (
         ('member', 'Member / Contestant'),
         ('usher', 'Usher / Recorder'),
@@ -45,6 +51,7 @@ class Member(AbstractBaseUser, PermissionsMixin):
     profile_picture = models.ImageField(upload_to='profiles/', blank=True, null=True)
     custom_flyer = models.ImageField(upload_to='flyers/', blank=True, null=True, help_text="Optional custom flyer for sharing")
     contestant_title = models.CharField(max_length=50, choices=TITLE_CHOICES, default='None')
+    age_group = models.CharField(max_length=10, choices=AGE_GROUP_CHOICES, default='youth', help_text="Select Youth or Children")
     referral_slug = models.SlugField(max_length=150, unique=True, blank=True)
     levy_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
     levy_paid = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)

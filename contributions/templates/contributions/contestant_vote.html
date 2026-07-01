@@ -4,42 +4,52 @@
 {% block title %}Vote for {{ referrer.name }} | CYON Harvest 2026{% endblock %}
 
 {% block head %}
-    <meta property="og:title" content="Vote for {{ referrer.name }} | CYON Harvest 2026">
-    <meta property="og:description" content="Support {{ referrer.name }} in the CYON Harvest 2026 Fundraising Challenge.">
-    {% if og_image_url %}
-    <meta property="og:image" content="{{ og_image_url }}">
-    <meta property="og:image:width" content="1080">
-    <meta property="og:image:height" content="1080">
-    <meta property="og:image:type" content="image/png">
-    {% endif %}
-    <meta property="og:url" content="{{ request.build_absolute_uri }}">
-    <meta property="og:type" content="website">
-    <meta name="twitter:card" content="summary_large_image">
+<meta property="og:title" content="Vote for {{ referrer.name }} | CYON Harvest 2026">
+<meta property="og:description" content="Support {{ referrer.name }} in the CYON Harvest 2026 Fundraising Challenge.">
+{% if og_image_url %}
+<meta property="og:image" content="{{ og_image_url }}">
+<meta property="og:image:width" content="1080">
+<meta property="og:image:height" content="1080">
+<meta property="og:image:type" content="image/png">
+{% endif %}
+<meta property="og:url" content="{{ request.build_absolute_uri }}">
+<meta property="og:type" content="website">
+<meta name="twitter:card" content="summary_large_image">
 <style>
     /* ── Dark premium feel for contestant page ────────────────────── */
     body {
         background: #0F2017 !important;
-        background-image: radial-gradient(circle at top right, rgba(201,162,39,0.15) 0%, rgba(201,162,39,0) 60%), radial-gradient(circle at bottom left, rgba(24,66,45,0.8) 0%, rgba(15,32,23,0) 60%) !important;
+        background-image: radial-gradient(circle at top right, rgba(201, 162, 39, 0.15) 0%, rgba(201, 162, 39, 0) 60%), radial-gradient(circle at bottom left, rgba(24, 66, 45, 0.8) 0%, rgba(15, 32, 23, 0) 60%) !important;
         color: #F4EFE2 !important;
         background-attachment: fixed !important;
     }
-    .container { max-width: 520px; padding-top: 1rem; }
+
+    .container {
+        max-width: 520px;
+        padding-top: 1rem;
+    }
 
     /* Override site-header */
-    .site-header { background: rgba(15,32,23,0.8) !important; border-bottom: 1px solid rgba(201,162,39,0.2) !important; }
-    .site-header .church-name { color: #E8C547 !important; }
+    .site-header {
+        background: rgba(15, 32, 23, 0.8) !important;
+        border-bottom: 1px solid rgba(201, 162, 39, 0.2) !important;
+    }
+
+    .site-header .church-name {
+        color: #E8C547 !important;
+    }
 
     /* Main Contestant Card */
     .contestant-card {
-        background: rgba(24,66,45,0.4);
-        border: 1px solid rgba(201,162,39,0.3);
+        background: rgba(24, 66, 45, 0.4);
+        border: 1px solid rgba(201, 162, 39, 0.3);
         border-radius: 20px;
         backdrop-filter: blur(20px);
         -webkit-backdrop-filter: blur(20px);
         padding: 2rem 1.5rem;
         text-align: center;
         margin-bottom: 2rem;
-        box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
     }
 
     .profile-wrap {
@@ -50,8 +60,9 @@
         border-radius: 50%;
         padding: 6px;
         background: linear-gradient(135deg, #E8C547 0%, #B8860B 100%);
-        box-shadow: 0 8px 25px rgba(201,162,39,0.4);
+        box-shadow: 0 8px 25px rgba(201, 162, 39, 0.4);
     }
+
     .profile-img {
         width: 100%;
         height: 100%;
@@ -60,6 +71,7 @@
         background: #0F2017;
         border: 4px solid #0F2017;
     }
+
     .profile-initial {
         width: 100%;
         height: 100%;
@@ -80,6 +92,7 @@
         color: #FFFFFF;
         margin-bottom: 0.25rem;
     }
+
     .contestant-title {
         font-size: 1rem;
         font-weight: 700;
@@ -94,8 +107,8 @@
         display: inline-flex;
         align-items: center;
         gap: 0.5rem;
-        background: rgba(201,162,39,0.15);
-        border: 1px solid rgba(201,162,39,0.4);
+        background: rgba(201, 162, 39, 0.15);
+        border: 1px solid rgba(201, 162, 39, 0.4);
         padding: 0.5rem 1.25rem;
         border-radius: 100px;
         font-size: 0.95rem;
@@ -105,11 +118,12 @@
 
     /* Vote Form Wrapper */
     .vote-form-wrapper {
-        background: rgba(255,255,255,0.03);
-        border: 1px solid rgba(255,255,255,0.1);
+        background: rgba(255, 255, 255, 0.03);
+        border: 1px solid rgba(255, 255, 255, 0.1);
         border-radius: 20px;
         padding: 2rem 1.5rem;
     }
+
     .vote-form-wrapper h3 {
         color: #FFFFFF;
         margin-bottom: 1.5rem;
@@ -118,27 +132,61 @@
     }
 
     /* Form Overrides for dark theme */
-    label { color: #A8B8AD !important; }
-    input[type="text"], input[type="tel"], input[type="number"], input[type="email"], select, input[type="file"] {
-        background: rgba(0,0,0,0.2) !important;
-        border-color: rgba(255,255,255,0.15) !important;
+    label {
+        color: #A8B8AD !important;
+    }
+
+    input[type="text"],
+    input[type="tel"],
+    input[type="number"],
+    input[type="email"],
+    select,
+    input[type="file"] {
+        background: rgba(0, 0, 0, 0.2) !important;
+        border-color: rgba(255, 255, 255, 0.15) !important;
         color: #FFFFFF !important;
     }
-    input::placeholder { color: rgba(255,255,255,0.3) !important; }
-    input:focus { border-color: #C9A227 !important; box-shadow: 0 0 0 3px rgba(201,162,39,0.2) !important; }
+
+    input::placeholder {
+        color: rgba(255, 255, 255, 0.3) !important;
+    }
+
+    input:focus {
+        border-color: #C9A227 !important;
+        box-shadow: 0 0 0 3px rgba(201, 162, 39, 0.2) !important;
+    }
 
     /* Account Details Banner */
     .account-banner {
-        background: linear-gradient(135deg, rgba(201,162,39,0.1) 0%, rgba(201,162,39,0.05) 100%);
-        border: 1px dashed rgba(201,162,39,0.4);
+        background: linear-gradient(135deg, rgba(201, 162, 39, 0.1) 0%, rgba(201, 162, 39, 0.05) 100%);
+        border: 1px dashed rgba(201, 162, 39, 0.4);
         border-radius: 12px;
         padding: 1.25rem;
         margin-bottom: 1.5rem;
         text-align: center;
     }
-    .account-banner p { margin: 0 0 0.25rem 0; font-size: 0.85rem; color: #A8B8AD; }
-    .account-banner h4 { margin: 0; font-size: 1.5rem; color: #E8C547; font-weight: 800; font-family: 'Poppins', sans-serif; letter-spacing: 1px;}
-    .account-banner .bank-name { font-size: 0.95rem; color: #FFFFFF; font-weight: 600; margin-top: 0.25rem; }
+
+    .account-banner p {
+        margin: 0 0 0.25rem 0;
+        font-size: 0.85rem;
+        color: #A8B8AD;
+    }
+
+    .account-banner h4 {
+        margin: 0;
+        font-size: 1.5rem;
+        color: #E8C547;
+        font-weight: 800;
+        font-family: 'Poppins', sans-serif;
+        letter-spacing: 1px;
+    }
+
+    .account-banner .bank-name {
+        font-size: 0.95rem;
+        color: #FFFFFF;
+        font-weight: 600;
+        margin-top: 0.25rem;
+    }
 
     /* Submit btn */
     .btn-vote {
@@ -154,20 +202,34 @@
         text-transform: uppercase;
         letter-spacing: 1px;
         cursor: pointer;
-        box-shadow: 0 8px 20px rgba(201,162,39,0.3);
+        box-shadow: 0 8px 20px rgba(201, 162, 39, 0.3);
         transition: transform 0.2s, box-shadow 0.2s;
     }
-    .btn-vote:hover { transform: translateY(-2px); box-shadow: 0 12px 25px rgba(201,162,39,0.4); }
-    .btn-vote:disabled { opacity: 0.7; cursor: not-allowed; transform: none; }
+
+    .btn-vote:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 12px 25px rgba(201, 162, 39, 0.4);
+    }
+
+    .btn-vote:disabled {
+        opacity: 0.7;
+        cursor: not-allowed;
+        transform: none;
+    }
 
     /* Method Segmented Buttons */
-    .method-group { display: flex; gap: 0.6rem; margin-bottom: 1.5rem; }
+    .method-group {
+        display: flex;
+        gap: 0.6rem;
+        margin-bottom: 1.5rem;
+    }
+
     .method-btn {
         flex: 1;
         padding: 0.9rem 0.5rem;
-        border: 2px solid rgba(201,162,39,0.3);
+        border: 2px solid rgba(201, 162, 39, 0.3);
         border-radius: 10px;
-        background: rgba(255,255,255,0.05);
+        background: rgba(255, 255, 255, 0.05);
         color: #A8B8AD;
         font-family: 'Poppins', sans-serif;
         font-weight: 700;
@@ -177,14 +239,21 @@
         transition: all 0.2s;
         min-height: 52px;
     }
-    .method-btn:hover { border-color: #C9A227; background: rgba(201,162,39,0.1); }
+
+    .method-btn:hover {
+        border-color: #C9A227;
+        background: rgba(201, 162, 39, 0.1);
+    }
+
     .method-btn.active {
         background: linear-gradient(135deg, #E8C547 0%, #B8860B 100%);
         border-color: transparent;
         color: #14301F;
     }
-    
-    .site-footer { display: none !important; }
+
+    .site-footer {
+        display: none !important;
+    }
 </style>
 {% endblock %}
 
@@ -192,38 +261,55 @@
 <div class="contestant-card">
     <div class="profile-wrap">
         {% if referrer.profile_picture %}
-            <img src="{{ referrer.profile_picture.url }}" class="profile-img" alt="{{ referrer.name }}">
+        <img src="{{ referrer.profile_picture.url }}" class="profile-img" alt="{{ referrer.name }}">
         {% else %}
-            <div class="profile-initial">{{ referrer.name|make_list|first|upper }}</div>
+        <div class="profile-initial">{{ referrer.name|make_list|first|upper }}</div>
         {% endif %}
     </div>
 
     <h1 class="contestant-name">{{ referrer.name }}</h1>
-    
+
     {% if referrer.contestant_title and referrer.contestant_title != 'None' %}
-        <div class="contestant-title">Vying for {{ referrer.contestant_title }}</div>
-        
-        {% if leaderboard_position %}
-        <div class="rank-badge">
-            🏆 Currently #{{ leaderboard_position }} on the Leaderboard
-        </div>
-        {% else %}
-        <div class="rank-badge">
-            🚀 Be the first to vote!
-        </div>
+    <div class="contestant-title">
+        {% if referrer.age_group == 'children' %}
+        {% if referrer.gender == 'M' %}Vying for Master of Harvest
+        {% elif referrer.gender == 'F' %}Vying for Miss Harvest
+        {% else %}Vying for Most Influential Child Fundraiser
         {% endif %}
-    {% else %}
-        <div class="contestant-title">CYON Harvest Champion</div>
+        {% else %}
+        {% if referrer.gender == 'M' %}Vying for Most Influential Youth Fundraiser (Male)
+        {% elif referrer.gender == 'F' %}Vying for Most Influential Youth Fundraiser (Female)
+        {% else %}Vying for {{ referrer.contestant_title }}
+        {% endif %}
     {% endif %}
-    
+    </div>
+
+
+    {% if leaderboard_position %}
+    <div class="rank-badge">
+        🏆 Currently #{{ leaderboard_position }} on the Leaderboard
+    </div>
+    {% else %}
+    <div class="rank-badge">
+        🚀 Be the first to vote!
+    </div>
+    {% endif %}
+    {% else %}
+    <div class="contestant-title">CYON Harvest Champion</div>
+    {% endif %}
+
     <!-- Target Progress Bar -->
     <div style="margin-top: 1.5rem; text-align: left;">
-        <div style="display: flex; justify-content: space-between; font-size: 0.85rem; color: #A8B8AD; margin-bottom: 0.4rem;">
-            <span>Target: ₦{{ target_amount|intcomma }}</span>
+        <div
+            style="display: flex; justify-content: space-between; font-size: 0.85rem; color: #A8B8AD; margin-bottom: 0.4rem;">
+            <span>Raised: ₦{{ total_amount|intcomma }} of ₦{{ target_amount|intcomma }}</span>
             <span style="color: #E8C547; font-weight: 700;">{{ progress_percentage }}%</span>
         </div>
-        <div style="height: 10px; background: rgba(0,0,0,0.3); border-radius: 10px; overflow: hidden; border: 1px solid rgba(255,255,255,0.1);">
-            <div style="height: 100%; width: {{ progress_percentage }}%; background: linear-gradient(90deg, #E8C547 0%, #B8860B 100%); transition: width 1s ease-in-out;"></div>
+        <div
+            style="height: 10px; background: rgba(0,0,0,0.3); border-radius: 10px; overflow: hidden; border: 1px solid rgba(255,255,255,0.1);">
+            <div
+                style="height: 100%; width: {{ progress_percentage }}%; background: linear-gradient(90deg, #E8C547 0%, #B8860B 100%); transition: width 1s ease-in-out;">
+            </div>
         </div>
     </div>
 </div>
@@ -231,20 +317,27 @@
 <!-- Animated Top 3 Leaderboard -->
 {% if top_3 %}
 <div style="margin-bottom: 2rem;">
-    <h3 style="color: #FFFFFF; font-size: 1.1rem; text-align: center; margin-bottom: 1rem; text-transform: uppercase; letter-spacing: 1px;">Top 3 Leaderboard</h3>
+    <h3
+        style="color: #FFFFFF; font-size: 1.1rem; text-align: center; margin-bottom: 1rem; text-transform: uppercase; letter-spacing: 1px;">
+        Top 3 Leaderboard</h3>
     <div style="display: flex; flex-direction: column; gap: 0.8rem;">
         {% for comp in top_3 %}
-        <div style="display: flex; align-items: center; background: rgba(255,255,255,0.05); border: 1px solid {% if comp.rank == 1 %}rgba(201,162,39,0.5){% else %}rgba(255,255,255,0.1){% endif %}; border-radius: 12px; padding: 0.8rem 1rem; animation: slideUp {{ forloop.counter|add:"1" }}00ms ease-out forwards; opacity: 0; transform: translateY(20px);">
-            <div style="width: 30px; font-weight: 800; color: {% if comp.rank == 1 %}#E8C547{% elif comp.rank == 2 %}#C0C0C0{% else %}#CD7F32{% endif %}; font-size: 1.2rem;">#{{ comp.rank }}</div>
-            <div style="width: 40px; height: 40px; border-radius: 50%; background: #0F2017; border: 2px solid #E8C547; display: flex; align-items: center; justify-content: center; overflow: hidden; margin-right: 1rem;">
+        <div
+            style="display: flex; align-items: center; background: rgba(255,255,255,0.05); border: 1px solid {% if comp.rank == 1 %}rgba(201,162,39,0.5){% else %}rgba(255,255,255,0.1){% endif %}; border-radius: 12px; padding: 0.8rem 1rem; animation: slideUp {{ forloop.counter|add:1 }}00ms ease-out forwards; opacity: 0; transform: translateY(20px);">
+            <div
+                style="width: 30px; font-weight: 800; color: {% if comp.rank == 1 %}#E8C547{% elif comp.rank == 2 %}#C0C0C0{% else %}#CD7F32{% endif %}; font-size: 1.2rem;">
+                #{{ comp.rank }}</div>
+            <div
+                style="width: 40px; height: 40px; border-radius: 50%; background: #0F2017; border: 2px solid #E8C547; display: flex; align-items: center; justify-content: center; overflow: hidden; margin-right: 1rem;">
                 {% if comp.picture_url %}
-                    <img src="{{ comp.picture_url }}" style="width: 100%; height: 100%; object-fit: cover;">
+                <img src="{{ comp.picture_url }}" style="width: 100%; height: 100%; object-fit: cover;">
                 {% else %}
-                    <span style="color: #E8C547; font-weight: 700; font-size: 1.2rem;">{{ comp.initial }}</span>
+                <span style="color: #E8C547; font-weight: 700; font-size: 1.2rem;">{{ comp.initial }}</span>
                 {% endif %}
             </div>
             <div style="flex: 1; font-weight: 600; color: #FFFFFF; font-size: 1rem;">{{ comp.name }}</div>
-            <div style="font-weight: 800; color: #E8C547;">{{ comp.votes|intcomma }} Vote{{ comp.votes|pluralize }}</div>
+            <div style="font-weight: 800; color: #E8C547;">{{ comp.votes|intcomma }} Vote{{ comp.votes|pluralize }}
+            </div>
         </div>
         {% endfor %}
     </div>
@@ -252,29 +345,44 @@
 {% endif %}
 
 <style>
-@keyframes slideUp {
-    to { opacity: 1; transform: translateY(0); }
-}
-@keyframes fadeInScale {
-    from { opacity: 0; transform: scale(0.95); }
-    to { opacity: 1; transform: scale(1); }
-}
-.contestant-card {
-    animation: fadeInScale 0.6s ease-out forwards;
-}
-.vote-form-wrapper {
-    animation: slideUp 0.8s ease-out forwards;
-    opacity: 0;
-    transform: translateY(20px);
-}
+    @keyframes slideUp {
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    @keyframes fadeInScale {
+        from {
+            opacity: 0;
+            transform: scale(0.95);
+        }
+
+        to {
+            opacity: 1;
+            transform: scale(1);
+        }
+    }
+
+    .contestant-card {
+        animation: fadeInScale 0.6s ease-out forwards;
+    }
+
+    .vote-form-wrapper {
+        animation: slideUp 0.8s ease-out forwards;
+        opacity: 0;
+        transform: translateY(20px);
+    }
 </style>
 
 <div class="vote-form-wrapper">
     <h3>Cast Your Vote / Support</h3>
-    
+
     <div class="method-group">
-        <button type="button" class="method-btn active" data-route="paystack" onclick="selectRoute(this)">💳 Online Payment</button>
-        <button type="button" class="method-btn" data-route="manual" onclick="selectRoute(this)">🏦 Manual Transfer</button>
+        <button type="button" class="method-btn active" data-route="paystack" onclick="selectRoute(this)">💳 Online
+            Payment</button>
+        <button type="button" class="method-btn" data-route="manual" onclick="selectRoute(this)">🏦 Manual
+            Transfer</button>
     </div>
 
     <!-- Manual Bank Account Details (Hidden by default) -->
@@ -287,7 +395,7 @@
     <div class="alert error" id="error-alert"></div>
 
     <form id="donation-form" onsubmit="submitForm(event)" enctype="multipart/form-data">
-        <input type="hidden" id="idempotency_key" value="{{ idempotency_key }}">
+        {% csrf_token %} <input type="hidden" id="idempotency_key" value="{{ idempotency_key }}">
         <input type="hidden" id="referred_by" value="{{ referrer.id }}">
         <!-- Always Transfer for this flow -->
         <input type="hidden" id="method-hidden" value="Transfer">
@@ -303,27 +411,38 @@
             <input type="tel" id="phone" required placeholder="e.g. 080xxxxxxxx">
         </div>
 
-        <div class="form-group" style="background: rgba(0,0,0,0.2); padding: 1rem; border-radius: 10px; border: 1px solid rgba(255,255,255,0.1);">
+        <div class="form-group"
+            style="background: rgba(0,0,0,0.2); padding: 1rem; border-radius: 10px; border: 1px solid rgba(255,255,255,0.1);">
             <label for="votes" style="color: #E8C547; font-size: 1rem;">Select Number of Votes</label>
             <p style="font-size: 0.8rem; color: #A8B8AD; margin-bottom: 0.8rem;">1 Vote = ₦500</p>
-            <input type="number" id="votes" min="1" step="1" value="1" required placeholder="e.g. 1" oninput="calculateAmount(this)" onblur="validateVotes(this)" style="font-size: 1.5rem; text-align: center; font-weight: 800; color: #E8C547 !important;">
+            <input type="number" id="votes" min="1" step="1" value="1" required placeholder="e.g. 1"
+                oninput="calculateAmount(this)" onblur="validateVotes(this)"
+                style="font-size: 1.5rem; text-align: center; font-weight: 800; color: #E8C547 !important;">
             <div style="margin-top: 1rem; text-align: center; font-size: 1.1rem; color: #FFFFFF;">
                 Total Amount: <span id="calculated_amount_display" style="font-weight: 800; color: #E8C547;">₦500</span>
             </div>
             <input type="hidden" id="amount" value="500">
         </div>
-        
-        <div class="form-group" style="display: flex; align-items: center; gap: 0.8rem; margin-top: 1.5rem; background: rgba(0,0,0,0.1); padding: 0.8rem; border-radius: 8px;">
+
+        <div class="form-group"
+            style="display: flex; align-items: center; gap: 0.8rem; margin-top: 1.5rem; background: rgba(0,0,0,0.1); padding: 0.8rem; border-radius: 8px;">
             <input type="checkbox" id="is_anonymous" style="width: 20px; height: 20px; accent-color: #E8C547;">
-            <label for="is_anonymous" style="margin: 0; color: #FFFFFF !important; font-size: 0.9rem; text-transform: none;">Make my donation anonymous</label>
+            <label for="is_anonymous"
+                style="margin: 0; color: #FFFFFF !important; font-size: 0.9rem; text-transform: none;">Make my donation
+                anonymous</label>
         </div>
-        
+
         <!-- Manual Receipt Upload (Hidden by default) -->
         <div class="form-group" id="receipt-group" style="display: none;">
-            <label for="receipt_image" style="color: #E8C547 !important; font-weight:600;">Upload Transfer Receipt (Mandatory)</label>
+            <label for="receipt_image" style="color: #E8C547 !important; font-weight:600;">Upload Transfer Receipt
+                (Mandatory)</label>
             <div style="position: relative; overflow: hidden; display: inline-block; width: 100%;">
-                <button type="button" class="method-btn" style="width: 100%; border: 2px dashed rgba(201,162,39,0.5); pointer-events: none;" id="upload_btn_display">📄 Choose Receipt File</button>
-                <input type="file" id="receipt_image" accept="image/*" style="font-size: 100px; position: absolute; left: 0; top: 0; opacity: 0; cursor: pointer;" onchange="document.getElementById('upload_btn_display').innerText = '✅ ' + (this.files[0] ? this.files[0].name : 'File Selected')">
+                <button type="button" class="method-btn"
+                    style="width: 100%; border: 2px dashed rgba(201,162,39,0.5); pointer-events: none;"
+                    id="upload_btn_display">📄 Choose Receipt File</button>
+                <input type="file" id="receipt_image" accept="image/*"
+                    style="font-size: 100px; position: absolute; left: 0; top: 0; opacity: 0; cursor: pointer;"
+                    onchange="document.getElementById('upload_btn_display').innerText = '✅ ' + (this.files[0] ? this.files[0].name : 'File Selected')">
             </div>
         </div>
 
@@ -335,184 +454,191 @@
 {% block scripts %}
 <script src="https://js.paystack.co/v1/inline.js"></script>
 <script>
-function selectRoute(btn) {
-    document.querySelectorAll('.method-btn').forEach(b => b.classList.remove('active'));
-    btn.classList.add('active');
-    
-    const route = btn.getAttribute('data-route');
-    document.getElementById('payment-route').value = route;
-    
-    const btnSubmit = document.getElementById('submit-btn');
-    const receiptGroup = document.getElementById('receipt-group');
-    const receiptInput = document.getElementById('receipt_image');
-    const accountBanner = document.getElementById('manual-account-banner');
-    
-    if (route === 'paystack') {
-        receiptGroup.style.display = 'none';
-        receiptInput.removeAttribute('required');
-        accountBanner.style.display = 'none';
-        btnSubmit.innerText = 'Proceed to Online Payment';
-    } else {
-        receiptGroup.style.display = 'block';
-        receiptInput.setAttribute('required', 'required');
-        accountBanner.style.display = 'block';
-        btnSubmit.innerText = 'Upload Receipt & Vote';
-    }
-}
+    function selectRoute(btn) {
+        document.querySelectorAll('.method-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
 
-window.addEventListener('pageshow', function(e) {
-    const btn = document.getElementById('submit-btn');
-    if (btn && btn.disabled) {
-        btn.disabled = false;
+        const route = btn.getAttribute('data-route');
+        document.getElementById('payment-route').value = route;
+
+        const btnSubmit = document.getElementById('submit-btn');
+        const receiptGroup = document.getElementById('receipt-group');
+        const receiptInput = document.getElementById('receipt_image');
+        const accountBanner = document.getElementById('manual-account-banner');
+
+        if (route === 'paystack') {
+            receiptGroup.style.display = 'none';
+            receiptInput.removeAttribute('required');
+            accountBanner.style.display = 'none';
+            btnSubmit.innerText = 'Proceed to Online Payment';
+        } else {
+            receiptGroup.style.display = 'block';
+            receiptInput.setAttribute('required', 'required');
+            accountBanner.style.display = 'block';
+            btnSubmit.innerText = 'Upload Receipt & Vote';
+        }
+    }
+
+    window.addEventListener('pageshow', function (e) {
+        const btn = document.getElementById('submit-btn');
+        if (btn && btn.disabled) {
+            btn.disabled = false;
+            const route = document.getElementById('payment-route').value;
+            btn.innerText = route === 'paystack' ? 'Proceed to Online Payment' : 'Upload Receipt & Vote';
+        }
+    });
+
+    function calculateAmount(input) {
+        let votes = parseInt(input.value);
+        if (isNaN(votes)) return; // Allow empty while typing
+        let amount = votes * 500;
+        document.getElementById('amount').value = amount;
+        document.getElementById('calculated_amount_display').innerText = '₦' + amount.toLocaleString('en-NG');
+    }
+
+    function validateVotes(input) {
+        let votes = parseInt(input.value);
+        if (isNaN(votes) || votes < 1) {
+            input.value = 1;
+            calculateAmount(input);
+        }
+    }
+
+    async function submitForm(e) {
+        e.preventDefault();
+
+        // Grab the token from the hidden input Django just generated
+        const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+
+        const btn = document.getElementById('submit-btn');
+        const err = document.getElementById('error-alert');
         const route = document.getElementById('payment-route').value;
-        btn.innerText = route === 'paystack' ? 'Proceed to Online Payment' : 'Upload Receipt & Vote';
-    }
-});
 
-function calculateAmount(input) {
-    let votes = parseInt(input.value);
-    if (isNaN(votes)) return; // Allow empty while typing
-    let amount = votes * 500;
-    document.getElementById('amount').value = amount;
-    document.getElementById('calculated_amount_display').innerText = '₦' + amount.toLocaleString('en-NG');
-}
+        setButtonLoading(btn, route === 'paystack' ? 'Initializing Secure Checkout...' : 'Uploading Receipt...');
+        err.style.display = 'none';
 
-function validateVotes(input) {
-    let votes = parseInt(input.value);
-    if (isNaN(votes) || votes < 1) {
-        input.value = 1;
-        calculateAmount(input);
-    }
-}
+        const name = document.getElementById('name').value;
+        const phone = document.getElementById('phone').value;
+        const amountStr = document.getElementById('amount').value;
+        const amount = parseInt(amountStr, 10);
+        const votesStr = document.getElementById('votes').value;
+        const votes = parseInt(votesStr, 10);
+        const referred_by = document.getElementById('referred_by').value;
+        const is_anonymous = document.getElementById('is_anonymous').checked ? 'true' : 'false';
 
-async function submitForm(e) {
-    e.preventDefault();
-    const btn = document.getElementById('submit-btn');
-    const err = document.getElementById('error-alert');
-    const route = document.getElementById('payment-route').value;
-    
-    setButtonLoading(btn, route === 'paystack' ? 'Initializing Secure Checkout...' : 'Uploading Receipt...');
-    err.style.display = 'none';
-
-    const name = document.getElementById('name').value;
-    const phone = document.getElementById('phone').value;
-    const amountStr = document.getElementById('amount').value;
-    const amount = parseInt(amountStr, 10);
-    const votesStr = document.getElementById('votes').value;
-    const votes = parseInt(votesStr, 10);
-    const referred_by = document.getElementById('referred_by').value;
-    const is_anonymous = document.getElementById('is_anonymous').checked ? 'true' : 'false';
-    
-    if (isNaN(votes) || votes < 1) {
-        err.innerText = "Please enter a valid number of votes.";
-        err.style.display = 'block';
-        resetButtonLoading(btn);
-        return;
-    }
-    
-    if (route === 'paystack') {
-        // --- PAYSTACK FLOW ---
-        const email = "supporter@cyonfelele.com";
-        const idempotency_key = document.getElementById('idempotency_key').value;
-
-        const handler = PaystackPop.setup({
-            key: '{{ paystack_public_key }}', 
-            email: email,
-            amount: amount * 100, // in kobo
-            currency: 'NGN',
-            ref: idempotency_key,
-            metadata: {
-                custom_fields: [
-                    { display_name: "Contributor Name", variable_name: "contributor_name", value: name },
-                    { display_name: "Phone Number", variable_name: "phone_number", value: phone }
-                ]
-            },
-            callback: function(response){
-                setButtonLoading(btn, 'Verifying Payment...');
-                fetch('/api/verify-paystack/', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRFToken': '{{ csrf_token }}'
-                    },
-                    body: JSON.stringify({
-                        reference: response.reference,
-                        name: name,
-                        phone: phone,
-                        referred_by: referred_by,
-                        is_anonymous: is_anonymous
-                    })
-                })
-                .then(async res => {
-                    if(!res.ok) {
-                        let errStr = "Payment verification failed";
-                        try {
-                            const errData = await res.json();
-                            errStr = errData.error || errStr;
-                        } catch(e) {}
-                        throw new Error(errStr);
-                    }
-                    return res.json();
-                })
-                .then(data => {
-                    window.location.href = '/receipt/' + data.id + '/';
-                })
-                .catch(ex => {
-                    document.getElementById('idempotency_key').value = crypto.randomUUID();
-                    err.innerText = "Error: " + ex.message;
-                    err.style.display = 'block';
-                    resetButtonLoading(btn);
-                });
-            },
-            onClose: function(){
-                document.getElementById('idempotency_key').value = crypto.randomUUID();
-                err.innerText = "Transaction was not completed, window closed.";
-                err.style.display = 'block';
-                resetButtonLoading(btn);
-            }
-        });
-
-        handler.openIframe();
-    } else {
-        // --- MANUAL FLOW ---
-        const receipt = document.getElementById('receipt_image').files[0];
-        
-        if (!receipt) {
-            err.innerText = "Please upload your transfer receipt before submitting.";
+        if (isNaN(votes) || votes < 1) {
+            err.innerText = "Please enter a valid number of votes.";
             err.style.display = 'block';
             resetButtonLoading(btn);
             return;
         }
 
-        const formData = new FormData();
-        formData.append('name', name);
-        formData.append('phone', phone);
-        formData.append('amount', amount);
-        formData.append('method', 'Transfer');
-        formData.append('is_anonymous', is_anonymous);
-        formData.append('source', 'guest_form');
-        formData.append('idempotency_key', document.getElementById('idempotency_key').value);
-        if (referred_by) formData.append('referred_by', referred_by);
+        if (route === 'paystack') {
+            // --- PAYSTACK FLOW ---
+            const email = "supporter@cyonfelele.com";
+            const idempotency_key = document.getElementById('idempotency_key').value;
 
-        formData.append('receipt_image', receipt);
-
-        try {
-            const res = await fetch('/api/contribute/', {
-                method: 'POST',
-                body: formData
+            const handler = PaystackPop.setup({
+                key: '{{ paystack_public_key }}',
+                email: email,
+                amount: amount * 100, // in kobo
+                currency: 'NGN',
+                ref: idempotency_key,
+                metadata: {
+                    custom_fields: [
+                        { display_name: "Contributor Name", variable_name: "contributor_name", value: name },
+                        { display_name: "Phone Number", variable_name: "phone_number", value: phone }
+                    ]
+                },
+                callback: function (response) {
+                    setButtonLoading(btn, 'Verifying Payment...');
+                    fetch('/api/verify-paystack/', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRFToken': csrftoken
+                        },
+                        body: JSON.stringify({
+                            reference: response.reference,
+                            name: name,
+                            phone: phone,
+                            referred_by: referred_by,
+                            is_anonymous: is_anonymous
+                        })
+                    })
+                        .then(async res => {
+                            if (!res.ok) {
+                                let errStr = "Payment verification failed";
+                                try {
+                                    const errData = await res.json();
+                                    errStr = errData.error || errStr;
+                                } catch (e) { }
+                                throw new Error(errStr);
+                            }
+                            return res.json();
+                        })
+                        .then(data => {
+                            window.location.href = '/receipt/' + data.id + '/';
+                        })
+                        .catch(ex => {
+                            document.getElementById('idempotency_key').value = crypto.randomUUID();
+                            err.innerText = "Error: " + ex.message;
+                            err.style.display = 'block';
+                            resetButtonLoading(btn);
+                        });
+                },
+                onClose: function () {
+                    document.getElementById('idempotency_key').value = crypto.randomUUID();
+                    err.innerText = "Transaction was not completed, window closed.";
+                    err.style.display = 'block';
+                    resetButtonLoading(btn);
+                }
             });
-            if (!res.ok) {
-                const errData = await res.json();
-                throw new Error(JSON.stringify(errData));
+
+            handler.openIframe();
+        } else {
+            // --- MANUAL FLOW ---
+            const receipt = document.getElementById('receipt_image').files[0];
+
+            if (!receipt) {
+                err.innerText = "Please upload your transfer receipt before submitting.";
+                err.style.display = 'block';
+                resetButtonLoading(btn);
+                return;
             }
-            const data = await res.json();
-            window.location.href = '/receipt/' + data.id + '/';
-        } catch(ex) {
-            err.innerText = ex.message;
-            err.style.display = 'block';
-            resetButtonLoading(btn);
+
+            const formData = new FormData();
+            formData.append('name', name);
+            formData.append('phone', phone);
+            formData.append('amount', amount);
+            formData.append('method', 'Transfer');
+            formData.append('is_anonymous', is_anonymous);
+            formData.append('source', 'guest_form');
+            formData.append('idempotency_key', document.getElementById('idempotency_key').value);
+            if (referred_by) formData.append('referred_by', referred_by);
+
+            formData.append('receipt_image', receipt);
+
+            try {
+                const res = await fetch('/api/contribute/', {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': csrftoken
+                    },
+                    body: formData
+                });
+                if (!res.ok) {
+                    const errData = await res.json();
+                    throw new Error(JSON.stringify(errData));
+                }
+                const data = await res.json();
+                window.location.href = '/receipt/' + data.id + '/';
+            } catch (ex) {
+                err.innerText = ex.message;
+                err.style.display = 'block';
+                resetButtonLoading(btn);
+            }
         }
     }
-}
 </script>
 {% endblock %}

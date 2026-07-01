@@ -2,7 +2,7 @@
 {% load static %}
 
 {% block title %}
-    {% if referrer %}Support via {{ referrer.name }}{% else %}Log Your Contribution{% endif %} | CYON Harvest 2026
+{% if referrer %}Support via {{ referrer.name }}{% else %}Log Your Contribution{% endif %} | CYON Harvest 2026
 {% endblock %}
 
 {% block head %}
@@ -13,45 +13,71 @@
         background-image: none !important;
         color: #1B3B2B !important;
     }
-    .container { max-width: 520px; }
+
+    .container {
+        max-width: 520px;
+    }
 
     /* Override site-header for light bg */
-    .site-header .church-name { color: #245C3F !important; }
+    .site-header .church-name {
+        color: #245C3F !important;
+    }
 
     /* Override glass-card for light bg */
     .glass-card {
         background: #FFFFFF !important;
-        border: 1.5px solid rgba(201,162,39,0.3) !important;
-        box-shadow: 0 8px 40px rgba(20,48,31,0.1), 0 2px 8px rgba(0,0,0,0.05) !important;
+        border: 1.5px solid rgba(201, 162, 39, 0.3) !important;
+        box-shadow: 0 8px 40px rgba(20, 48, 31, 0.1), 0 2px 8px rgba(0, 0, 0, 0.05) !important;
     }
 
     /* Dark text on light bg */
-    .glass-card h1, .glass-card h2, .glass-card h3 { color: #1B3B2B !important; }
-    label { color: #245C3F !important; }
-    p.subtitle { color: #4B6B57 !important; }
+    .glass-card h1,
+    .glass-card h2,
+    .glass-card h3 {
+        color: #1B3B2B !important;
+    }
+
+    label {
+        color: #245C3F !important;
+    }
+
+    p.subtitle {
+        color: #4B6B57 !important;
+    }
 
     input[type="text"],
     input[type="tel"],
     input[type="number"],
     input[type="password"],
     input[type="email"],
-    select, textarea {
+    select,
+    textarea {
         background: #FAF6EC !important;
-        border-color: rgba(201,162,39,0.3) !important;
+        border-color: rgba(201, 162, 39, 0.3) !important;
         color: #1B3B2B !important;
     }
-    input::placeholder { color: rgba(27,59,43,0.35) !important; }
-    input:focus, select:focus, input[type="email"]:focus {
+
+    input::placeholder {
+        color: rgba(27, 59, 43, 0.35) !important;
+    }
+
+    input:focus,
+    select:focus,
+    input[type="email"]:focus {
         border-color: #C9A227 !important;
-        box-shadow: 0 0 0 3px rgba(201,162,39,0.15) !important;
+        box-shadow: 0 0 0 3px rgba(201, 162, 39, 0.15) !important;
     }
 
     /* ── Method Segmented Buttons ───────────────────────────────── */
-    .method-group { display: flex; gap: 0.6rem; }
+    .method-group {
+        display: flex;
+        gap: 0.6rem;
+    }
+
     .method-btn {
         flex: 1;
         padding: 0.9rem 0.5rem;
-        border: 2px solid rgba(201,162,39,0.3);
+        border: 2px solid rgba(201, 162, 39, 0.3);
         border-radius: 10px;
         background: #FAF6EC;
         color: #4B6B57;
@@ -63,13 +89,21 @@
         transition: all 0.2s;
         min-height: 52px;
     }
-    .method-btn:hover { border-color: #C9A227; background: rgba(201,162,39,0.08); }
+
+    .method-btn:hover {
+        border-color: #C9A227;
+        background: rgba(201, 162, 39, 0.08);
+    }
+
     .method-btn.active {
         background: var(--harvest-gold-gradient);
         border-color: transparent;
         color: #14301F;
     }
-    #method-hidden { display: none; }
+
+    #method-hidden {
+        display: none;
+    }
 
     /* ── Anonymous toggle ────────────────────────────────────────── */
     .toggle-row {
@@ -78,32 +112,56 @@
         gap: 0.75rem;
         padding: 0.75rem 1rem;
         background: #FAF6EC;
-        border: 1px solid rgba(201,162,39,0.2);
+        border: 1px solid rgba(201, 162, 39, 0.2);
         border-radius: 10px;
         cursor: pointer;
     }
-    .toggle-row label { color: #1B3B2B !important; margin: 0; cursor: pointer; font-size: 0.9rem; text-transform: none; letter-spacing: 0; }
-    .toggle-row input[type="checkbox"] { width: 18px; height: 18px; accent-color: #C9A227; cursor: pointer; }
+
+    .toggle-row label {
+        color: #1B3B2B !important;
+        margin: 0;
+        cursor: pointer;
+        font-size: 0.9rem;
+        text-transform: none;
+        letter-spacing: 0;
+    }
+
+    .toggle-row input[type="checkbox"] {
+        width: 18px;
+        height: 18px;
+        accent-color: #C9A227;
+        cursor: pointer;
+    }
 
     /* ── Autocomplete dropdown ───────────────────────────────────── */
     #autocomplete-results {
         background: #FFFFFF !important;
-        border: 1.5px solid rgba(201,162,39,0.4) !important;
-        box-shadow: 0 8px 24px rgba(20,48,31,0.12) !important;
+        border: 1.5px solid rgba(201, 162, 39, 0.4) !important;
+        box-shadow: 0 8px 24px rgba(20, 48, 31, 0.12) !important;
     }
-    .suggestion-item { color: #1B3B2B; border-bottom: 1px solid rgba(201,162,39,0.1); }
-    .suggestion-item:hover { background: rgba(201,162,39,0.1) !important; }
+
+    .suggestion-item {
+        color: #1B3B2B;
+        border-bottom: 1px solid rgba(201, 162, 39, 0.1);
+    }
+
+    .suggestion-item:hover {
+        background: rgba(201, 162, 39, 0.1) !important;
+    }
 
     /* ── Alert on light bg ────────────────────────────────────────── */
-    .alert.error { background: rgba(179,38,30,0.08) !important; color: #8B1A1A !important; }
+    .alert.error {
+        background: rgba(179, 38, 30, 0.08) !important;
+        color: #8B1A1A !important;
+    }
 
     /* ── Referrer chip ───────────────────────────────────────────── */
     .referrer-chip {
         display: inline-flex;
         align-items: center;
         gap: 0.4rem;
-        background: rgba(46,125,79,0.1);
-        border: 1px solid rgba(46,125,79,0.3);
+        background: rgba(46, 125, 79, 0.1);
+        border: 1px solid rgba(46, 125, 79, 0.3);
         color: #245C3F;
         border-radius: 100px;
         padding: 0.3rem 0.8rem;
@@ -113,23 +171,34 @@
     }
 
     /* ── Footer link overrides ────────────────────────────────────── */
-    .site-footer { background: #F4EFE2 !important; border-color: rgba(201,162,39,0.2) !important; }
-    .site-footer p { color: #4B6B57 !important; }
-    .site-footer a { color: #245C3F !important; }
+    .site-footer {
+        background: #F4EFE2 !important;
+        border-color: rgba(201, 162, 39, 0.2) !important;
+    }
+
+    .site-footer p {
+        color: #4B6B57 !important;
+    }
+
+    .site-footer a {
+        color: #245C3F !important;
+    }
 </style>
 {% endblock %}
 
 {% block content %}
 <div class="glass-card">
     <div style="text-align: center; margin-bottom: 1.5rem;">
-        <a href="{% url 'contributions:landing' %}" class="logo-link" style="display:inline-flex; align-items:center; transition:transform 0.25s; text-decoration:none; outline:none; border:none;">
-            <img src="{% static 'images/brand/cyon-logo.png' %}" alt="CYON" style="height: 56px; margin-bottom: 0.75rem;">
+        <a href="{% url 'contributions:landing' %}" class="logo-link"
+            style="display:inline-flex; align-items:center; transition:transform 0.25s; text-decoration:none; outline:none; border:none;">
+            <img src="{% static 'images/brand/cyon-logo.png' %}" alt="CYON"
+                style="height: 56px; margin-bottom: 0.75rem;">
         </a>
         <h1>CYON Harvest 2026</h1>
         {% if referrer %}
-            <div class="referrer-chip">🔗 Supporting via <strong>{{ referrer.name }}</strong></div>
+        <div class="referrer-chip">🔗 Supporting via <strong>{{ referrer.name }}</strong></div>
         {% else %}
-            <p class="subtitle">Log your contribution and appear on the Live Board!</p>
+        <p class="subtitle">Log your contribution and appear on the Live Board!</p>
         {% endif %}
     </div>
 
@@ -143,7 +212,9 @@
         <div class="form-group" style="position: relative;">
             <label for="name">Your Name</label>
             <input type="text" id="name" required placeholder="e.g. Adaeze Okonkwo" autocomplete="off">
-            <div id="autocomplete-results" style="display: none; position: absolute; top: 100%; left: 0; right: 0; border-radius: 10px; z-index: 10; max-height: 200px; overflow-y: auto;"></div>
+            <div id="autocomplete-results"
+                style="display: none; position: absolute; top: 100%; left: 0; right: 0; border-radius: 10px; z-index: 10; max-height: 200px; overflow-y: auto;">
+            </div>
         </div>
 
         <div class="form-group">
@@ -158,22 +229,27 @@
 
         <div class="form-group">
             <label for="display_amount">Amount (Naira)</label>
-            <input type="text" id="display_amount" required placeholder="e.g. 5,000" inputmode="numeric" oninput="formatAmount(this)">
+            <input type="text" id="display_amount" required placeholder="e.g. 5,000" inputmode="numeric"
+                oninput="formatAmount(this)">
             <input type="hidden" id="amount">
         </div>
 
         <div class="form-group">
             <label>Payment Method</label>
             <div class="method-group" id="method-group">
-                <button type="button" class="method-btn active" data-method="Cash" onclick="selectMethod(this)">💵 Cash</button>
-                <button type="button" class="method-btn" data-method="Transfer" onclick="selectMethod(this)">🏦 Transfer</button>
-                <button type="button" class="method-btn" data-method="Pledge" onclick="selectMethod(this)">🤝 Pledge</button>
+                <button type="button" class="method-btn active" data-method="Cash" onclick="selectMethod(this)">💵
+                    Cash</button>
+                <button type="button" class="method-btn" data-method="Transfer" onclick="selectMethod(this)">🏦
+                    Transfer</button>
+                <button type="button" class="method-btn" data-method="Pledge" onclick="selectMethod(this)">🤝
+                    Pledge</button>
             </div>
         </div>
 
         <div class="form-group" id="receipt-group">
             <label for="receipt_image">Upload Payment Receipt (Mandatory)</label>
-            <input type="file" id="receipt_image" name="receipt_image" accept="image/*" class="form-control" required style="padding: 0.5rem; background: #FAF6EC;">
+            <input type="file" id="receipt_image" name="receipt_image" accept="image/*" class="form-control" required
+                style="padding: 0.5rem; background: #FAF6EC;">
         </div>
 
         <div class="form-group">
@@ -191,57 +267,60 @@
 {% block scripts %}
 <script src="{% static 'js/autocomplete.js' %}"></script>
 <script>
-function selectMethod(btn) {
-    document.querySelectorAll('.method-btn').forEach(b => b.classList.remove('active'));
-    btn.classList.add('active');
-    document.getElementById('method-hidden').value = btn.getAttribute('data-method');
-}
-
-function formatAmount(input) {
-    let value = input.value.replace(/\D/g, '');
-    document.getElementById('amount').value = value;
-    input.value = value ? parseInt(value, 10).toLocaleString('en-NG') : '';
-}
-
-async function submitForm(e) {
-    e.preventDefault();
-    const btn = document.getElementById('submit-btn');
-    const err = document.getElementById('error-alert');
-    setButtonLoading(btn, 'Recording...');
-    err.style.display = 'none';
-
-    const formData = new FormData();
-    formData.append('name', document.getElementById('name').value);
-    formData.append('phone', document.getElementById('phone').value);
-    formData.append('email', document.getElementById('email').value);
-    formData.append('amount', document.getElementById('amount').value);
-    formData.append('method', document.getElementById('method-hidden').value);
-    formData.append('is_anonymous', document.getElementById('is_anonymous').checked);
-    formData.append('source', 'guest_form');
-    formData.append('idempotency_key', document.getElementById('idempotency_key').value);
-    
-    const referrer = document.getElementById('referred_by').value;
-    if (referrer) formData.append('referred_by', referrer);
-
-    const receipt = document.getElementById('receipt_image').files[0];
-    if (receipt) formData.append('receipt_image', receipt);
-
-    try {
-        const res = await fetch('/api/contribute/', {
-            method: 'POST',
-            body: formData
-        });
-        if (!res.ok) {
-            const errData = await res.json();
-            throw new Error(JSON.stringify(errData));
-        }
-        const data = await res.json();
-        window.location.href = '/receipt/' + data.id + '/';
-    } catch(ex) {
-        err.innerText = ex.message;
-        err.style.display = 'block';
-        resetButtonLoading(btn);
+    function selectMethod(btn) {
+        document.querySelectorAll('.method-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        document.getElementById('method-hidden').value = btn.getAttribute('data-method');
     }
-}
+
+    function formatAmount(input) {
+        let value = input.value.replace(/\D/g, '');
+        document.getElementById('amount').value = value;
+        input.value = value ? parseInt(value, 10).toLocaleString('en-NG') : '';
+    }
+
+    async function submitForm(e) {
+        e.preventDefault();
+        const btn = document.getElementById('submit-btn');
+        const err = document.getElementById('error-alert');
+        setButtonLoading(btn, 'Recording...');
+        err.style.display = 'none';
+
+        const formData = new FormData();
+        formData.append('name', document.getElementById('name').value);
+        formData.append('phone', document.getElementById('phone').value);
+        formData.append('email', document.getElementById('email').value);
+        formData.append('amount', document.getElementById('amount').value);
+        formData.append('method', document.getElementById('method-hidden').value);
+        formData.append('is_anonymous', document.getElementById('is_anonymous').checked);
+        formData.append('source', 'guest_form');
+        formData.append('idempotency_key', document.getElementById('idempotency_key').value);
+
+        const referrer = document.getElementById('referred_by').value;
+        if (referrer) formData.append('referred_by', referrer);
+
+        const receipt = document.getElementById('receipt_image').files[0];
+        if (receipt) formData.append('receipt_image', receipt);
+
+        try {
+            const res = await fetch('/api/contribute/', {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': '{{ csrf_token }}'
+                },
+                body: formData
+            });
+            if (!res.ok) {
+                const errData = await res.json();
+                throw new Error(JSON.stringify(errData));
+            }
+            const data = await res.json();
+            window.location.href = '/receipt/' + data.id + '/';
+        } catch (ex) {
+            err.innerText = ex.message;
+            err.style.display = 'block';
+            resetButtonLoading(btn);
+        }
+    }
 </script>
 {% endblock %}
