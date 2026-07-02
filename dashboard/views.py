@@ -127,6 +127,7 @@ def member_hub_view(request):
         'total_fulfilled': total_fulfilled,
         'outstanding_balance': outstanding_balance,
         'levy_balance': levy_balance,
+        'paystack_public_key': settings.PAYSTACK_PUBLIC_KEY,
     }
     return render(request, 'dashboard/member_hub.html', context)
 
@@ -156,7 +157,7 @@ def redeem_pledge_view(request):
                 method=method,
                 source='member_hub',
                 status='pending',
-                referred_by=request.user,
+                referred_by=None,
                 inflow_category=category,
                 pledge=None,
                 receipt_image=receipt_image
@@ -172,7 +173,7 @@ def redeem_pledge_view(request):
                 method=method,
                 source='member_hub',
                 status='pending',
-                referred_by=request.user,
+                referred_by=None,
                 inflow_category=pledge.inflow_category,
                 pledge=pledge,
                 receipt_image=receipt_image
@@ -189,6 +190,100 @@ def redeem_pledge_view(request):
             return redirect(redirect_url)
 
     return redirect('dashboard:my_pledges')
+
+
+@login_required(login_url='/accounts/login/')
+def redeem_pledge_paystack_view(request):
+    """
+    Called by frontend after Paystack popup succeeds for a pledge redemption.
+    Verifies the payment with Paystack, records it as a Contribution linked
+    to the pledge (so it lands in Pledge Redemptions), and updates
+    pledge.amount_fulfilled. Total Raised is NOT increased — it was already
+    counted when the pledge was committed.
+    """
+    if request.method != 'POST':
+        return JsonResponse({'error': 'Method not allowed'}, status=405)
+
+    import requests as http_requests
+    from contributions.models import Pledge, Contribution, InflowCategory
+    import uuid as uuid_module
+
+    reference   = request.POST.get('reference')
+    pledge_id   = request.POST.get('pledge_id')
+    is_levy     = pledge_id == 'levy'
+
+    if not reference:
+        return JsonResponse({'error': 'Missing Paystack reference'}, status=400)
+
+    # --- Verify with Paystack ---
+    url = f"https://api.paystack.co/transaction/verify/{reference}"
+    headers = {"Authorization": f"Bearer {settings.PAYSTACK_SECRET_KEY}"}
+    try:
+        resp = http_requests.get(url, headers=headers, timeout=10)
+        resp_data = resp.json()
+    except Exception as e:
+        return JsonResponse({'error': f'Paystack verify failed: {str(e)}'}, status=502)
+
+    if not resp_data.get('status') or resp_data['data']['status'] != 'success':
+        return JsonResponse({'error': 'Payment not confirmed by Paystack'}, status=400)
+
+    ps_data  = resp_data['data']
+    amount   = (ps_data['amount'] - ps_data.get('fees', 0)) / 100.0
+
+    # --- Pledge Redemptions inflow category ---
+    redemption_category = InflowCategory.objects.filter(
+        name__icontains='Pledge Redemption'
+    ).first()
+
+    if is_levy:
+        levy_category = InflowCategory.objects.filter(
+            name__icontains='levy'
+        ).first() or InflowCategory.objects.filter(is_active=True).first()
+
+        contribution = Contribution.objects.create(
+            idempotency_key=reference,
+            name=request.user.name,
+            phone=request.user.identifier,
+            amount=amount,
+            method='Online',
+            source='member_hub',
+            status='approved',
+            referred_by=None,          # not a campaign contribution
+            inflow_category=redemption_category or levy_category,
+            pledge=None,
+        )
+    else:
+        pledge = get_object_or_404(Pledge, pk=pledge_id, member=request.user)
+
+        # Idempotency — don't double-record if browser retries
+        if Contribution.objects.filter(idempotency_key=reference).exists():
+            return JsonResponse({'success': True, 'message': 'Already recorded'})
+
+        contribution = Contribution.objects.create(
+            idempotency_key=reference,
+            name=request.user.name,
+            phone=request.user.identifier,
+            amount=amount,
+            method='Online',
+            source='member_hub',
+            status='approved',
+            referred_by=None,          # not a campaign contribution
+            inflow_category=redemption_category or pledge.inflow_category,
+            pledge=pledge,
+        )
+
+        # Update fulfilment — Total Raised stays unchanged (pledge was
+        # already counted at commitment); we're just tracking what's been paid
+        pledge.amount_fulfilled = (pledge.amount_fulfilled or 0) + amount
+        if pledge.amount_fulfilled >= pledge.amount_pledged:
+            pledge.status = 'fulfilled'
+        pledge.save(update_fields=['amount_fulfilled', 'status'])
+
+    return JsonResponse({
+        'success': True,
+        'message': f'₦{amount:,.0f} pledge payment recorded successfully.'
+    })
+
 
 def generate_member_flyer_image(request, user, force=False):
     import os
@@ -739,6 +834,7 @@ def my_pledges_view(request):
     context = {
         'my_pledges': my_pledges,
         'categories': categories,
+        'paystack_public_key': settings.PAYSTACK_PUBLIC_KEY,
     }
     return render(request, 'dashboard/my_pledges.html', context)
 
@@ -1274,8 +1370,8 @@ class RequeryPaystackTransactionView(APIView):
     def post(self, request, pk, *args, **kwargs):
         contribution = get_object_or_404(Contribution, pk=pk)
 
-        if not contribution.method or contribution.method.lower() != 'paystack':
-            return Response({'error': "Transaction method is not 'Paystack'"}, status=status.HTTP_400_BAD_REQUEST)
+        if not contribution.method or contribution.method.lower() not in ('paystack', 'online'):
+            return Response({'error': "Transaction is not an online payment"}, status=status.HTTP_400_BAD_REQUEST)
 
         if not contribution.idempotency_key:
             return Response({'error': "Transaction does not have an idempotency key"}, status=status.HTTP_400_BAD_REQUEST)
@@ -1599,7 +1695,7 @@ from accounts.models import WebPushSubscription
 from pywebpush import webpush, WebPushException
 import json
 
-@csrf_exempt
+@login_required(login_url='/accounts/login/')
 def save_push_subscription_view(request):
     if request.method == 'POST':
         try:
@@ -1651,10 +1747,13 @@ def send_web_push(subscription, payload_data):
 
         webpush(
             subscription_info=subscription_info,
-            data=json.dumps(payload_data),
+            data=json.dumps({
+                **payload_data,
+                'data': {'url': payload_data.get('url', '/')}  # add this
+            }),
             vapid_private_key=vapid_private_key,
             vapid_claims=vapid_claims,
-            ttl=86400  # 1 day
+            ttl=86400
         )
         return True
     except WebPushException as ex:

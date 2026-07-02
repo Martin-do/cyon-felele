@@ -438,6 +438,30 @@ class PaystackWebhookView(APIView):
                         )
                 except Exception:
                     pass
+                # Notify the referrer their campaign got a new vote
+            try:
+                from dashboard.views import send_approval_push_notification
+                send_approval_push_notification(contribution)
+            except Exception as e:
+                print(f"Failed to send approval push from webhook: {e}")
+            
+            # Notify admins of the new approved online payment
+            try:
+                from accounts.models import Member, WebPushSubscription
+                from dashboard.views import send_web_push
+                from django.db.models import Q
+                admins = Member.objects.filter(
+                    Q(role__in=['admin', 'approver']) | Q(is_superuser=True)
+                )
+                subs = WebPushSubscription.objects.filter(user__in=admins)
+                for sub in subs:
+                    send_web_push(sub, {
+                        'title': 'New Online Payment 💳',
+                        'body': f"{contribution.name} paid ₦{contribution.amount:,.0f} via Paystack.",
+                        'url': '/dashboard/'
+                    })
+            except Exception as e:
+                print(f"Failed to notify admins from webhook: {e}")
 
             return Response({'status': 'success'})
 

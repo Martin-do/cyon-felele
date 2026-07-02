@@ -504,20 +504,20 @@
 <!-- Redeem Pledge Modal -->
 <div id="redeemModal" style="display: none; position: fixed; inset: 0; z-index: 1000; align-items: center; justify-content: center; padding: 1rem;">
     <div style="position: absolute; inset: 0; background: rgba(20,48,31,0.6); backdrop-filter: blur(4px);" onclick="closeRedeemModal()"></div>
-    <div class="glass-card" style="position: relative; z-index: 10; width: 100%; max-w: 450px; width: 450px; padding: 2rem; border-radius: 16px; text-align: left; background: #FAF6EC !important; border: 1.5px solid rgba(201,162,39,0.4) !important;">
+    <div class="glass-card" style="position: relative; z-index: 10; width: 100%; max-width: 450px; padding: 2rem; border-radius: 16px; text-align: left; background: #FAF6EC !important; border: 1.5px solid rgba(201,162,39,0.4) !important;">
         <h3 style="font-size: 1.25rem; font-weight: 800; color: #1B3B2B; margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.5rem; background: none !important; -webkit-text-fill-color: initial !important;">🪙 Redeem Pledge</h3>
         <p style="font-size: 0.85rem; color: #4B6B57; margin-bottom: 1.25rem;" id="redeemSubtitle"></p>
-        
+
         <form method="POST" action="{% url 'dashboard:redeem_pledge' %}" enctype="multipart/form-data" style="display: flex; flex-direction: column; gap: 1rem;" id="redeemForm" onsubmit="setButtonLoading(this.querySelector('button[type=submit]'))">
             {% csrf_token %}
             <input type="hidden" name="pledge_id" id="redeem_pledge_id">
-            
+
             <div>
                 <label style="display: block; font-size: 0.78rem; font-weight: 700; color: #1B3B2B; text-transform: uppercase; margin-bottom: 0.4rem;">Amount to Pay Now (₦)</label>
                 <input type="number" name="amount" id="redeem_amount" required step="0.01" style="width: 100%; padding: 0.7rem 0.9rem; border-radius: 8px; border: 1.5px solid rgba(201,162,39,0.3); background: #FFF; font-family: 'Poppins', sans-serif; font-weight: 700; color: #1B3B2B;" class="form-control">
                 <p style="font-size: 0.7rem; color: #6B7280; margin-top: 0.3rem;">You can pay partially or in full.</p>
             </div>
-            
+
             <div>
                 <label style="display: block; font-size: 0.78rem; font-weight: 700; color: #1B3B2B; text-transform: uppercase; margin-bottom: 0.4rem;">Payment Method</label>
                 <div style="display: flex; gap: 0.75rem;">
@@ -532,15 +532,22 @@
                 </div>
             </div>
 
-            <!-- Receipt Upload Field (shown only for Transfer) -->
+            <!-- Receipt Upload (Transfer only) -->
             <div id="receipt-upload-field">
                 <label style="display: block; font-size: 0.78rem; font-weight: 700; color: #1B3B2B; text-transform: uppercase; margin-bottom: 0.4rem;">Upload Transfer Receipt (Mandatory)</label>
                 <input type="file" name="receipt_image" accept="image/*" required style="width: 100%; padding: 0.5rem; border-radius: 8px; border: 1.5px solid rgba(201,162,39,0.3); background: #FFF; font-size: 0.85rem;">
             </div>
-            
-            <button type="submit" class="btn-copy" style="width: 100%; padding: 0.85rem; background: linear-gradient(135deg, #245C3F 0%, #14301F 100%); color: #C9A227; font-weight: 800; border-radius: 8px; border: 1px solid rgba(201,162,39,0.3); margin-top: 0.75rem;">
+
+            <!-- Manual submit (Transfer only) -->
+            <button type="submit" id="manualSubmitBtn" class="btn-copy" style="width: 100%; padding: 0.85rem; background: linear-gradient(135deg, #245C3F 0%, #14301F 100%); color: #C9A227; font-weight: 800; border-radius: 8px; border: 1px solid rgba(201,162,39,0.3); margin-top: 0.75rem;">
                 Proceed to Payment
             </button>
+
+            <!-- Paystack button (Online only) — hidden by default -->
+            <button type="button" id="paystackBtn" onclick="payPledgeOnline()" style="display: none; width: 100%; padding: 0.85rem; background: linear-gradient(135deg, #E8C547 0%, #B8860B 100%); color: #14301F; font-weight: 800; border-radius: 8px; border: none; margin-top: 0.75rem; cursor: pointer;">
+                💳 Pay Securely with Paystack
+            </button>
+
             <button type="button" onclick="closeRedeemModal()" style="width: 100%; border: none; background: none; color: #6B7280; font-size: 0.85rem; font-weight: 600; cursor: pointer; padding: 0.5rem 0;">
                 Cancel
             </button>
@@ -550,33 +557,88 @@
 {% endblock %}
 
 {% block scripts %}
+<script src="https://js.paystack.co/v1/inline.js"></script>
 <script>
+let _currentPledgeId = null;
+const _currentPledgeEmail = '{{ user.email|default:user.identifier }}';
+
 function togglePaymentMethod(method) {
-    const receiptField = document.getElementById('receipt-upload-field');
-    const receiptInput = receiptField.querySelector('input[name="receipt_image"]');
+    const receiptField  = document.getElementById('receipt-upload-field');
+    const receiptInput  = receiptField.querySelector('input[name="receipt_image"]');
+    const manualBtn     = document.getElementById('manualSubmitBtn');
+    const paystackBtn   = document.getElementById('paystackBtn');
+
     if (method === 'Transfer') {
         receiptField.style.display = 'block';
         receiptInput.required = true;
+        manualBtn.style.display = 'block';
+        paystackBtn.style.display = 'none';
     } else {
         receiptField.style.display = 'none';
         receiptInput.required = false;
+        manualBtn.style.display = 'none';
+        paystackBtn.style.display = 'block';
     }
 }
 
 function openRedeemModal(pledgeId, maxAmount, category) {
+    _currentPledgeId = pledgeId;
     document.getElementById('redeem_pledge_id').value = pledgeId;
     document.getElementById('redeem_amount').value = maxAmount;
     document.getElementById('redeemSubtitle').textContent = "Payment towards: " + category;
-    
     const manualRadio = document.querySelector('input[name="method"][value="Transfer"]');
     if (manualRadio) manualRadio.checked = true;
     togglePaymentMethod('Transfer');
-    
     document.getElementById('redeemModal').style.display = 'flex';
 }
+
 function closeRedeemModal() {
     document.getElementById('redeemModal').style.display = 'none';
 }
+
+function payPledgeOnline() {
+    const amount = parseFloat(document.getElementById('redeem_amount').value);
+    if (!_currentPledgeId || !amount || amount <= 0) {
+        alert('Please enter a valid amount first.');
+        return;
+    }
+    const handler = PaystackPop.setup({
+        key: '{{ paystack_public_key }}',
+        email: _currentPledgeEmail || 'member@cyon.ng',
+        amount: Math.round(amount * 100),
+        currency: 'NGN',
+        channels: ['card', 'bank', 'ussd', 'transfer', 'mobile_money', 'qr', 'bank_transfer'],
+        ref: 'PLEDGE_' + _currentPledgeId + '_' + Date.now(),
+        metadata: { pledge_id: _currentPledgeId, source: 'pledge_redemption' },
+        onSuccess: function(transaction) {
+            const formData = new FormData();
+            formData.append('reference', transaction.reference);
+            formData.append('pledge_id', _currentPledgeId);
+            fetch('{% url "dashboard:redeem_pledge_online" %}', {
+                method: 'POST',
+                headers: { 'X-CSRFToken': '{{ csrf_token }}' },
+                body: formData
+            })
+            .then(r => r.json())
+            .then(data => {
+                closeRedeemModal();
+                if (data.success) {
+                    alert(data.message);
+                    window.location.reload();
+                } else {
+                    alert('Payment received but recording failed: ' + (data.error || 'Unknown') +
+                          '\nSave this reference: ' + transaction.reference);
+                }
+            })
+            .catch(() => {
+                alert('Payment received but server unreachable.\nSave this reference: ' + transaction.reference);
+            });
+        },
+        onCancel: function() {}
+    });
+    handler.openIframe();
+}
+
 function copyLink() {
     const input = document.getElementById('ref-link');
     const btn = document.getElementById('copy-btn');

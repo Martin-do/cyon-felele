@@ -1,181 +1,335 @@
 {% extends "base.html" %}
+{% load humanize %}
 
-{% block title %}My Pledges & Bills | CYON Harvest 2026{% endblock %}
+{% block title %}My Pledges & Dues | CYON Harvest 2026{% endblock %}
+
+{% block head %}
+<style>
+    .pledge-card {
+        background: rgba(27, 67, 50, 0.45);
+        border: 1px solid rgba(201, 162, 39, 0.2);
+        border-radius: 16px;
+        padding: 1.25rem;
+        margin-bottom: 0.85rem;
+        transition: border-color 0.2s;
+    }
+    .pledge-card.outstanding {
+        border-color: rgba(201, 162, 39, 0.5);
+    }
+    .pledge-card:hover {
+        border-color: rgba(201, 162, 39, 0.4);
+    }
+    .stat-pill {
+        flex: 1;
+        text-align: center;
+        background: rgba(20, 48, 31, 0.5);
+        border-radius: 10px;
+        padding: 0.5rem 0.25rem;
+    }
+    .stat-pill .label {
+        font-size: 0.62rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        color: #A8C5B5;
+        margin-bottom: 0.2rem;
+    }
+    .stat-pill .value {
+        font-size: 0.9rem;
+        font-weight: 800;
+        font-family: 'Poppins', sans-serif;
+        color: #FAF6EC;
+    }
+    .stat-pill .value.danger { color: #f87171; }
+    .stat-pill .value.success { color: #6ee7b7; }
+    .badge {
+        display: inline-block;
+        font-size: 0.65rem;
+        font-weight: 700;
+        padding: 0.15rem 0.5rem;
+        border-radius: 999px;
+        margin-left: 0.4rem;
+    }
+    .badge-pending {
+        background: rgba(201, 162, 39, 0.15);
+        color: #C9A227;
+        border: 1px solid rgba(201, 162, 39, 0.3);
+    }
+    .badge-official {
+        background: rgba(46, 125, 79, 0.15);
+        color: #6ee7b7;
+        border: 1px solid rgba(46, 125, 79, 0.3);
+    }
+    .payment-method-label { flex: 1; cursor: pointer; }
+    .payment-method-label input[type="radio"] { display: none; }
+    .payment-method-box {
+        text-align: center;
+        padding: 0.6rem;
+        background: rgba(20, 48, 31, 0.7);
+        border: 1.5px solid rgba(201, 162, 39, 0.2);
+        border-radius: 8px;
+        font-size: 0.8rem;
+        font-weight: 700;
+        color: rgba(250, 246, 236, 0.6);
+        transition: all 0.2s;
+    }
+    .payment-method-label input[type="radio"]:checked + .payment-method-box {
+        border-color: #C9A227;
+        background: rgba(201, 162, 39, 0.12);
+        color: #C9A227;
+    }
+</style>
+{% endblock %}
 
 {% block content %}
-<div class="max-w-[1000px] mx-auto w-full flex flex-col gap-6">
-    
+<div style="width: 100%; max-width: 600px; margin: 0 auto; display: flex; flex-direction: column; gap: 1.25rem;">
+
     <!-- Header -->
-    <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 bg-emerald-950/30 border border-amber-500/15 p-4 sm:p-6 rounded-2xl backdrop-blur-md animate-fade-in-up stagger-1">
-        <div class="text-left">
-            <h1 class="text-xl sm:text-2xl md:text-3xl font-extrabold text-amber-100 tracking-tight mb-1">My Pledges & Dues</h1>
-            <p class="text-xs sm:text-sm text-amber-200/70 font-medium">Manage and redeem your promises and levies.</p>
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+        <div>
+            <h2 style="font-size: 1.4rem; margin-bottom: 0.15rem;">📜 My Pledges & Dues</h2>
+            <p style="font-size: 0.8rem; color: #A8C5B5; margin: 0;">Manage and redeem your promises and levies.</p>
         </div>
-        <a href="{% url 'dashboard:member_hub' %}" class="inline-flex items-center justify-center px-4 py-2 bg-emerald-800/50 hover:bg-emerald-700 text-amber-100 font-semibold rounded-lg border border-amber-500/20 transition text-sm">
+        <a href="{% url 'dashboard:member_hub' %}"
+           style="font-size: 0.78rem; font-weight: 700; color: #C9A227; text-decoration: none; padding: 0.45rem 1rem; border: 1px solid rgba(201,162,39,0.3); border-radius: 8px; white-space: nowrap;">
             ← Back to Hub
         </a>
     </div>
 
     {% if messages %}
-    <div class="bg-emerald-900/40 border border-emerald-500/30 p-3 rounded-xl">
+    <div style="background: rgba(46,125,79,0.15); border: 1px solid rgba(46,125,79,0.3); border-radius: 12px; padding: 0.85rem 1rem;">
         {% for message in messages %}
-        <p class="text-sm text-emerald-300">{{ message }}</p>
+        <p style="font-size: 0.85rem; color: #6ee7b7; margin: 0;">{{ message }}</p>
         {% endfor %}
     </div>
     {% endif %}
 
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <!-- Pledges List -->
-        <div class="md:col-span-2 flex flex-col gap-4">
-            {% for pledge in my_pledges %}
-            <div class="bg-emerald-950/40 border {% if pledge.balance > 0 and pledge.status == 'approved' %}border-amber-500/40{% else %}border-emerald-500/20{% endif %} p-5 rounded-2xl backdrop-blur-md shadow-lg flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 transition hover:border-amber-400">
-                <div class="text-left">
-                    <div class="flex items-center gap-2 mb-1">
-                        <span class="text-sm font-bold text-amber-100 uppercase tracking-wide">{{ pledge.inflow_category.name|default:"General" }}</span>
-                        {% if pledge.status == 'pending' %}
-                        <span class="bg-amber-500/20 text-amber-300 text-[10px] px-2 py-0.5 rounded border border-amber-500/30">Pending Approval</span>
-                        {% elif pledge.status == 'approved' %}
-                        <span class="bg-emerald-500/20 text-emerald-300 text-[10px] px-2 py-0.5 rounded border border-emerald-500/30">Official</span>
-                        {% endif %}
+    <!-- Pledges List -->
+    {% for pledge in my_pledges %}
+    <div class="pledge-card {% if pledge.balance > 0 and pledge.status == 'approved' %}outstanding{% endif %}">
+        <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 1rem;">
+            <div style="flex: 1; min-width: 0;">
+                <div style="display: flex; align-items: center; flex-wrap: wrap; gap: 0.25rem; margin-bottom: 0.25rem;">
+                    <span style="font-size: 0.85rem; font-weight: 800; color: #FAF6EC; text-transform: uppercase; letter-spacing: 0.3px;">
+                        {{ pledge.inflow_category.name|default:"General" }}
+                    </span>
+                    {% if pledge.status == 'pending' %}
+                    <span class="badge badge-pending">Pending Approval</span>
+                    {% elif pledge.status == 'approved' %}
+                    <span class="badge badge-official">Official</span>
+                    {% elif pledge.status == 'fulfilled' %}
+                    <span class="badge badge-official">Completed ✓</span>
+                    {% endif %}
+                </div>
+                <p style="font-size: 0.7rem; color: #A8C5B5; margin: 0 0 0.85rem 0;">
+                    Recorded on {{ pledge.timestamp|date:"M d, Y" }}
+                </p>
+
+                <!-- Stats row -->
+                <div style="display: flex; gap: 0.5rem;">
+                    <div class="stat-pill">
+                        <div class="label">Pledged</div>
+                        <div class="value">₦{{ pledge.amount_pledged|floatformat:0|intcomma }}</div>
                     </div>
-                    <p class="text-xs text-amber-200/60 mb-2">Recorded on {{ pledge.timestamp|date:"M d, Y" }}</p>
-                    
-                    <div class="grid grid-cols-3 gap-4 mt-3">
-                        <div>
-                            <p class="text-[10px] text-amber-200/50 uppercase">Billed / Pledged</p>
-                            <p class="text-sm font-mono font-bold text-amber-100">₦{{ pledge.amount_pledged }}</p>
-                        </div>
-                        <div>
-                            <p class="text-[10px] text-emerald-200/50 uppercase">Fulfilled</p>
-                            <p class="text-sm font-mono font-bold text-emerald-300">₦{{ pledge.amount_fulfilled }}</p>
-                        </div>
-                        <div>
-                            <p class="text-[10px] text-rose-200/50 uppercase">Balance</p>
-                            <p class="text-sm font-mono font-bold {% if pledge.balance > 0 %}text-rose-400{% else %}text-emerald-400{% endif %}">₦{{ pledge.balance }}</p>
+                    <div class="stat-pill">
+                        <div class="label">Fulfilled</div>
+                        <div class="value success">₦{{ pledge.amount_fulfilled|floatformat:0|intcomma }}</div>
+                    </div>
+                    <div class="stat-pill">
+                        <div class="label">Balance</div>
+                        <div class="value {% if pledge.balance > 0 %}danger{% else %}success{% endif %}">
+                            ₦{{ pledge.balance|floatformat:0|intcomma }}
                         </div>
                     </div>
                 </div>
-                
+            </div>
+
+            <!-- Action button -->
+            <div style="flex-shrink: 0; margin-top: 0.25rem;">
                 {% if pledge.status == 'approved' and pledge.balance > 0 %}
-                <button onclick="openRedeemModal('{{ pledge.id }}', '{{ pledge.balance }}', '{{ pledge.inflow_category.name|default:"General" }}')" class="w-full sm:w-auto bg-amber-500 hover:bg-amber-400 text-emerald-950 font-bold py-2 px-5 rounded-lg transition shadow-md whitespace-nowrap">
+                <button type="button"
+                    onclick="openRedeemModal('{{ pledge.id }}', '{{ pledge.balance }}', '{{ pledge.inflow_category.name|default:"General Pledge" }}')"
+                    style="padding: 0.5rem 1.1rem; background: linear-gradient(135deg, #C9A227 0%, #B8860B 100%); color: #14301F; font-weight: 800; font-size: 0.8rem; border: none; border-radius: 8px; cursor: pointer; white-space: nowrap;">
                     Pay Now
                 </button>
                 {% elif pledge.balance <= 0 %}
-                <span class="text-emerald-400 font-bold text-sm bg-emerald-900/30 px-3 py-1.5 rounded-lg border border-emerald-500/20 flex items-center gap-1">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
-                    Completed
+                <span style="display: flex; align-items: center; gap: 0.3rem; font-size: 0.78rem; font-weight: 700; color: #6ee7b7; background: rgba(46,125,79,0.15); padding: 0.4rem 0.75rem; border-radius: 8px; border: 1px solid rgba(46,125,79,0.25);">
+                    ✓ Done
                 </span>
                 {% endif %}
             </div>
-            {% empty %}
-            <div class="bg-emerald-950/20 border border-emerald-800/30 p-8 rounded-2xl text-center">
-                <p class="text-amber-200/60 italic text-sm">You do not have any official bills or pledges.</p>
-            </div>
-            {% endfor %}
-        </div>
-        
-        <!-- Create New Pledge -->
-        <div class="bg-emerald-900/20 border border-amber-500/20 p-5 rounded-2xl shadow-lg h-fit">
-            <h3 class="text-lg font-bold text-amber-100 border-b border-amber-500/10 pb-2 mb-4 text-left">✍️ Make a Promise</h3>
-            <p class="text-xs text-amber-200/70 text-left mb-4">Propose a free-will pledge. It will appear here as pending until confirmed by an usher or admin.</p>
-            
-            <form method="POST" action="{% url 'dashboard:create_self_pledge' %}" class="flex flex-col gap-4 text-left" onsubmit="setButtonLoading(this.querySelector('button[type=submit]'))">
-                {% csrf_token %}
-                <div>
-                    <label class="block text-amber-400 text-xs font-semibold mb-1">Amount to Pledge (₦)</label>
-                    <input type="number" name="amount" required step="0.01" class="w-full bg-emerald-950 border border-amber-500/30 rounded-lg px-3 py-2 text-amber-50 font-mono font-bold text-sm focus:outline-none focus:border-amber-400 transition" placeholder="e.g. 10000">
-                </div>
-                <div>
-                    <label class="block text-amber-400 text-xs font-semibold mb-1">Category / Purpose</label>
-                    <select name="category_id" class="w-full bg-emerald-950 border border-amber-500/30 rounded-lg px-3 py-2 text-amber-50 text-sm focus:outline-none focus:border-amber-400 transition">
-                        <option value="">-- General / Free Will --</option>
-                        {% for c in categories %}
-                        <option value="{{ c.id }}">{{ c.name }}</option>
-                        {% endfor %}
-                    </select>
-                </div>
-                <button type="submit" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-2.5 rounded-lg transition shadow-md border border-emerald-500/50 mt-2 text-sm">
-                    Submit Pledge
-                </button>
-            </form>
         </div>
     </div>
+    {% empty %}
+    <div style="background: rgba(27,67,50,0.25); border: 1px solid rgba(201,162,39,0.1); border-radius: 16px; padding: 2.5rem; text-align: center;">
+        <p style="color: #A8C5B5; font-style: italic; font-size: 0.9rem; margin: 0;">You have no pledges or dues yet.</p>
+    </div>
+    {% endfor %}
+
+    <!-- Make a New Pledge -->
+    <div class="glass-card" style="padding: 1.5rem;">
+        <h3 style="font-size: 1rem; margin-bottom: 0.3rem; color: #FAF6EC;">✍️ Make a Promise</h3>
+        <p style="font-size: 0.78rem; color: #A8C5B5; margin-bottom: 1.25rem;">Propose a free-will pledge. It will appear here as pending until confirmed by an admin.</p>
+
+        <form method="POST" action="{% url 'dashboard:create_self_pledge' %}" style="display: flex; flex-direction: column; gap: 1rem;"
+              onsubmit="setButtonLoading(this.querySelector('button[type=submit]'))">
+            {% csrf_token %}
+            <div>
+                <label>Amount to Pledge (₦)</label>
+                <input type="number" name="amount" required step="0.01" placeholder="e.g. 10000">
+            </div>
+            <div>
+                <label>Category / Purpose</label>
+                <select name="category_id">
+                    <option value="">-- General / Free Will --</option>
+                    {% for c in categories %}
+                    <option value="{{ c.id }}">{{ c.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <button type="submit" class="submit-btn" style="margin-top: 0.25rem;">
+                Submit Pledge
+            </button>
+        </form>
+    </div>
+
 </div>
 
-<!-- Redeem Pledge Modal -->
-<div id="redeemModal" class="hidden fixed inset-0 z-[100] flex items-center justify-center p-4">
-    <div class="absolute inset-0 bg-emerald-950/80 backdrop-blur-sm" onclick="document.getElementById('redeemModal').classList.add('hidden')"></div>
-    <div class="bg-emerald-900 border border-amber-500/30 rounded-2xl w-full max-w-md p-6 relative z-10 shadow-2xl animate-fade-in-up">
-        <h3 class="text-xl font-bold text-amber-100 mb-2">Redeem Pledge</h3>
-        <p class="text-sm text-amber-200/70 mb-4" id="redeemSubtitle"></p>
-        
-        <form method="POST" action="{% url 'dashboard:redeem_pledge' %}" enctype="multipart/form-data" class="flex flex-col gap-4 text-left" id="redeemForm" onsubmit="setButtonLoading(this.querySelector('button[type=submit]'))">
+<!-- Redeem Modal -->
+<div id="redeemModal" style="display: none; position: fixed; inset: 0; z-index: 1000; align-items: center; justify-content: center; padding: 1rem;">
+    <div style="position: absolute; inset: 0; background: rgba(14,35,20,0.75); backdrop-filter: blur(4px);" onclick="closeRedeemModal()"></div>
+    <div class="glass-card" style="position: relative; z-index: 10; width: 100%; max-width: 440px; padding: 1.75rem; text-align: left;">
+        <h3 style="font-size: 1.15rem; margin-bottom: 0.3rem; color: #FAF6EC;">🪙 Redeem Pledge</h3>
+        <p style="font-size: 0.8rem; color: #A8C5B5; margin-bottom: 1.25rem;" id="redeemSubtitle"></p>
+
+        <form method="POST" action="{% url 'dashboard:redeem_pledge' %}" enctype="multipart/form-data"
+              style="display: flex; flex-direction: column; gap: 1rem;"
+              id="redeemForm" onsubmit="setButtonLoading(this.querySelector('button[type=submit]'))">
             {% csrf_token %}
             <input type="hidden" name="pledge_id" id="redeem_pledge_id">
-            
+
             <div>
-                <label class="block text-amber-400 text-xs font-semibold mb-1.5">Amount to Pay Now (₦)</label>
-                <input type="number" name="amount" id="redeem_amount" required step="0.01" class="w-full bg-emerald-950 border border-amber-500/20 rounded-lg px-3 py-2 text-amber-50 text-sm focus:outline-none focus:border-amber-400 font-mono">
-                <p class="text-[10px] text-amber-200/50 mt-1">You can pay partially or in full.</p>
+                <label>Amount to Pay Now (₦)</label>
+                <input type="number" name="amount" id="redeem_amount" required step="0.01">
+                <p style="font-size: 0.7rem; color: #A8C5B5; margin-top: 0.3rem;">You can pay partially or in full.</p>
             </div>
-            
-            <div class="mt-2">
-                <label class="block text-amber-400 text-xs font-semibold mb-1.5">Payment Method</label>
-                <div class="flex gap-4">
-                    <label class="flex-1 cursor-pointer">
-                        <input type="radio" name="method" value="Transfer" checked class="peer hidden" onchange="togglePaymentMethod('Transfer')">
-                        <div class="w-full text-center py-2.5 bg-emerald-950 border border-amber-500/20 rounded-lg peer-checked:border-amber-500 peer-checked:bg-amber-500/10 text-amber-100/70 peer-checked:text-amber-300 text-sm font-semibold transition">
-                            Manual Transfer
-                        </div>
+
+            <div>
+                <label>Payment Method</label>
+                <div style="display: flex; gap: 0.75rem;">
+                    <label class="payment-method-label">
+                        <input type="radio" name="method" value="Transfer" checked onchange="togglePaymentMethod('Transfer')">
+                        <div class="payment-method-box">Manual Transfer</div>
                     </label>
-                    <label class="flex-1 cursor-pointer">
-                        <input type="radio" name="method" value="Online" class="peer hidden" onchange="togglePaymentMethod('Online')">
-                        <div class="w-full text-center py-2.5 bg-emerald-950 border border-amber-500/20 rounded-lg peer-checked:border-amber-500 peer-checked:bg-amber-500/10 text-amber-100/70 peer-checked:text-amber-300 text-sm font-semibold transition">
-                            Pay Online
-                        </div>
+                    <label class="payment-method-label">
+                        <input type="radio" name="method" value="Online" onchange="togglePaymentMethod('Online')">
+                        <div class="payment-method-box">Pay Online</div>
                     </label>
                 </div>
             </div>
 
-            <!-- Receipt Upload Field (shown only for Transfer) -->
-            <div id="receipt-upload-field" class="mt-2">
-                <label class="block text-amber-400 text-xs font-semibold mb-1.5">Upload Transfer Receipt (Mandatory)</label>
-                <input type="file" name="receipt_image" accept="image/*" required class="w-full bg-emerald-950 border border-amber-500/20 rounded-lg px-3 py-2 text-amber-50 text-sm focus:outline-none focus:border-amber-400">
+            <div id="receipt-upload-field">
+                <label>Upload Transfer Receipt (Mandatory)</label>
+                <input type="file" name="receipt_image" accept="image/*" required>
             </div>
-            
-            <button type="submit" class="w-full bg-gradient-to-r from-amber-400 to-amber-600 hover:from-amber-300 hover:to-amber-500 text-emerald-950 font-bold py-2.5 rounded-lg transition shadow-lg mt-4 shadow-amber-500/20">
+
+            <button type="submit" id="manualSubmitBtn" class="submit-btn">
                 Proceed to Payment
             </button>
-            <button type="button" onclick="document.getElementById('redeemModal').classList.add('hidden')" class="w-full text-amber-200/60 hover:text-amber-100 text-sm font-semibold py-2">
+
+            <button type="button" id="paystackBtn" onclick="payPledgeOnline()"
+                style="display: none; width: 100%; padding: 0.85rem; background: linear-gradient(135deg, #E8C547 0%, #B8860B 100%); color: #14301F; font-weight: 800; font-size: 0.95rem; border: none; border-radius: 10px; cursor: pointer;">
+                💳 Pay Securely with Paystack
+            </button>
+
+            <button type="button" onclick="closeRedeemModal()"
+                style="background: none; border: none; color: #A8C5B5; font-size: 0.82rem; font-weight: 600; cursor: pointer; padding: 0.4rem 0; text-align: center;">
                 Cancel
             </button>
         </form>
     </div>
 </div>
+{% endblock %}
 
+{% block scripts %}
+<script src="https://js.paystack.co/v1/inline.js"></script>
 <script>
-function togglePaymentMethod(method) {
-    const receiptField = document.getElementById('receipt-upload-field');
-    const receiptInput = receiptField.querySelector('input[name="receipt_image"]');
-    if (method === 'Transfer') {
-        receiptField.classList.remove('hidden');
-        receiptInput.required = true;
-    } else {
-        receiptField.classList.add('hidden');
-        receiptInput.required = false;
-    }
-}
+    let _currentPledgeId = null;
+    const _pledgeEmail = '{{ user.email|default:user.identifier }}';
 
-function openRedeemModal(pledgeId, maxAmount, category) {
-    document.getElementById('redeem_pledge_id').value = pledgeId;
-    document.getElementById('redeem_amount').value = maxAmount;
-    document.getElementById('redeemSubtitle').textContent = "Payment towards: " + category;
-    
-    const manualRadio = document.querySelector('input[name="method"][value="Transfer"]');
-    if (manualRadio) manualRadio.checked = true;
-    togglePaymentMethod('Transfer');
-    
-    document.getElementById('redeemModal').classList.remove('hidden');
-}
+    function openRedeemModal(pledgeId, maxAmount, category) {
+        _currentPledgeId = pledgeId;
+        document.getElementById('redeem_pledge_id').value = pledgeId;
+        document.getElementById('redeem_amount').value = maxAmount;
+        document.getElementById('redeemSubtitle').textContent = 'Payment towards: ' + category;
+        const manualRadio = document.querySelector('input[name="method"][value="Transfer"]');
+        if (manualRadio) manualRadio.checked = true;
+        togglePaymentMethod('Transfer');
+        document.getElementById('redeemModal').style.display = 'flex';
+    }
+
+    function closeRedeemModal() {
+        document.getElementById('redeemModal').style.display = 'none';
+    }
+
+    function togglePaymentMethod(method) {
+        const receiptField = document.getElementById('receipt-upload-field');
+        const receiptInput = receiptField.querySelector('input[name="receipt_image"]');
+        const manualBtn    = document.getElementById('manualSubmitBtn');
+        const paystackBtn  = document.getElementById('paystackBtn');
+        if (method === 'Transfer') {
+            receiptField.style.display = 'block';
+            receiptInput.required = true;
+            manualBtn.style.display = 'block';
+            paystackBtn.style.display = 'none';
+        } else {
+            receiptField.style.display = 'none';
+            receiptInput.required = false;
+            manualBtn.style.display = 'none';
+            paystackBtn.style.display = 'block';
+        }
+    }
+
+    function payPledgeOnline() {
+        const amount = parseFloat(document.getElementById('redeem_amount').value);
+        if (!_currentPledgeId || !amount || amount <= 0) {
+            alert('Please enter a valid amount first.');
+            return;
+        }
+        const handler = PaystackPop.setup({
+            key: '{{ paystack_public_key }}',
+            email: _pledgeEmail || 'member@cyon.ng',
+            amount: Math.round(amount * 100),
+            currency: 'NGN',
+            channels: ['card', 'bank'],
+            ref: 'PLEDGE_' + _currentPledgeId + '_' + Date.now(),
+            metadata: { pledge_id: _currentPledgeId, source: 'pledge_redemption' },
+            onSuccess: function(transaction) {
+                const fd = new FormData();
+                fd.append('reference', transaction.reference);
+                fd.append('pledge_id', _currentPledgeId);
+                fetch('{% url "dashboard:redeem_pledge_online" %}', {
+                    method: 'POST',
+                    headers: { 'X-CSRFToken': '{{ csrf_token }}' },
+                    body: fd
+                })
+                .then(r => r.json())
+                .then(data => {
+                    closeRedeemModal();
+                    if (data.success) {
+                        alert(data.message);
+                        window.location.reload();
+                    } else {
+                        alert('Payment received but recording failed: ' + (data.error || 'Unknown') + '\nRef: ' + transaction.reference);
+                    }
+                })
+                .catch(() => {
+                    alert('Payment received but server unreachable.\nSave this ref: ' + transaction.reference);
+                });
+            },
+            onCancel: function() {}
+        });
+        handler.openIframe();
+    }
 </script>
 {% endblock %}

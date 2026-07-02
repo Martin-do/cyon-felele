@@ -687,16 +687,35 @@
     <script>
         if ('serviceWorker' in navigator && 'PushManager' in window) {
             window.addEventListener('load', function() {
-                navigator.serviceWorker.register('/sw.js').then(function(registration) {
-                    console.log('ServiceWorker registration successful with scope: ', registration.scope);
-                    
-                    const vapidPublicKey = '{{ WEBPUSH_VAPID_PUBLIC_KEY }}';
-                    if (vapidPublicKey) {
-                        subscribeUserToPush(registration, vapidPublicKey);
-                    }
-                }, function(err) {
-                    console.log('ServiceWorker registration failed: ', err);
-                });
+                
+                // 1. ONE-TIME RESET CHECK
+                if (!localStorage.getItem('vapid_sw_reset_complete')) {
+                    navigator.serviceWorker.getRegistrations().then(function(registrations) {
+                        for (let registration of registrations) {
+                            registration.unregister().then(function(boolean) {
+                                console.log("Old Service Worker unregistered successfully.");
+                            });
+                        }
+                        // Mark the reset as complete so it never runs again
+                        localStorage.setItem('vapid_sw_reset_complete', 'true');
+                        
+                        // Reload to fetch the clean service worker
+                        window.location.reload(); 
+                    });
+                } else {
+                    // 2. NORMAL REGISTRATION (Runs after reset)
+                    navigator.serviceWorker.register('/sw.js').then(function(registration) {
+                        console.log('ServiceWorker registration successful with scope: ', registration.scope);
+                        
+                        const vapidPublicKey = '{{ WEBPUSH_VAPID_PUBLIC_KEY }}';
+                        if (vapidPublicKey) {
+                            subscribeUserToPush(registration, vapidPublicKey);
+                        }
+                    }, function(err) {
+                        console.log('ServiceWorker registration failed: ', err);
+                    });
+                }
+                
             });
         }
 
@@ -752,6 +771,7 @@
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
+                    'X-CSRFToken': document.cookie.match(/csrftoken=([^;]+)/)?.[1] || ''
                 },
                 body: JSON.stringify(payload)
             })
