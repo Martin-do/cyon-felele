@@ -1,4 +1,4 @@
-const CACHE_NAME = 'cyon-harvest-v1';
+const CACHE_NAME = 'cyon-harvest-v2';
 const urlsToCache = [
   '/',
   '/static/css/index.css',
@@ -36,7 +36,10 @@ self.addEventListener('push', function(event) {
             body: data.body || 'You have a new update.',
             icon: '/static/images/brand/church-seal.png',
             badge: '/static/images/brand/church-seal.png',
-            vibrate: [200, 100, 200]
+            vibrate: [200, 100, 200],
+            data: {
+                url: data.url || (data.data && data.data.url) || '/'
+            }
         };
         
         event.waitUntil(

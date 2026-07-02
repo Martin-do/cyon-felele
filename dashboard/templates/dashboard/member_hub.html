@@ -281,7 +281,7 @@
                 <p style="font-size: 0.7rem; color: #6B7280; margin: 2px 0 0 0;">Click to view detailed breakdown</p>
             </div>
             <div style="text-align: right;">
-                <span style="font-size: 1.4rem; font-weight: 800; color: #C9A227; font-family: 'Poppins', sans-serif;">{{ global_progress }}%</span>
+                <span style="font-size: 1.4rem; font-weight: 800; color: #C9A227; font-family: 'Poppins', sans-serif;">{{ global_progress|floatformat:2 }}%</span>
                 <span style="display: block; font-size: 0.65rem; color: #6B7280; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;">Goal: ₦5,000,000</span>
             </div>
         </div>
@@ -313,7 +313,7 @@
                         <span style="font-size: 0.7rem; font-weight: 700; color: #4B6B57; text-transform: uppercase; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; letter-spacing: 0.5px;" title="{{ cat.name }}">{{ cat.name }}</span>
                     </div>
                     <div style="font-size: 1.15rem; font-weight: 800; color: #1B3B2B; font-family: 'Poppins', sans-serif;">₦{{ cat.amount|floatformat:0|intcomma }}</div>
-                    <div style="font-size: 0.65rem; color: #6B7280; margin-top: 2px; font-weight: 600;">{{ cat.percent|floatformat:1 }}% of goal</div>
+                    <div style="font-size: 0.65rem; color: #6B7280; margin-top: 2px; font-weight: 600;">{{ cat.percent|floatformat:2 }}% of goal</div>
                 </div>
                 {% empty %}
                 <div style="grid-column: 1 / -1; text-align: center; font-size: 0.9rem; color: #6B7280; padding: 1rem;">No categories available.</div>

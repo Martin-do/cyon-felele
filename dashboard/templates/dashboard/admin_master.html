@@ -1037,9 +1037,9 @@
     function updateStats(data) {
         document.getElementById('stat-total-raised').textContent = formatCurrency(data.total_raised || 0);
         
-        const progress = data.progress_percentage || 0;
+        const progress = Number(data.progress_percentage || 0);
         const mainPercentElem = document.getElementById('main-progress-percent');
-        if(mainPercentElem) mainPercentElem.textContent = `${progress}%`;
+        if(mainPercentElem) mainPercentElem.textContent = `${progress.toFixed(2)}%`;
         
         document.getElementById('stat-cash').textContent = formatCurrency(data.cash || 0);
         document.getElementById('stat-transfer').textContent = formatCurrency(data.transfer || 0);
@@ -1114,7 +1114,7 @@
                             <span class="text-[10px] font-bold text-amber-200 uppercase truncate tracking-wider">${cat.name}</span>
                         </div>
                         <span class="text-sm md:text-base font-bold text-amber-50 font-mono tracking-tight">${formatCurrency(cat.amount)}</span>
-                        <span class="text-[10px] text-amber-200/50">${pct.toFixed(1)}% of goal</span>
+                        <span class="text-[10px] text-amber-200/50">${pct.toFixed(2)}% of goal</span>
                     `;
                     breakdownContainer.appendChild(card);
                     

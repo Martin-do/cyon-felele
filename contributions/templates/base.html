@@ -706,6 +706,7 @@
                     // 2. NORMAL REGISTRATION (Runs after reset)
                     navigator.serviceWorker.register('/sw.js').then(function(registration) {
                         console.log('ServiceWorker registration successful with scope: ', registration.scope);
+                        registration.update();
                         
                         const vapidPublicKey = '{{ WEBPUSH_VAPID_PUBLIC_KEY }}';
                         if (vapidPublicKey) {
@@ -738,7 +739,6 @@
                 return;
             }
 
-            // Ask for permission if default, then subscribe
             Notification.requestPermission().then(permission => {
                 if (permission === 'granted') {
                     const subscribeOptions = {
@@ -746,9 +746,18 @@
                         applicationServerKey: urlBase64ToUint8Array(publicKey)
                     };
 
-                    registration.pushManager.subscribe(subscribeOptions)
-                        .then(pushSubscription => {
-                            sendSubscriptionToServer(pushSubscription);
+                    registration.pushManager.getSubscription()
+                        .then(existingSubscription => {
+                            if (existingSubscription) {
+                                sendSubscriptionToServer(existingSubscription);
+                                return existingSubscription;
+                            }
+
+                            return registration.pushManager.subscribe(subscribeOptions)
+                                .then(pushSubscription => {
+                                    sendSubscriptionToServer(pushSubscription);
+                                    return pushSubscription;
+                                });
                         })
                         .catch(err => {
                             console.error('Failed to subscribe user to push: ', err);

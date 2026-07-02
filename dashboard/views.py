@@ -55,9 +55,7 @@ def member_hub_view(request):
     # Global Campaign Progress for Progress Bar
     all_approved = Contribution.objects.filter(is_voided=False, status='approved')
     total_campaign_raised = all_approved.aggregate(Sum('amount'))['amount__sum'] or 0.00
-    global_progress = min(round((float(total_campaign_raised) / 5000000.0) * 100, 1), 100)
-    if total_campaign_raised > 0 and global_progress < 1:
-        global_progress = 1  # Show at least 1% when there are contributions
+    global_progress = min(round((float(total_campaign_raised) / 5000000.0) * 100, 2), 100)
 
     category_stats = []
     colors = ['#3b82f6', '#f43f5e', '#a855f7', '#6366f1', '#14b8a6']
@@ -78,7 +76,7 @@ def member_hub_view(request):
         category_stats.append({
             'name': cat.name,
             'amount': float(cat_total),
-            'percent': (float(cat_total) / 5000000.0) * 100,
+            'percent': round((float(cat_total) / 5000000.0) * 100, 2),
             'color': assigned_color
         })
     
@@ -960,9 +958,7 @@ def master_dashboard_view(request):
     total_amount = cash_total + transfer_total + paystack_total + pledge_total
 
     target_amount = 5000000
-    progress_percentage = min(round((total_amount / target_amount) * 100, 1), 100) if total_amount else 0
-    if total_amount > 0 and progress_percentage < 1:
-        progress_percentage = 1  # Show at least 1% when there are contributions
+    progress_percentage = min(round((total_amount / target_amount) * 100, 2), 100) if total_amount else 0
 
     categories = InflowCategory.objects.all()
     members = Member.objects.filter(is_active=True).order_by('name')
@@ -1282,7 +1278,7 @@ class AdminTransactionListAPIView(APIView):
         total_raised = cash + transfer + paystack + pledges
 
         target = 5000000
-        progress_percentage = min(int((total_raised / target) * 100), 100) if total_raised > 0 else 0
+        progress_percentage = min(round((total_raised / target) * 100, 2), 100) if total_raised > 0 else 0
 
         # Fetch all active categories and sum amounts (approved-only, same as headline stats)
         category_stats = {}
@@ -1823,8 +1819,6 @@ def admin_update_member_flyer_view(request, pk):
         messages.success(request, f"Flyer configuration and lock status for {member.name} updated successfully.")
         
     return redirect('dashboard:master_dashboard')
-
-
 
 
 

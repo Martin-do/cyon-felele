@@ -303,12 +303,12 @@
         <div
             style="display: flex; justify-content: space-between; font-size: 0.85rem; color: #A8B8AD; margin-bottom: 0.4rem;">
             <span>Raised: ₦{{ total_amount|intcomma }} of ₦{{ target_amount|intcomma }}</span>
-            <span style="color: #E8C547; font-weight: 700;">{{ progress_percentage }}%</span>
+            <span style="color: #E8C547; font-weight: 700;">{{ progress_percentage|floatformat:2 }}%</span>
         </div>
         <div
             style="height: 10px; background: rgba(0,0,0,0.3); border-radius: 10px; overflow: hidden; border: 1px solid rgba(255,255,255,0.1);">
             <div
-                style="height: 100%; width: {{ progress_percentage }}%; background: linear-gradient(90deg, #E8C547 0%, #B8860B 100%); transition: width 1s ease-in-out;">
+                style="height: 100%; width: {{ progress_bar_percentage }}%; background: linear-gradient(90deg, #E8C547 0%, #B8860B 100%); transition: width 1s ease-in-out;">
             </div>
         </div>
     </div>

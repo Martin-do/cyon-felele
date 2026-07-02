@@ -27,7 +27,7 @@ def landing_page_view(request):
     total = Contribution.objects.filter(is_voided=False).aggregate(Sum('amount'))['amount__sum'] or 0
     count = Contribution.objects.filter(is_voided=False).count()
     target = 5000000
-    progress = min(int((float(total) / target) * 100), 100) if total else 0
+    progress = min(round((float(total) / target) * 100, 2), 100) if total else 0
     return render(request, 'contributions/landing.html', {
         'total_harvest': total,
         'contributor_count': count,
@@ -119,7 +119,10 @@ def donation_form_view(request, referral_slug=None):
 
         # Set a target amount for progress bars
         target_amount = 5000000 
-        progress_percentage = min(int((total_amount / target_amount) * 100), 100)
+        progress_percentage = min(round((float(total_amount) / target_amount) * 100, 2), 100) if total_amount else 0
+        progress_bar_percentage = progress_percentage
+        if total_amount > 0 and progress_bar_percentage < 1:
+            progress_bar_percentage = 1
 
         # Dynamically point to the public flyer endpoint so it generates on-demand for crawlers
         from django.urls import reverse
@@ -155,6 +158,7 @@ def donation_form_view(request, referral_slug=None):
             'total_amount': total_amount,
             'top_3': top_3,
             'progress_percentage': progress_percentage,
+            'progress_bar_percentage': progress_bar_percentage,
             'target_amount': target_amount,
             'paystack_public_key': settings.PAYSTACK_PUBLIC_KEY,
             'og_image_url': og_image_url,
