@@ -233,6 +233,11 @@
             <span class="text-[10px] font-bold tracking-wider text-amber-400/90 uppercase">Pledges</span>
             <span id="stat-pledges" class="text-lg md:text-xl font-bold text-amber-50 font-mono mt-1">₦0.00</span>
         </div>
+        <!-- Pledge Redemptions -->
+        <div class="bg-emerald-950/40 backdrop-blur-md border border-amber-500/15 rounded-xl p-4 flex flex-col justify-between hover:border-amber-500/35 hover:scale-[1.02] transition-all duration-300 shadow-lg">
+            <span class="text-[10px] font-bold tracking-wider text-amber-400/90 uppercase">Pledge Redemptions</span>
+            <span id="stat-pledge-redemptions" class="text-lg md:text-xl font-bold text-amber-50 font-mono mt-1">₦0.00</span>
+        </div>
 
         <!-- Dynamic Category Cards -->
         {% for cat in categories %}
@@ -1039,6 +1044,7 @@
         document.getElementById('stat-cash').textContent = formatCurrency(data.cash || 0);
         document.getElementById('stat-transfer').textContent = formatCurrency(data.transfer || 0);
         document.getElementById('stat-pledges').textContent = formatCurrency(data.pledges || 0);
+        document.getElementById('stat-pledge-redemptions').textContent = formatCurrency(data.pledge_redemptions || 0);
         document.getElementById('stat-online-payment').textContent = formatCurrency(data.paystack || 0);
 
         // Update Inflow Category Stats dynamically
