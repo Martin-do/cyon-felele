@@ -1,4 +1,4 @@
-from numpy._core.defchararray import title
+
 import qrcode
 from io import BytesIO
 from django.core.files.base import ContentFile
@@ -13,7 +13,7 @@ from django.http import HttpResponse
 
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from rest_framework.permissions import IsAuthenticated, IsAdminUser
+
 from rest_framework.pagination import PageNumberPagination
 from rest_framework import status
 from asgiref.sync import async_to_sync
@@ -24,6 +24,14 @@ from collections import OrderedDict
 from contributions.serializers import ContributionSerializer
 
 from decimal import Decimal
+
+from rest_framework.permissions import IsAuthenticated, IsAdminUser, BasePermission
+
+class IsApproverOrAdmin(BasePermission):
+    def has_permission(self, request, view):
+        return request.user.is_authenticated and (
+            request.user.is_admin_user or request.user.is_approver
+        )
 
 @login_required(login_url='/accounts/login/')
 def member_hub_view(request):
@@ -1192,7 +1200,7 @@ class AdminTransactionPagination(PageNumberPagination):
 
 
 class AdminTransactionListAPIView(APIView):
-    permission_classes = [IsAuthenticated, IsAdminUser]
+    permission_classes = [IsApproverOrAdmin]
 
     def get(self, request, *args, **kwargs):
         from contributions.models import InflowCategory, Pledge
@@ -1311,7 +1319,7 @@ class AdminTransactionListAPIView(APIView):
 
 
 class ContributionActionAPIView(APIView):
-    permission_classes = [IsAuthenticated, IsAdminUser]
+    permission_classes = [IsApproverOrAdmin]
 
     def post(self, request, pk, *args, **kwargs):
         contribution = get_object_or_404(Contribution, pk=pk)
@@ -1365,7 +1373,7 @@ class ContributionActionAPIView(APIView):
 
 
 class RequeryPaystackTransactionView(APIView):
-    permission_classes = [IsAuthenticated, IsAdminUser]
+    permission_classes = [IsApproverOrAdmin]
 
     def post(self, request, pk, *args, **kwargs):
         contribution = get_object_or_404(Contribution, pk=pk)

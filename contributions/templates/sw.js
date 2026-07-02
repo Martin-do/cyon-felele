@@ -1,4 +1,4 @@
-const CACHE_NAME = 'cyon-harvest-v1';
+const CACHE_NAME = 'cyon-harvest-v2';
 const urlsToCache = [
   '/',
   '/static/images/brand/cyon-logo.png',
@@ -6,6 +6,8 @@ const urlsToCache = [
 ];
 
 self.addEventListener('install', event => {
+  // Don't wait for old tabs to close before activating this version.
+  self.skipWaiting();
   event.waitUntil(
     caches.open(CACHE_NAME)
       .then(cache => {
@@ -13,6 +15,24 @@ self.addEventListener('install', event => {
       })
   );
 });
+
+self.addEventListener('activate', event => {
+  event.waitUntil(
+    Promise.all([
+      // Drop any caches from older service worker versions.
+      caches.keys().then(cacheNames =>
+        Promise.all(
+          cacheNames
+            .filter(name => name !== CACHE_NAME)
+            .map(name => caches.delete(name))
+        )
+      ),
+      // Take control of any already-open tabs immediately.
+      self.clients.claim()
+    ])
+  );
+});
+
 
 self.addEventListener('fetch', event => {
   event.respondWith(

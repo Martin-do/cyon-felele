@@ -7,7 +7,8 @@ from .serializers import ContributionSerializer
 
 from asgiref.sync import async_to_sync
 from channels.layers import get_channel_layer
-from django.db.models import Sum, Q
+from django.db.models import Sum, Q, DecimalField
+from django.db.models.functions import Coalesce
 
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -18,6 +19,9 @@ from django.conf import settings
 
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
+from decimal import Decimal
+
+
 
 def landing_page_view(request):
     total = Contribution.objects.filter(is_voided=False).aggregate(Sum('amount'))['amount__sum'] or 0
@@ -133,9 +137,13 @@ def donation_form_view(request, referral_slug=None):
             Member.objects
             .filter(id=referrer.id)
             .annotate(
-                total_raised=Sum(
-                    'referrals__amount',
-                    filter=Q(referrals__is_voided=False, referrals__status='approved') & ~Q(referrals__method__icontains='Pledge')
+                total_raised=Coalesce(
+                    Sum(
+                        'referrals__amount',
+                        filter=Q(referrals__is_voided=False, referrals__status='approved') & ~Q(referrals__method__icontains='Pledge')
+                    ),
+                    0,
+                    output_field=DecimalField()
                 )
             )
             .first()
@@ -150,9 +158,13 @@ def donation_form_view(request, referral_slug=None):
                 Member.objects
                 .filter(is_active=True, is_staff=False, contestant_title=referrer.contestant_title)
                 .annotate(
-                    total_raised=Sum(
-                        'referrals__amount',
-                        filter=Q(referrals__is_voided=False, referrals__status='approved') & ~Q(referrals__method__icontains='Pledge')
+                    total_raised=Coalesce(
+                        Sum(
+                            'referrals__amount',
+                            filter=Q(referrals__is_voided=False, referrals__status='approved') & ~Q(referrals__method__icontains='Pledge')
+                        ),
+                        0,
+                        output_field=DecimalField()
                     )
                 )
                 .order_by('-total_raised')
@@ -348,7 +360,7 @@ class PaystackWebhookView(APIView):
             hashlib.sha512
         ).hexdigest()
 
-        if computed_signature != signature:
+        if not hmac.compare_digest(computed_signature, signature):
             return Response({'status': 'ignored', 'reason': 'Invalid signature'}, status=400)
 
         try:
