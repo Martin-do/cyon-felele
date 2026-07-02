@@ -7,7 +7,7 @@ from .serializers import ContributionSerializer
 
 from asgiref.sync import async_to_sync
 from channels.layers import get_channel_layer
-from django.db.models import Sum, Q
+from django.db.models import Sum
 
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -94,39 +94,28 @@ def donation_form_view(request, referral_slug=None):
         if referral_slug != referrer.referral_slug:
             return redirect('contributions:referral_donation', referral_slug=referrer.referral_slug)
         
-        # Calculate leaderboard position
-        # Get all members with the same contestant title
+        # Use the same standings source as the public leaderboard so referral
+        # pages never drift from the main ranking.
+        from dashboard.views import get_leaderboard_standings_helper
+        youth_standings, children_standings = get_leaderboard_standings_helper()
+        standings = children_standings if getattr(referrer, 'age_group', 'youth') == 'children' else youth_standings
         top_3 = []
-        if referrer.contestant_title and referrer.contestant_title != 'None':
-            competitors = (
-                Member.objects
-                .filter(is_active=True, is_staff=False, contestant_title=referrer.contestant_title)
-                .annotate(
-                    total_raised=Sum(
-                        'referrals__amount',
-                        filter=Q(referrals__is_voided=False, referrals__status='approved')
-                    )
-                )
-                .order_by('-total_raised')
-            )
 
-            for index, comp in enumerate(competitors):
-                comp_total = comp.total_raised or 0.00
-                rank = index + 1
+        for index, entry in enumerate(standings):
+            rank = index + 1
+            if index < 3:
+                top_3.append({
+                    'rank': rank,
+                    'name': entry['name'],
+                    'total': entry['total'],
+                    'votes': entry['votes'],
+                    'picture_url': entry.get('avatar'),
+                    'initial': entry['name'][0].upper(),
+                })
 
-                if index < 3:
-                    top_3.append({
-                        'rank': rank,
-                        'name': comp.name,
-                        'total': comp_total,
-                        'votes': int(comp_total // 500),
-                        'picture_url': comp.profile_picture.url if comp.profile_picture else None,
-                        'initial': comp.name[0].upper(),
-                    })
-
-                if comp.id == referrer.id:
-                    leaderboard_position = rank
-                    total_amount = comp_total
+            if entry['slug'] == referrer.referral_slug:
+                leaderboard_position = rank
+                total_amount = entry['total']
 
         # Set a target amount for progress bars
         target_amount = 5000000 
