@@ -1,5 +1,5 @@
 from rest_framework import generics
-from django.shortcuts import render, get_object_or_404
+from django.shortcuts import render, get_object_or_404, redirect
 import uuid
 from .models import Contribution
 from accounts.models import Member
@@ -89,7 +89,10 @@ def donation_form_view(request, referral_slug=None):
     total_amount = 0
     
     if referral_slug:
-        referrer = get_object_or_404(Member, referral_slug=referral_slug)
+        referral_slug = referral_slug.strip().strip('/')
+        referrer = get_object_or_404(Member, referral_slug__iexact=referral_slug)
+        if referral_slug != referrer.referral_slug:
+            return redirect('contributions:referral_donation', referral_slug=referrer.referral_slug)
         
         # Calculate leaderboard position
         # Get all members with the same contestant title
