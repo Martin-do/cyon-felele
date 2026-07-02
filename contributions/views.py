@@ -16,6 +16,13 @@ from rest_framework import status
 import requests
 from django.conf import settings
 
+import hmac
+import hashlib
+from django.http import HttpResponse
+from django.views.decorators.csrf import csrf_exempt
+from django.utils.decorators import method_decorator
+from django.core.exceptions import ValidationError
+
 def landing_page_view(request):
     total = Contribution.objects.filter(is_voided=False).aggregate(Sum('amount'))['amount__sum'] or 0
     count = Contribution.objects.filter(is_voided=False).count()
@@ -263,3 +270,97 @@ class VerifyPaystackPaymentView(APIView):
             
         else:
             return Response({'error': 'Payment verification failed at Paystack'}, status=status.HTTP_400_BAD_REQUEST)
+
+
+@method_decorator(csrf_exempt, name='dispatch')
+class PaystackWebhookView(APIView):
+    """
+    Server-to-server webhook so a contribution still gets recorded even if the
+    donor closes their browser before the frontend's VerifyPaystackPaymentView
+    call completes. Uses the same idempotency_key=reference pattern, so this
+    is safe to run alongside that view without creating duplicates.
+    """
+    permission_classes = [AllowAny]
+
+    def post(self, request, *args, **kwargs):
+        # Verify the request genuinely came from Paystack before trusting it
+        paystack_signature = request.headers.get('X-Paystack-Signature', '')
+        computed_signature = hmac.new(
+            settings.PAYSTACK_SECRET_KEY.encode('utf-8'),
+            request.body,
+            hashlib.sha512
+        ).hexdigest()
+
+        if not paystack_signature or not hmac.compare_digest(computed_signature, paystack_signature):
+            return HttpResponse(status=401)
+
+        event = request.data
+        event_type = event.get('event')
+
+        if event_type == 'charge.success':
+            data = event.get('data', {}) or {}
+            reference = data.get('reference')
+
+            if reference:
+                amount = (data.get('amount', 0) - data.get('fees', 0) or data.get('amount', 0)) / 100.0
+
+                metadata = data.get('metadata') or {}
+                name = metadata.get('name') or 'Anonymous Paystack User'
+                phone = metadata.get('phone')
+                referred_by_id = metadata.get('referred_by')
+                is_anonymous = metadata.get('is_anonymous') in ('true', True)
+
+                referrer = None
+                if referred_by_id:
+                    try:
+                        referrer = Member.objects.get(id=referred_by_id)
+                    except (Member.DoesNotExist, ValueError):
+                        pass
+
+                try:
+                    contribution, created = Contribution.objects.get_or_create(
+                        idempotency_key=reference,
+                        defaults={
+                            'name': name,
+                            'phone': phone,
+                            'amount': amount,
+                            'method': 'Online',
+                            'source': 'guest_form',
+                            'referred_by': referrer,
+                            'is_anonymous': is_anonymous,
+                            'status': 'approved'
+                        }
+                    )
+                except (ValueError, ValidationError):
+                    # reference wasn't a valid UUID for idempotency_key - nothing more we can do
+                    contribution, created = None, False
+
+                if created and contribution:
+                    try:
+                        channel_layer = get_channel_layer()
+                        total = Contribution.objects.filter(is_voided=False).aggregate(Sum('amount'))['amount__sum'] or 0.00
+                        display_name = 'Anonymous' if contribution.is_anonymous else contribution.name
+
+                        ws_data = {
+                            'id': str(contribution.id),
+                            'name': display_name,
+                            'amount': str(contribution.amount),
+                            'source': contribution.source,
+                            'timestamp': contribution.timestamp.isoformat(),
+                            'total_harvest': str(total)
+                        }
+
+                        if channel_layer:
+                            async_to_sync(channel_layer.group_send)(
+                                'live_board',
+                                {
+                                    'type': 'new_contribution',
+                                    'data': ws_data
+                                }
+                            )
+                    except Exception:
+                        # Don't fail the webhook ack if the websocket push fails
+                        pass
+
+        # Always ack with 200 so Paystack doesn't keep retrying, even for events we don't act on
+        return HttpResponse(status=200)
